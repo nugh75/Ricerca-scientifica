@@ -2193,12 +2193,23 @@ from ..dedup import merge_results
 
 router = APIRouter(prefix="/search", tags=["search"])
 
+
+def _get_key_or_none(name: str) -> str | None:
+    """Look up a stored API key, treating an unavailable keyring as "no key set"
+    rather than failing the search. Sources work without a key, just possibly
+    with tighter rate limits."""
+    try:
+        return keys.get_key(name)
+    except keys.KeyringUnavailableError:
+        return None
+
+
 SOURCE_FUNCS = {
-    "openalex": lambda q: openalex.search(q, mailto=keys.get_key("openalex_mailto")),
+    "openalex": lambda q: openalex.search(q, mailto=_get_key_or_none("openalex_mailto")),
     "semantic_scholar": lambda q: semantic_scholar.search(
-        q, api_key=keys.get_key("semantic_scholar_key")
+        q, api_key=_get_key_or_none("semantic_scholar_key")
     ),
-    "crossref": lambda q: crossref.search(q, mailto=keys.get_key("crossref_mailto")),
+    "crossref": lambda q: crossref.search(q, mailto=_get_key_or_none("crossref_mailto")),
     "doaj": lambda q: doaj.search(q),
 }
 
