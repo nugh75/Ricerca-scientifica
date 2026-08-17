@@ -77,7 +77,12 @@ def download_pdf(article_id: int, conn=Depends(db_module.get_db)):
     except pdf_utils.PdfDownloadError as e:
         raise HTTPException(status_code=502, detail=str(e)) from e
 
-    text = pdf_utils.extract_text(dest)
+    try:
+        text = pdf_utils.extract_text(dest)
+    except Exception as e:
+        raise HTTPException(
+            status_code=502, detail=f"failed to extract text from downloaded PDF: {e}"
+        ) from e
     ok = pdf_utils.has_extractable_text(text)
     conn.execute(
         "UPDATE articles SET pdf_path = ?, extracted_text_ok = ? WHERE id = ?",
@@ -97,9 +102,16 @@ def upload_pdf(article_id: int, file: UploadFile, conn=Depends(db_module.get_db)
     dest = PDF_DIR / f"{article_id}.pdf"
     dest.parent.mkdir(parents=True, exist_ok=True)
     content = file.file.read()
+    if not content.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="uploaded file is not a PDF")
     dest.write_bytes(content)
 
-    text = pdf_utils.extract_text(dest)
+    try:
+        text = pdf_utils.extract_text(dest)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"failed to extract text from uploaded PDF: {e}"
+        ) from e
     ok = pdf_utils.has_extractable_text(text)
     conn.execute(
         "UPDATE articles SET pdf_path = ?, extracted_text_ok = ? WHERE id = ?",

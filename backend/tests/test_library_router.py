@@ -1,5 +1,7 @@
 import io
 
+from pypdf.errors import PdfReadError
+
 from litreview import pdf_utils
 from litreview.routers import library_router
 
@@ -96,3 +98,43 @@ def test_upload_pdf_missing_article_returns_404(client, tmp_path):
         files={"file": ("test.pdf", io.BytesIO(b"x"), "application/pdf")},
     )
     assert resp.status_code == 404
+
+
+def test_download_pdf_extract_failure_returns_502(client, monkeypatch, tmp_path):
+    def raise_read_error(path, max_pages=30):
+        raise PdfReadError("malformed pdf")
+
+    monkeypatch.setattr(library_router, "PDF_DIR", tmp_path)
+    monkeypatch.setattr(
+        pdf_utils, "download_pdf", lambda url, dest: dest.write_bytes(b"x") or dest
+    )
+    monkeypatch.setattr(pdf_utils, "extract_text", raise_read_error)
+
+    created = _add_sample_article(client, oa_pdf_url="https://example.org/a.pdf")
+    resp = client.post(f"/library/{created['id']}/download")
+    assert resp.status_code == 502
+
+
+def test_upload_pdf_extract_failure_returns_400(client, monkeypatch, tmp_path):
+    def raise_read_error(path, max_pages=30):
+        raise PdfReadError("malformed pdf")
+
+    monkeypatch.setattr(library_router, "PDF_DIR", tmp_path)
+    monkeypatch.setattr(pdf_utils, "extract_text", raise_read_error)
+
+    created = _add_sample_article(client)
+    resp = client.post(
+        f"/library/{created['id']}/upload",
+        files={"file": ("test.pdf", io.BytesIO(b"%PDF-1.4 content"), "application/pdf")},
+    )
+    assert resp.status_code == 400
+
+
+def test_upload_pdf_non_pdf_bytes_returns_400(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(library_router, "PDF_DIR", tmp_path)
+    created = _add_sample_article(client)
+    resp = client.post(
+        f"/library/{created['id']}/upload",
+        files={"file": ("test.pdf", io.BytesIO(b"<html>landing page</html>"), "application/pdf")},
+    )
+    assert resp.status_code == 400
