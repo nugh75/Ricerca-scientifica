@@ -1221,9 +1221,11 @@ def merge_results(
         for r in results:
             match = None
             for m in merged:
-                if r.doi and m.doi and r.doi.lower() == m.doi.lower():
-                    match = m
-                    break
+                if r.doi and m.doi:
+                    if r.doi.lower() == m.doi.lower():
+                        match = m
+                        break
+                    continue  # both DOIs known and different: never the same work
                 similarity = SequenceMatcher(
                     None, _normalize_title(r.title), _normalize_title(m.title)
                 ).ratio()
