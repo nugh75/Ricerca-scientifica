@@ -18,6 +18,17 @@ def test_merge_keeps_distinct_results():
     assert len(merged) == 2
 
 
+def test_merge_dedupes_url_form_doi_against_plain_doi():
+    # OpenAlex returns DOIs as "https://doi.org/..." while other sources
+    # return plain "10.1/..." — the same work must still merge.
+    by_source = {
+        "openalex": [_r("Paper One", doi="https://doi.org/10.1/abc")],
+        "crossref": [_r("Paper One (slightly different title)", doi="10.1/ABC")],
+    }
+    merged = merge_results(by_source)
+    assert len(merged) == 1
+
+
 def test_merge_dedupes_by_doi_case_insensitive():
     by_source = {
         "openalex": [_r("Paper One", doi="10.1/ABC")],

@@ -7,6 +7,14 @@ def _normalize_title(t: str) -> str:
     return " ".join(t.lower().split())
 
 
+def _normalize_doi(d: str) -> str:
+    doi = d.lower()
+    for prefix in ("https://doi.org/", "http://doi.org/", "doi:"):
+        if doi.startswith(prefix):
+            return doi[len(prefix):]
+    return doi
+
+
 def merge_results(
     results_by_source: dict[str, list[NormalizedResult]], threshold: float = 0.85
 ) -> list[NormalizedResult]:
@@ -16,7 +24,7 @@ def merge_results(
             match = None
             for m in merged:
                 if r.doi and m.doi:
-                    if r.doi.lower() == m.doi.lower():
+                    if _normalize_doi(r.doi) == _normalize_doi(m.doi):
                         match = m
                         break
                     continue  # both DOIs known and different: never the same work
