@@ -30,3 +30,7 @@ export function pdfStatusLabel(article: { pdf_path: string | null; extracted_tex
 export function canAnalyze(article: { extracted_text_ok: boolean }): boolean {
   return article.extracted_text_ok;
 }
+
+export function buildExportPayload(checkedIds: string[]): number[] {
+  return checkedIds.map(Number);
+}

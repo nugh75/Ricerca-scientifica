@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyLabel, buildSearchPayload, pdfStatusLabel, canAnalyze } from "../src/helpers";
+import { keyLabel, buildSearchPayload, pdfStatusLabel, canAnalyze, buildExportPayload } from "../src/helpers";
 
 describe("keyLabel", () => {
   it("maps known key names to display labels", () => {
@@ -44,5 +44,15 @@ describe("canAnalyze", () => {
 
   it("is true with extractable text", () => {
     expect(canAnalyze({ extracted_text_ok: true })).toBe(true);
+  });
+});
+
+describe("buildExportPayload", () => {
+  it("parses checked id strings to numbers", () => {
+    expect(buildExportPayload(["1", "42", "7"])).toEqual([1, 42, 7]);
+  });
+
+  it("returns an empty array for no selection", () => {
+    expect(buildExportPayload([])).toEqual([]);
   });
 });
