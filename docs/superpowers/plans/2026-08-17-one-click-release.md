@@ -169,6 +169,25 @@ def test_no_redirect_when_frozen_but_tty(monkeypatch, tmp_path):
     before = sys.stdout
     _redirect_logs_if_frozen()
     assert sys.stdout is before
+
+
+def test_main_returns_1_when_port_in_use_and_std_streams_none(monkeypatch):
+    monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: True)
+    monkeypatch.setattr(sys, "stderr", None)
+    monkeypatch.setattr(sys, "stdout", None)
+    assert main() == 1
+
+
+def test_main_warns_to_server_log_when_frozen_without_streams(monkeypatch, tmp_path):
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(config, "APP_DIR", tmp_path)
+    monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: True)
+    monkeypatch.setattr(sys, "stderr", None)
+    monkeypatch.setattr(sys, "stdout", None)
+    assert main() == 1
+    log = (tmp_path / "server.log").read_text(encoding="utf-8")
+    assert "8756" in log
+    assert "occupata" in log
 ```
 
 - [ ] **Step 2: Eseguire i test per verificare che falliscano**
@@ -218,12 +237,22 @@ def _redirect_logs_if_frozen() -> None:
     sys.stderr = log_file
 
 
+def _warn(msg: str) -> None:
+    # Nei build frozen console=False sys.stderr puo' essere None (Windows)
+    # o /dev/null (macOS): non fidarsi mai di print(file=sys.stderr).
+    if sys.stderr is not None:
+        print(msg, file=sys.stderr)
+    if getattr(sys, "frozen", False):
+        config.APP_DIR.mkdir(parents=True, exist_ok=True)
+        with open(config.APP_DIR / "server.log", "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+
+
 def main() -> int:
     if _port_in_use(HOST, PORT):
-        print(
+        _warn(
             f"Impossibile avviare il server: la porta {PORT} e' gia' occupata "
-            "da un altro processo. Chiudilo e riprova.",
-            file=sys.stderr,
+            "da un altro processo. Chiudilo e riprova."
         )
         return 1
     _redirect_logs_if_frozen()
@@ -439,11 +468,26 @@ exec "$BIN"
 
 - [ ] **Step 2: Scrivere `litreview.command`** (doppio click da Finder su macOS)
 
-`backend/packaging/launchers/litreview.command`:
+`backend/packaging/launchers/litreview.command` (autonomo: scarica `litreview-unix.sh` dalla release in una dir temporanea e lo esegue via `bash`, senza richiedere l'exec bit):
 
 ```bash
 #!/bin/bash
-exec bash "$(cd "$(dirname "$0")" && pwd)/litreview-unix.sh"
+set -euo pipefail
+
+BASE_URL="${LITREVIEW_ASSET_URL:-https://github.com/nugh75/Ricerca-scientifica/releases/latest/download}"
+TMP_DIR="$(mktemp -d)"
+
+if ! command -v curl >/dev/null 2>&1; then
+  echo "Errore: curl non trovato. Installalo e riprova." >&2
+  exit 1
+fi
+
+if ! curl -fsSL --retry 3 -o "$TMP_DIR/litreview-unix.sh" "$BASE_URL/litreview-unix.sh"; then
+  echo "Errore: download fallito da $BASE_URL/litreview-unix.sh" >&2
+  exit 1
+fi
+
+exec bash "$TMP_DIR/litreview-unix.sh"
 ```
 
 - [ ] **Step 3: Scrivere `litreview.bat`**
@@ -571,8 +615,16 @@ jobs:
               if ($r.StatusCode -eq 200) { $ok = $true; break }
             } catch { Start-Sleep 1 }
           }
+          $keysOk = $false
+          for ($i = 0; $i -lt 5; $i++) {
+            try {
+              $rk = Invoke-WebRequest -Uri "http://127.0.0.1:8756/settings/keys" -UseBasicParsing -TimeoutSec 2
+              if ($rk.StatusCode -eq 200) { $keysOk = $true; break }
+            } catch { Start-Sleep 1 }
+          }
           Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           if (-not $ok) { throw "smoke test fallito: /docs non risponde" }
+          if (-not $keysOk) { throw "smoke test fallito: /settings/keys non risponde 200" }
           Write-Output "SMOKE OK"
       - uses: actions/upload-artifact@v4
         with:
@@ -602,8 +654,10 @@ jobs:
             if curl -fsS http://127.0.0.1:8756/docs >/dev/null; then ok=1; break; fi
             sleep 1
           done
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8756/settings/keys || true)
           kill $PID 2>/dev/null || true
           [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
+          [ "$code" = "200" ] || { echo "smoke test fallito: /settings/keys HTTP $code"; exit 1; }
           echo "SMOKE OK"
       - uses: actions/upload-artifact@v4
         with:
@@ -633,9 +687,13 @@ jobs:
             if curl -fsS http://127.0.0.1:8756/docs >/dev/null; then ok=1; break; fi
             sleep 1
           done
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8756/settings/keys || true)
           kill $PID 2>/dev/null || true
           [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
-          echo "SMOKE OK"
+          case "$code" in
+            200|503) echo "SMOKE OK (keys HTTP $code)" ;;
+            *) echo "smoke test fallito: /settings/keys HTTP $code"; exit 1 ;;
+          esac
       - uses: actions/upload-artifact@v4
         with:
           name: linux-binary
@@ -708,7 +766,8 @@ In `backend/README.md`, dopo "## Avvio locale" (prima della sezione Tauri):
 1. Vai su <https://github.com/nugh75/Ricerca-scientifica/releases> e scarica
    lo script del tuo sistema dalla release più recente:
    - Windows: `litreview.bat`
-   - macOS: `litreview.command`
+   - macOS: `litreview.command` (binario solo per Apple Silicon (arm64);
+     i Mac Intel possono usare la versione Linux in WSL o in una VM)
    - Linux: `litreview-unix.sh`
 2. Doppio click sullo script (su Linux: `chmod +x litreview-unix.sh` la prima
    volta, poi `./litreview-unix.sh`).
