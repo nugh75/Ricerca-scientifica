@@ -1451,9 +1451,12 @@ def test_make_citekey_handles_empty_authors():
 
 
 def test_make_citekey_strips_accents_and_punctuation():
+    # last whitespace-separated token of authors[0] is "D'Andrea-Bruno";
+    # _slug strips the apostrophe and hyphen, and the title's accented
+    # first word "Città" normalizes to "Citta".
     key = make_citekey(["Alessandro D'Andrea-Bruno"], 2021, "Città e reti")
     assert key.isascii()
-    assert key.startswith("Bruno2021")
+    assert key == "DAndreaBruno2021Citta"
 
 
 def test_to_bibtex_includes_core_fields():
