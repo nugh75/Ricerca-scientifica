@@ -33,7 +33,8 @@ salvate nel keyring di sistema, mai in chiaro su disco.
 1. Vai su <https://github.com/nugh75/Ricerca-scientifica/releases> e scarica
    lo script del tuo sistema dalla release più recente:
    - Windows: `litreview.bat`
-   - macOS: `litreview.command`
+   - macOS: `litreview.command` — binario solo per Apple Silicon (arm64); i
+     Mac Intel possono usare la versione Linux in WSL o in una VM
    - Linux: `litreview-unix.sh`
 2. Doppio click sullo script (su Linux: `chmod +x litreview-unix.sh` la prima
    volta, poi `./litreview-unix.sh`).
