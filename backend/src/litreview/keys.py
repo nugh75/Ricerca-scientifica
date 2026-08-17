@@ -48,6 +48,11 @@ def delete_key(name: str) -> None:
         keyring.delete_password(KEYRING_SERVICE, name)
     except keyring.errors.PasswordDeleteError:
         pass
+    except keyring.errors.NoKeyringError as e:
+        raise KeyringUnavailableError(
+            "Nessun keyring di sistema disponibile. Su Linux installa e avvia "
+            "gnome-keyring o un servizio Secret Service compatibile."
+        ) from e
 
 
 def has_key(name: str) -> bool:

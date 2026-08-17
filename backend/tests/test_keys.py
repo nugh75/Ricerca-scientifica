@@ -71,3 +71,12 @@ def test_set_key_wraps_no_keyring_error(monkeypatch):
     monkeypatch.setattr(keys.keyring, "set_password", raise_no_keyring)
     with pytest.raises(keys.KeyringUnavailableError):
         keys.set_key("deepseek_api_key", "sk-test")
+
+
+def test_delete_key_wraps_no_keyring_error(monkeypatch):
+    def raise_no_keyring(*args, **kwargs):
+        raise keyring.errors.NoKeyringError("no backend")
+
+    monkeypatch.setattr(keys.keyring, "delete_password", raise_no_keyring)
+    with pytest.raises(keys.KeyringUnavailableError):
+        keys.delete_key("deepseek_api_key")
