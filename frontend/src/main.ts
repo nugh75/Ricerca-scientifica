@@ -3,6 +3,8 @@ import { BASE_URL } from "./api";
 import { navigate, startRouter } from "./router";
 import { subscribeToBackendStatus } from "./backendStatus";
 import "./views/settings";
+import "./views/onboarding";
+import { isFirstRunDone } from "./firstRun";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -61,7 +63,7 @@ async function boot(): Promise<void> {
     return;
   }
   renderShell();
-  navigate("/search");
+  navigate(isFirstRunDone() ? "/search" : "/onboarding");
 }
 
 boot();
