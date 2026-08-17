@@ -26,3 +26,7 @@ export function pdfStatusLabel(article: { pdf_path: string | null; extracted_tex
   if (!article.pdf_path) return "Nessun PDF";
   return article.extracted_text_ok ? "PDF pronto" : "PDF senza testo estraibile";
 }
+
+export function canAnalyze(article: { extracted_text_ok: boolean }): boolean {
+  return article.extracted_text_ok;
+}

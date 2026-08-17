@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyLabel, buildSearchPayload, pdfStatusLabel } from "../src/helpers";
+import { keyLabel, buildSearchPayload, pdfStatusLabel, canAnalyze } from "../src/helpers";
 
 describe("keyLabel", () => {
   it("maps known key names to display labels", () => {
@@ -34,5 +34,15 @@ describe("pdfStatusLabel", () => {
 
   it("reports ready when text was extracted", () => {
     expect(pdfStatusLabel({ pdf_path: "/x.pdf", extracted_text_ok: true })).toBe("PDF pronto");
+  });
+});
+
+describe("canAnalyze", () => {
+  it("is false without extractable text", () => {
+    expect(canAnalyze({ extracted_text_ok: false })).toBe(false);
+  });
+
+  it("is true with extractable text", () => {
+    expect(canAnalyze({ extracted_text_ok: true })).toBe(true);
   });
 });
