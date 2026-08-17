@@ -46,6 +46,9 @@ def search(payload: SearchRequest):
         except SourceError as e:
             errors[name] = e.message
             results_by_source[name] = []
+        except Exception as e:
+            errors[name] = str(e)
+            results_by_source[name] = []
 
     merged = merge_results(results_by_source)
     return {

@@ -53,6 +53,36 @@ def test_search_reports_per_source_errors_without_failing_whole_request(client, 
     assert data["errors"] == {"semantic_scholar": "timeout"}
 
 
+def test_search_isolates_unexpected_exceptions_per_source(client, monkeypatch):
+    monkeypatch.setattr(
+        openalex,
+        "search",
+        lambda q, mailto=None, per_page=10: [
+            NormalizedResult(
+                title="Paper A", authors=["Smith J"], year=2020,
+                doi="10.1/a", source="openalex",
+            )
+        ],
+    )
+
+    def raise_value_error(q, api_key=None, per_page=10):
+        raise ValueError("malformed year")
+
+    monkeypatch.setattr(semantic_scholar, "search", raise_value_error)
+    monkeypatch.setattr(crossref, "search", lambda q, mailto=None, per_page=10: [])
+    monkeypatch.setattr(doaj, "search", lambda q, per_page=10: [])
+
+    resp = client.post(
+        "/search",
+        json={"query": "test", "sources": ["openalex", "semantic_scholar", "crossref", "doaj"]},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["results"]) == 1
+    assert data["results"][0]["title"] == "Paper A"
+    assert data["errors"] == {"semantic_scholar": "malformed year"}
+
+
 def test_search_only_queries_requested_sources(client, monkeypatch):
     called = []
     monkeypatch.setattr(

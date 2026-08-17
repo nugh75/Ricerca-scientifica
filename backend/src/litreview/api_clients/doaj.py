@@ -27,11 +27,15 @@ def search(query: str, *, per_page: int = 10) -> list[NormalizedResult]:
             if link.get("type") == "fulltext":
                 pdf_url = link.get("url")
         year_raw = bibjson.get("year")
+        try:
+            year = int(year_raw) if year_raw else None
+        except ValueError:
+            year = None
         results.append(
             NormalizedResult(
                 title=bibjson.get("title") or "",
                 authors=authors,
-                year=int(year_raw) if year_raw else None,
+                year=year,
                 doi=doi,
                 source="doaj",
                 abstract=bibjson.get("abstract"),

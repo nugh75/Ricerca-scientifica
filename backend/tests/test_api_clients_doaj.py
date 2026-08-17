@@ -61,3 +61,15 @@ def test_search_handles_missing_optional_fields():
     assert results[0].year is None
     assert results[0].doi is None
     assert results[0].oa_pdf_url is None
+
+
+def test_search_skips_non_numeric_year():
+    mock_resp = Mock()
+    mock_resp.json.return_value = {
+        "results": [{"bibjson": {"title": "Bad Year", "year": "not-a-year"}}]
+    }
+    mock_resp.raise_for_status.return_value = None
+    with patch.object(doaj.requests, "get", return_value=mock_resp):
+        results = doaj.search("x")
+    assert results[0].title == "Bad Year"
+    assert results[0].year is None
