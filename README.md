@@ -20,8 +20,21 @@ download the launcher for your system and double-click it:
 | OS | Launcher | Notes |
 |---|---|---|
 | Windows | `litreview.bat` | no Python required |
-| macOS | `litreview.command` | Apple Silicon (arm64) only for now |
+| macOS | `litreview.command` | Apple Silicon (arm64) only; run from Terminal (see below) |
 | Linux | `litreview-unix.sh` | run `chmod +x litreview-unix.sh` first |
+
+**macOS note:** GitHub release files carry no execute bit and Gatekeeper
+quarantines downloads, so Finder may refuse double-click. Run once from
+Terminal instead:
+
+```bash
+bash ~/Downloads/litreview.command
+```
+
+(Proper signing/notarization would remove this step; it requires an Apple
+Developer ID and is planned as future hardening.) The launcher then
+downloads the frozen backend and starts it — everything runs locally,
+bound to `127.0.0.1`, with keys only in the system keyring.
 
 The launcher downloads the latest frozen backend into `~/.litreview/bin/`,
 starts the server on `127.0.0.1:8756`, and opens the API UI

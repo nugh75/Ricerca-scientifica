@@ -36,16 +36,26 @@ salvate nel keyring di sistema, mai in chiaro su disco.
    - macOS: `litreview.command` — binario solo per Apple Silicon (arm64); i
      Mac Intel possono usare la versione Linux in WSL o in una VM
    - Linux: `litreview-unix.sh`
-2. Doppio click sullo script (su Linux: `chmod +x litreview-unix.sh` la prima
-   volta, poi `./litreview-unix.sh`).
+2. Avvio:
+   - Windows: doppio click su `litreview.bat`.
+   - Linux: `chmod +x litreview-unix.sh` la prima volta, poi
+     `./litreview-unix.sh`.
+   - macOS: gli asset GitHub non hanno l'exec bit e Gatekeeper mette in
+     quarantena i download, quindi Finder può rifiutare il doppio click.
+     Da Terminale: `bash ~/Downloads/litreview.command` (una sola volta,
+     poi ri-eseguibile con lo stesso comando). Firmare/notarizzare con un
+     Developer ID Apple rimuoverebbe questo passaggio: hardening previsto
+     per il futuro.
 3. Lo script scarica l'ultima versione del backend in `~/.litreview/bin/`,
    avvia il server e apre il browser su `http://127.0.0.1:8756/docs`.
    Ri-eseguirlo aggiorna automaticamente all'ultima release.
 
 Note:
 - Non serve installare Python: il binario è autonomo.
-- Primo avvio su macOS (Gatekeeper) / Windows (SmartScreen): se compare un
-  avviso, scegliere "Apri comunque".
+- Il servizio gira solo su `127.0.0.1` con chiavi solo nel keyring di
+  sistema: nessuna esposizione di rete, sandbox di fatto locale.
+- Primo avvio su Windows (SmartScreen): se compare un avviso, scegliere
+  "Esegui comunque".
 - Se la porta 8756 è occupata, il server si ferma con un messaggio chiaro.
 
 ## Note per l'integrazione futura (shell desktop Tauri)
