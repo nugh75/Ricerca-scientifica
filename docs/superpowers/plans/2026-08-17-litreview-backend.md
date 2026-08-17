@@ -602,10 +602,10 @@ def search(
     try:
         r = requests.get(API_URL, params=params, timeout=15)
         r.raise_for_status()
+        data = r.json()
     except requests.RequestException as e:
         raise SourceError("openalex", str(e)) from e
 
-    data = r.json()
     results = []
     for item in data.get("results", []):
         authors = [
@@ -765,10 +765,10 @@ def search(
     try:
         r = requests.get(API_URL, params=params, headers=headers, timeout=15)
         r.raise_for_status()
+        data = r.json()
     except requests.RequestException as e:
         raise SourceError("semantic_scholar", str(e)) from e
 
-    data = r.json()
     results = []
     for item in data.get("data", []):
         oa_pdf = item.get("openAccessPdf") or {}
@@ -913,10 +913,10 @@ def search(
     try:
         r = requests.get(API_URL, params=params, headers=headers, timeout=15)
         r.raise_for_status()
+        data = r.json()
     except requests.RequestException as e:
         raise SourceError("crossref", str(e)) from e
 
-    data = r.json()
     items = (data.get("message") or {}).get("items", [])
     results = []
     for item in items:
@@ -1067,10 +1067,10 @@ def search(query: str, *, per_page: int = 10) -> list[NormalizedResult]:
     try:
         r = requests.get(url, params={"pageSize": per_page}, timeout=15)
         r.raise_for_status()
+        data = r.json()
     except requests.RequestException as e:
         raise SourceError("doaj", str(e)) from e
 
-    data = r.json()
     results = []
     for item in data.get("results", []):
         bibjson = item.get("bibjson") or {}
