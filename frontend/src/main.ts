@@ -2,6 +2,7 @@ import "./style.css";
 import { BASE_URL } from "./api";
 import { navigate, startRouter } from "./router";
 import { subscribeToBackendStatus } from "./backendStatus";
+import "./views/settings";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
