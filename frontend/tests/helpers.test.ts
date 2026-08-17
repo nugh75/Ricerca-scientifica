@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyLabel } from "../src/helpers";
+import { keyLabel, buildSearchPayload } from "../src/helpers";
 
 describe("keyLabel", () => {
   it("maps known key names to display labels", () => {
@@ -11,5 +11,14 @@ describe("keyLabel", () => {
 
   it("falls back to the raw name for unknown keys", () => {
     expect(keyLabel("mystery_key")).toBe("mystery_key");
+  });
+});
+
+describe("buildSearchPayload", () => {
+  it("trims the query and passes through the checked sources", () => {
+    expect(buildSearchPayload("  deep learning  ", ["openalex", "doaj"])).toEqual({
+      query: "deep learning",
+      sources: ["openalex", "doaj"],
+    });
   });
 });

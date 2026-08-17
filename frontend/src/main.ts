@@ -4,6 +4,7 @@ import { navigate, startRouter } from "./router";
 import { subscribeToBackendStatus } from "./backendStatus";
 import "./views/settings";
 import "./views/onboarding";
+import "./views/search";
 import { isFirstRunDone } from "./firstRun";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;

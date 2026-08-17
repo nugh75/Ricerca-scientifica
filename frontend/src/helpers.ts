@@ -8,3 +8,7 @@ const KEY_LABELS: Record<string, string> = {
 export function keyLabel(name: string): string {
   return KEY_LABELS[name] ?? name;
 }
+
+export function buildSearchPayload(query: string, checked: string[]): { query: string; sources: string[] } {
+  return { query: query.trim(), sources: checked };
+}
