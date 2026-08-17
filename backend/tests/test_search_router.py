@@ -1,3 +1,4 @@
+from litreview import keys
 from litreview.api_clients import crossref, doaj, openalex, semantic_scholar
 from litreview.api_clients.base import NormalizedResult, SourceError
 
@@ -67,3 +68,25 @@ def test_search_only_queries_requested_sources(client, monkeypatch):
     resp = client.post("/search", json={"query": "test", "sources": ["openalex"]})
     assert resp.status_code == 200
     assert called == ["openalex"]
+
+
+def test_search_treats_keyring_unavailable_as_no_key(client, monkeypatch):
+    def raise_unavailable(name):
+        raise keys.KeyringUnavailableError("no backend")
+
+    monkeypatch.setattr(keys, "get_key", raise_unavailable)
+
+    received = {}
+
+    def fake_openalex_search(q, mailto=None, per_page=10):
+        received["mailto"] = mailto
+        return []
+
+    monkeypatch.setattr(openalex, "search", fake_openalex_search)
+    monkeypatch.setattr(semantic_scholar, "search", lambda q, api_key=None, per_page=10: [])
+    monkeypatch.setattr(crossref, "search", lambda q, mailto=None, per_page=10: [])
+    monkeypatch.setattr(doaj, "search", lambda q, per_page=10: [])
+
+    resp = client.post("/search", json={"query": "test", "sources": ["openalex"]})
+    assert resp.status_code == 200
+    assert received["mailto"] is None
