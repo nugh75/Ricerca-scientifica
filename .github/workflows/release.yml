@@ -262,7 +262,10 @@ jobs:
       # Flatten them to the artifacts root so the file globs below match.
       - name: Flatten installer files
         run: |
-          find artifacts -type f \\( -name '*.msi' -o -name '*.exe' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.dmg' \\) -exec cp -n {} artifacts/ \\;
+          shopt -s globstar
+          for ext in msi exe deb AppImage dmg; do
+            cp -n artifacts/**/*.$ext artifacts/ 2>/dev/null || true
+          done
           ls -la artifacts/
       - uses: softprops/action-gh-release@v2
         with:
