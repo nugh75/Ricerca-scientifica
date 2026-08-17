@@ -37,7 +37,10 @@ class DeepSeekClient:
         if mode not in PROMPTS:
             raise ValueError(f"unknown mode: {mode}")
         prompt = PROMPTS[mode].format(
-            text=text, title=title, authors=", ".join(authors or []), year=year
+            text=text,
+            title=title,
+            authors=", ".join(authors or []),
+            year=year if year is not None else "non specificato",
         )
         response = self._client.chat.completions.create(
             model=DEEPSEEK_MODEL,

@@ -66,6 +66,15 @@ def test_analyze_verify_mode_includes_title_authors_year():
     assert "2019" in content
 
 
+def test_analyze_verify_mode_missing_year_does_not_render_none():
+    fake = FakeOpenAIClient(reply="SI")
+    client = DeepSeekClient(api_key="sk-test", client=fake)
+    client.analyze("verify", "text", title="T", authors=["A"])
+    content = fake.chat.completions.last_kwargs["messages"][0]["content"]
+    assert "None" not in content
+    assert "non specificato" in content
+
+
 def test_analyze_unknown_mode_raises_value_error():
     fake = FakeOpenAIClient()
     client = DeepSeekClient(api_key="sk-test", client=fake)
