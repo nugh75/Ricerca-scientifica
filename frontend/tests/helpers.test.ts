@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyLabel, buildSearchPayload, pdfStatusLabel, canAnalyze, buildExportPayload } from "../src/helpers";
+import { keyLabel, buildSearchPayload, pdfStatusLabel, canAnalyze, buildExportPayload, escapeHtml } from "../src/helpers";
 
 describe("keyLabel", () => {
   it("maps known key names to display labels", () => {
@@ -54,5 +54,23 @@ describe("buildExportPayload", () => {
 
   it("returns an empty array for no selection", () => {
     expect(buildExportPayload([])).toEqual([]);
+  });
+});
+
+describe("escapeHtml", () => {
+  it("escapes HTML special characters", () => {
+    expect(escapeHtml("<script>alert(1)</script>")).toBe("&lt;script&gt;alert(1)&lt;/script&gt;");
+  });
+
+  it("escapes ampersands before other entities are introduced (no double-encoding)", () => {
+    expect(escapeHtml("Tom & Jerry")).toBe("Tom &amp; Jerry");
+  });
+
+  it("escapes quotes", () => {
+    expect(escapeHtml(`He said "hi" and 'bye'`)).toBe("He said &quot;hi&quot; and &#39;bye&#39;");
+  });
+
+  it("leaves plain text unchanged", () => {
+    expect(escapeHtml("plain text 123")).toBe("plain text 123");
   });
 });

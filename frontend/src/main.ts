@@ -12,6 +12,19 @@ import { isFirstRunDone } from "./firstRun";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
+const backendBanner = document.createElement("div");
+backendBanner.id = "backend-banner";
+document.body.prepend(backendBanner);
+
+subscribeToBackendStatus(
+  () => {
+    backendBanner.innerHTML = `<div class="banner banner-error">Il backend non risponde. Tentativo di riavvio in corso...</div>`;
+  },
+  () => {
+    backendBanner.innerHTML = `<div class="banner banner-error">Il backend si è arrestato e non è stato possibile riavviarlo. Chiudi e riapri l'applicazione.</div>`;
+  }
+);
+
 async function waitForBackend(maxAttempts = 50, delayMs = 300): Promise<boolean> {
   for (let i = 0; i < maxAttempts; i++) {
     try {
@@ -27,7 +40,6 @@ async function waitForBackend(maxAttempts = 50, delayMs = 300): Promise<boolean>
 
 function renderShell(): void {
   app.innerHTML = `
-    <div id="backend-banner"></div>
     <nav>
       <a data-nav="/search">Ricerca</a>
       <a data-nav="/library">Libreria</a>
@@ -42,17 +54,6 @@ function renderShell(): void {
   startRouter(outlet, () => {
     outlet.innerHTML = "<p>Pagina non trovata.</p>";
   });
-
-  subscribeToBackendStatus(
-    () => {
-      document.querySelector("#backend-banner")!.innerHTML =
-        `<div class="banner banner-error">Il backend non risponde. Tentativo di riavvio in corso...</div>`;
-    },
-    () => {
-      document.querySelector("#backend-banner")!.innerHTML =
-        `<div class="banner banner-error">Il backend si è arrestato e non è stato possibile riavviarlo. Chiudi e riapri l'applicazione.</div>`;
-    }
-  );
 }
 
 function renderStarting(): void {

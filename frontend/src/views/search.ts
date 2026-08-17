@@ -5,7 +5,13 @@ import { buildSearchPayload, escapeHtml } from "../helpers";
 
 registerRoute("/search", async () => {
   const outlet = document.querySelector<HTMLElement>("#outlet")!;
-  const configured = await getConfiguredSources();
+  let configured: Set<string>;
+  try {
+    configured = await getConfiguredSources();
+  } catch (err) {
+    outlet.innerHTML = `<p class="banner banner-error">Impossibile caricare lo stato delle chiavi: ${escapeHtml(err instanceof Error ? err.message : String(err))}</p>`;
+    return;
+  }
 
   outlet.innerHTML = `
     <h2>Ricerca</h2>

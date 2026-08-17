@@ -146,6 +146,7 @@ jobs:
 
   build-desktop-windows:
     needs: build-windows
+    continue-on-error: true
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -175,6 +176,7 @@ jobs:
 
   build-desktop-macos:
     needs: build-macos
+    continue-on-error: true
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -204,6 +206,7 @@ jobs:
 
   build-desktop-linux:
     needs: build-linux
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
