@@ -14,10 +14,9 @@ def search(
     try:
         r = requests.get(API_URL, params=params, timeout=15)
         r.raise_for_status()
+        data = r.json()
     except requests.RequestException as e:
         raise SourceError("openalex", str(e)) from e
-
-    data = r.json()
     results = []
     for item in data.get("results", []):
         authors = [
