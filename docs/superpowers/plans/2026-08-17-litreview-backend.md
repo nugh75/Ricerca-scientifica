@@ -88,6 +88,7 @@ dependencies = [
     "pypdf>=4.0",
     "keyring>=25.0",
     "openai>=1.30",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
@@ -2492,14 +2493,14 @@ def download_pdf(article_id: int, conn=Depends(db_module.get_db)):
 
 
 @router.post("/{article_id}/upload")
-async def upload_pdf(article_id: int, file: UploadFile, conn=Depends(db_module.get_db)):
+def upload_pdf(article_id: int, file: UploadFile, conn=Depends(db_module.get_db)):
     row = conn.execute("SELECT * FROM articles WHERE id = ?", (article_id,)).fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail="article not found")
 
     dest = PDF_DIR / f"{article_id}.pdf"
     dest.parent.mkdir(parents=True, exist_ok=True)
-    content = await file.read()
+    content = file.file.read()
     dest.write_bytes(content)
 
     text = pdf_utils.extract_text(dest)
