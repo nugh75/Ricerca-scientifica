@@ -30,6 +30,10 @@ salvate nel keyring di sistema, mai in chiaro su disco.
 
 ## Installazione one-click (release GitHub)
 
+> Per la maggior parte degli utenti conviene installare l'app desktop
+> (`.msi`/`.dmg`/`.deb`/`.AppImage`, vedi il README principale) invece del
+> solo backend qui sotto — ha già un'interfaccia grafica.
+
 1. Vai su <https://github.com/nugh75/Ricerca-scientifica/releases> e scarica
    lo script del tuo sistema dalla release più recente:
    - Windows: `litreview.bat`

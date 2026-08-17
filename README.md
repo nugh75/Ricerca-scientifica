@@ -8,9 +8,22 @@ and export BibTeX.
 
 - **Backend** (Python/FastAPI sidecar): complete — 115 tests green, shipped
   as one-click GitHub releases. See [backend/README.md](backend/README.md).
-- **Desktop shell** (Tauri): planned. The backend is designed to run as a
-  sidecar (`externalBin`); see
+- **Desktop shell** (Tauri): implemented, see [frontend/](frontend/) and
   [docs/superpowers/specs/2026-08-17-literature-review-app-design.md](docs/superpowers/specs/2026-08-17-literature-review-app-design.md).
+
+## Desktop app (recommended)
+
+Download the installer for your OS from the [latest release](https://github.com/nugh75/Ricerca-scientifica/releases):
+
+| OS | Installer |
+|---|---|
+| Windows | `.msi` (or `.exe`) |
+| macOS | `.dmg` (Apple Silicon only) |
+| Linux | `.deb` or `.AppImage` |
+
+Install and launch like any other desktop app — it starts the backend for you automatically and shows a graphical UI for search, library, PDF analysis, and `.bib` export. No terminal needed.
+
+Prefer a lighter footprint with just the API and no GUI? See the raw backend launcher scripts below.
 
 ## One-click install (end users)
 
