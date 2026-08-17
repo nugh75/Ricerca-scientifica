@@ -10,6 +10,15 @@ def test_list_keys_reports_all_known_keys_as_unset(client, monkeypatch):
     assert all(v is False for v in data.values())
 
 
+def test_list_keys_keyring_unavailable_returns_503(client, monkeypatch):
+    def raise_unavailable(name):
+        raise keys.KeyringUnavailableError("no backend")
+
+    monkeypatch.setattr(keys, "has_key", raise_unavailable)
+    resp = client.get("/settings/keys")
+    assert resp.status_code == 503
+
+
 def test_set_key_calls_keys_set_key(client, monkeypatch):
     calls = {}
     monkeypatch.setattr(keys, "set_key", lambda name, value: calls.setdefault(name, value))
@@ -43,6 +52,15 @@ def test_delete_key_calls_keys_delete_key(client, monkeypatch):
 def test_delete_key_unknown_name_returns_404(client):
     resp = client.delete("/settings/keys/not_real")
     assert resp.status_code == 404
+
+
+def test_delete_key_keyring_unavailable_returns_503(client, monkeypatch):
+    def raise_unavailable(name):
+        raise keys.KeyringUnavailableError("no backend")
+
+    monkeypatch.setattr(keys, "delete_key", raise_unavailable)
+    resp = client.delete("/settings/keys/deepseek_api_key")
+    assert resp.status_code == 503
 
 
 def test_test_connection_unknown_key_returns_404(client):

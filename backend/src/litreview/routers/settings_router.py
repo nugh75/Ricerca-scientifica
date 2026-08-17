@@ -15,7 +15,10 @@ class KeyPayload(BaseModel):
 
 @router.get("/keys")
 def list_keys():
-    return {name: keys.has_key(name) for name in keys.KNOWN_KEYS}
+    try:
+        return {name: keys.has_key(name) for name in keys.KNOWN_KEYS}
+    except keys.KeyringUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
 
 
 @router.put("/keys/{name}")
@@ -33,7 +36,10 @@ def set_key(name: str, payload: KeyPayload):
 def delete_key(name: str):
     if name not in keys.KNOWN_KEYS:
         raise HTTPException(status_code=404, detail="unknown key")
-    keys.delete_key(name)
+    try:
+        keys.delete_key(name)
+    except keys.KeyringUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
     return {"name": name, "deleted": True}
 
 
