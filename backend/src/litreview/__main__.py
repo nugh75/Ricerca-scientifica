@@ -35,12 +35,20 @@ def _redirect_logs_if_frozen() -> None:
     sys.stderr = log_file
 
 
+def _warn(msg: str) -> None:
+    if sys.stderr is not None:
+        print(msg, file=sys.stderr)
+    if getattr(sys, "frozen", False):
+        config.APP_DIR.mkdir(parents=True, exist_ok=True)
+        with open(config.APP_DIR / "server.log", "a", encoding="utf-8") as log_file:
+            print(msg, file=log_file)
+
+
 def main() -> int:
     if _port_in_use(HOST, PORT):
-        print(
+        _warn(
             f"Impossibile avviare il server: la porta {PORT} e' gia' occupata "
-            "da un altro processo. Chiudilo e riprova.",
-            file=sys.stderr,
+            "da un altro processo. Chiudilo e riprova."
         )
         return 1
     _redirect_logs_if_frozen()

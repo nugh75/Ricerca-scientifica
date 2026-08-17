@@ -48,6 +48,28 @@ def test_main_returns_1_when_port_in_use(monkeypatch, capsys):
     assert "occupat" in err
 
 
+def test_main_returns_1_when_port_in_use_and_std_streams_none(monkeypatch):
+    # windowed PyInstaller build (console=False): sys.stdout/stderr are None
+    monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: True)
+    monkeypatch.setattr(sys, "stdout", None)
+    monkeypatch.setattr(sys, "stderr", None)
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    assert main() == 1
+
+
+def test_main_warns_to_server_log_when_frozen_without_streams(monkeypatch, tmp_path):
+    # frozen + no streams: the port message must reach server.log, not vanish
+    monkeypatch.setattr(config, "APP_DIR", tmp_path)
+    monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: True)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "stdout", None)
+    monkeypatch.setattr(sys, "stderr", None)
+    assert main() == 1
+    assert "Impossibile avviare il server" in (
+        tmp_path / "server.log"
+    ).read_text(encoding="utf-8")
+
+
 def test_main_runs_uvicorn_without_browser_when_env_set(monkeypatch):
     monkeypatch.setenv("LITREVIEW_NO_BROWSER", "1")
     monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: False)
