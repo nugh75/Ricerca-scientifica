@@ -2195,9 +2195,8 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 
 def _get_key_or_none(name: str) -> str | None:
-    """Look up a stored API key, treating an unavailable keyring as "no key set"
-    rather than failing the search. Sources work without a key, just possibly
-    with tighter rate limits."""
+    """Sources work without a key (just possibly with tighter rate limits),
+    so an unavailable keyring shouldn't fail the search."""
     try:
         return keys.get_key(name)
     except keys.KeyringUnavailableError:
