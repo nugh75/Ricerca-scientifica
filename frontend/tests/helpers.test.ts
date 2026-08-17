@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyLabel, buildSearchPayload } from "../src/helpers";
+import { keyLabel, buildSearchPayload, pdfStatusLabel } from "../src/helpers";
 
 describe("keyLabel", () => {
   it("maps known key names to display labels", () => {
@@ -20,5 +20,19 @@ describe("buildSearchPayload", () => {
       query: "deep learning",
       sources: ["openalex", "doaj"],
     });
+  });
+});
+
+describe("pdfStatusLabel", () => {
+  it("reports no PDF when pdf_path is null", () => {
+    expect(pdfStatusLabel({ pdf_path: null, extracted_text_ok: false })).toBe("Nessun PDF");
+  });
+
+  it("reports unreadable text when downloaded but extraction failed", () => {
+    expect(pdfStatusLabel({ pdf_path: "/x.pdf", extracted_text_ok: false })).toBe("PDF senza testo estraibile");
+  });
+
+  it("reports ready when text was extracted", () => {
+    expect(pdfStatusLabel({ pdf_path: "/x.pdf", extracted_text_ok: true })).toBe("PDF pronto");
   });
 });

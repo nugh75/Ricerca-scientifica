@@ -21,3 +21,8 @@ export function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+export function pdfStatusLabel(article: { pdf_path: string | null; extracted_text_ok: boolean }): string {
+  if (!article.pdf_path) return "Nessun PDF";
+  return article.extracted_text_ok ? "PDF pronto" : "PDF senza testo estraibile";
+}
