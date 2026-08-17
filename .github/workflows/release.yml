@@ -35,8 +35,19 @@ jobs:
               if ($r.StatusCode -eq 200) { $ok = $true; break }
             } catch { Start-Sleep 1 }
           }
+          # keyring: Windows runner has a native keyring -> 200 expected
+          $keysOk = $false
+          if ($ok) {
+            for ($i = 0; $i -lt 5; $i++) {
+              try {
+                $r = Invoke-WebRequest -Uri "http://127.0.0.1:8756/settings/keys" -UseBasicParsing -TimeoutSec 2
+                if ($r.StatusCode -eq 200) { $keysOk = $true; break }
+              } catch { Start-Sleep 1 }
+            }
+          }
           Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           if (-not $ok) { throw "smoke test fallito: /docs non risponde" }
+          if (-not $keysOk) { throw "smoke test fallito: /settings/keys non raggiungibile" }
           Write-Output "SMOKE OK"
       - uses: actions/upload-artifact@v4
         with:
@@ -66,8 +77,15 @@ jobs:
             if curl -fsS http://127.0.0.1:8756/docs >/dev/null; then ok=1; break; fi
             sleep 1
           done
+          # keyring: macOS runner has a native keyring -> 200 expected
+          keys_ok=""
+          if [ -n "$ok" ]; then
+            code=$(curl -s -o /dev/null -m 10 -w "%{http_code}" http://127.0.0.1:8756/settings/keys || true)
+            if [ "$code" = "200" ]; then keys_ok=1; fi
+          fi
           kill $PID 2>/dev/null || true
           [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
+          [ -n "$keys_ok" ] || { echo "smoke test fallito: /settings/keys non raggiungibile (HTTP ${code:-nessuna risposta})"; exit 1; }
           echo "SMOKE OK"
       - uses: actions/upload-artifact@v4
         with:
@@ -97,8 +115,17 @@ jobs:
             if curl -fsS http://127.0.0.1:8756/docs >/dev/null; then ok=1; break; fi
             sleep 1
           done
+          # keyring: runner is headless (no Secret Service) -> 200 or 503 ok
+          keys_ok=""
+          if [ -n "$ok" ]; then
+            code=$(curl -s -o /dev/null -m 10 -w "%{http_code}" http://127.0.0.1:8756/settings/keys || true)
+            case "$code" in
+              200|503) keys_ok=1 ;;
+            esac
+          fi
           kill $PID 2>/dev/null || true
           [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
+          [ -n "$keys_ok" ] || { echo "smoke test fallito: /settings/keys non raggiungibile (HTTP ${code:-nessuna risposta})"; exit 1; }
           echo "SMOKE OK"
       - uses: actions/upload-artifact@v4
         with:
