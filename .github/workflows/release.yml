@@ -257,6 +257,13 @@ jobs:
           pattern: "desktop-*"
           path: artifacts
           merge-multiple: true
+      # upload-artifact@v4 preserves the relative paths of globbed files, so
+      # the desktop installers land in nested folders (artifacts/bundle/...).
+      # Flatten them to the artifacts root so the file globs below match.
+      - name: Flatten installer files
+        run: |
+          find artifacts -type f \\( -name '*.msi' -o -name '*.exe' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.dmg' \\) -exec cp -n {} artifacts/ \\;
+          ls -la artifacts/
       - uses: softprops/action-gh-release@v2
         with:
           files: |
