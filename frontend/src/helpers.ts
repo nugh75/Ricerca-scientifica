@@ -12,3 +12,12 @@ export function keyLabel(name: string): string {
 export function buildSearchPayload(query: string, checked: string[]): { query: string; sources: string[] } {
   return { query: query.trim(), sources: checked };
 }
+
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
