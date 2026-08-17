@@ -1,6 +1,6 @@
 {
   "name": "litreview-frontend",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "test": "vitest run",
     "tauri": "tauri",
+    "dev:desktop": "bash scripts/tauri-dev.sh",
     "prepare-sidecar": "node scripts/prepare-sidecar.mjs"
   },
   "dependencies": {
