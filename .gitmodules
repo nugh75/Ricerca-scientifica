@@ -1,0 +1,4 @@
+[submodule ".claude/skills/scrittura"]
+	path = .claude/skills/scrittura
+	url = https://github.com/nugh75/scrittura.git
+	branch = main
