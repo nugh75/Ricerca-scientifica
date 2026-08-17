@@ -20,17 +20,13 @@ download the launcher for your system and double-click it:
 | OS | Launcher | Notes |
 |---|---|---|
 | Windows | `litreview.bat` | no Python required |
-| macOS | `litreview.command` | Apple Silicon (arm64) only; run from Terminal (see below) |
+| macOS | `litreview-macos.dmg` | Apple Silicon (arm64) only; open the dmg, see note below |
 | Linux | `litreview-unix.sh` | run `chmod +x litreview-unix.sh` first |
 
-**macOS note:** GitHub release files carry no execute bit and Gatekeeper
-quarantines downloads, so Finder may refuse double-click. Run once from
-Terminal instead:
-
-```bash
-bash ~/Downloads/litreview.command
-```
-
+**macOS note:** open the `.dmg` and run `litreview.command` from the mounted
+volume (or drag it out first). The file inside the dmg keeps its execute
+bit, but Gatekeeper still quarantines anything downloaded from the internet,
+so on first launch use Ctrl-click → "Open" instead of a plain double-click.
 (Proper signing/notarization would remove this step; it requires an Apple
 Developer ID and is planned as future hardening.) The launcher then
 downloads the frozen backend and starts it — everything runs locally,

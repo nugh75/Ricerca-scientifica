@@ -87,10 +87,22 @@ jobs:
           [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
           [ -n "$keys_ok" ] || { echo "smoke test fallito: /settings/keys non raggiungibile (HTTP ${code:-nessuna risposta})"; exit 1; }
           echo "SMOKE OK"
+      - name: Package DMG
+        working-directory: backend
+        run: |
+          STAGING="$(mktemp -d)/LitReview"
+          mkdir -p "$STAGING"
+          cp packaging/launchers/litreview.command "$STAGING/"
+          chmod +x "$STAGING/litreview.command"
+          hdiutil create -volname LitReview -srcfolder "$STAGING" -ov -format UDZO dist/litreview-macos.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos-binary
           path: backend/dist/litreview-backend-macos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: backend/dist/litreview-macos.dmg
 
   build-linux:
     runs-on: ubuntu-latest
@@ -142,12 +154,17 @@ jobs:
           pattern: "*-binary"
           path: artifacts
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-dmg
+          path: artifacts
       - uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/litreview-backend-windows.exe
             artifacts/litreview-backend-macos
             artifacts/litreview-backend-linux
+            artifacts/litreview-macos.dmg
             backend/packaging/launchers/litreview.bat
             backend/packaging/launchers/litreview-unix.sh
             backend/packaging/launchers/litreview.command

@@ -33,19 +33,20 @@ salvate nel keyring di sistema, mai in chiaro su disco.
 1. Vai su <https://github.com/nugh75/Ricerca-scientifica/releases> e scarica
    lo script del tuo sistema dalla release più recente:
    - Windows: `litreview.bat`
-   - macOS: `litreview.command` — binario solo per Apple Silicon (arm64); i
+   - macOS: `litreview-macos.dmg` — binario solo per Apple Silicon (arm64); i
      Mac Intel possono usare la versione Linux in WSL o in una VM
    - Linux: `litreview-unix.sh`
 2. Avvio:
    - Windows: doppio click su `litreview.bat`.
    - Linux: `chmod +x litreview-unix.sh` la prima volta, poi
      `./litreview-unix.sh`.
-   - macOS: gli asset GitHub non hanno l'exec bit e Gatekeeper mette in
-     quarantena i download, quindi Finder può rifiutare il doppio click.
-     Da Terminale: `bash ~/Downloads/litreview.command` (una sola volta,
-     poi ri-eseguibile con lo stesso comando). Firmare/notarizzare con un
-     Developer ID Apple rimuoverebbe questo passaggio: hardening previsto
-     per il futuro.
+   - macOS: apri il `.dmg`, trascina `litreview.command` dove preferisci
+     (o eseguilo direttamente dal volume montato). Il file nel dmg ha già
+     l'exec bit, ma Gatekeeper mette comunque in quarantena i download da
+     internet: al primo avvio fai Ctrl-click → "Apri" invece del doppio
+     click semplice. Firmare/notarizzare con un Developer ID Apple
+     rimuoverebbe anche questo passaggio: hardening previsto per il
+     futuro.
 3. Lo script scarica l'ultima versione del backend in `~/.litreview/bin/`,
    avvia il server e apre il browser su `http://127.0.0.1:8756/docs`.
    Ri-eseguirlo aggiorna automaticamente all'ultima release.
