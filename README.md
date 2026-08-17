@@ -26,8 +26,10 @@ Install and launch like any other desktop app — it starts the backend for you 
 **macOS note:** the desktop app is not signed/notarized yet, so Gatekeeper
 blocks the first launch of a downloaded copy. To open it the first time,
 right-click (Ctrl-click) the app → **Open** → **Open**, or run
-`xattr -cr "/Applications/LitReview.app"` in a terminal. Signing with an
-Apple Developer ID (notarization) is planned hardening.
+`xattr -cr "/Applications/LitReview.app"` in a terminal. If macOS still
+reports the app as **"damaged"**, re-sign it ad-hoc and retry:
+`codesign --force --deep --sign - "/Applications/LitReview.app"`. Signing
+with an Apple Developer ID (notarization) is planned hardening.
 
 Prefer a lighter footprint with just the API and no GUI? See the raw backend launcher scripts below.
 
