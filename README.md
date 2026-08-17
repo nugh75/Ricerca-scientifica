@@ -23,6 +23,12 @@ Download the installer for your OS from the [latest release](https://github.com/
 
 Install and launch like any other desktop app — it starts the backend for you automatically and shows a graphical UI for search, library, PDF analysis, and `.bib` export. No terminal needed.
 
+**macOS note:** the desktop app is not signed/notarized yet, so Gatekeeper
+blocks the first launch of a downloaded copy. To open it the first time,
+right-click (Ctrl-click) the app → **Open** → **Open**, or run
+`xattr -cr "/Applications/LitReview.app"` in a terminal. Signing with an
+Apple Developer ID (notarization) is planned hardening.
+
 Prefer a lighter footprint with just the API and no GUI? See the raw backend launcher scripts below.
 
 ## One-click install (end users)
