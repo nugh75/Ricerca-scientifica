@@ -1,6 +1,7 @@
 import "./style.css";
 import { BASE_URL } from "./api";
 import { navigate, startRouter } from "./router";
+import { subscribeToBackendStatus } from "./backendStatus";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
@@ -34,6 +35,17 @@ function renderShell(): void {
   startRouter(outlet, () => {
     outlet.innerHTML = "<p>Pagina non trovata.</p>";
   });
+
+  subscribeToBackendStatus(
+    () => {
+      document.querySelector("#backend-banner")!.innerHTML =
+        `<div class="banner banner-error">Il backend non risponde. Tentativo di riavvio in corso...</div>`;
+    },
+    () => {
+      document.querySelector("#backend-banner")!.innerHTML =
+        `<div class="banner banner-error">Il backend si è arrestato e non è stato possibile riavviarlo. Chiudi e riapri l'applicazione.</div>`;
+    }
+  );
 }
 
 function renderStarting(): void {
