@@ -290,6 +290,10 @@ import sys
 from PyInstaller.utils.hooks import collect_submodules
 
 hiddenimports = collect_submodules("keyring.backends")
+# uvicorn.run("litreview.main:app") e' un import per stringa che PyInstaller
+# non vede: senza questa collect il bundle parte senza litreview.main/routers
+# (exit 3, "Could not import module litreview.main").
+hiddenimports += collect_submodules("litreview")
 
 if sys.platform.startswith("win"):
     name = "litreview-backend-windows"
