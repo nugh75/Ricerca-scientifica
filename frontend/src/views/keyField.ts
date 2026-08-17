@@ -16,9 +16,13 @@ export function renderKeyField(container: HTMLElement, name: string, configured:
 
   row.querySelector("[data-role=save]")!.addEventListener("click", async () => {
     if (!input.value) return;
-    await setKey(name, input.value);
-    message.textContent = "Salvato.";
-    input.value = "";
+    try {
+      await setKey(name, input.value);
+      message.textContent = "Salvato.";
+      input.value = "";
+    } catch (err) {
+      message.textContent = `Errore: ${err instanceof Error ? err.message : String(err)}`;
+    }
   });
 
   row.querySelector("[data-role=test]")!.addEventListener("click", async () => {
@@ -26,13 +30,21 @@ export function renderKeyField(container: HTMLElement, name: string, configured:
       message.textContent = "Inserisci un valore da testare.";
       return;
     }
-    const result = await testKey(name, input.value);
-    message.textContent = result.ok ? "Connessione riuscita." : `Errore: ${result.message}`;
+    try {
+      const result = await testKey(name, input.value);
+      message.textContent = result.ok ? "Connessione riuscita." : `Errore: ${result.message}`;
+    } catch (err) {
+      message.textContent = `Errore: ${err instanceof Error ? err.message : String(err)}`;
+    }
   });
 
   row.querySelector("[data-role=delete]")!.addEventListener("click", async () => {
-    await deleteKey(name);
-    message.textContent = "Eliminata.";
+    try {
+      await deleteKey(name);
+      message.textContent = "Eliminata.";
+    } catch (err) {
+      message.textContent = `Errore: ${err instanceof Error ? err.message : String(err)}`;
+    }
   });
 
   container.appendChild(row);
