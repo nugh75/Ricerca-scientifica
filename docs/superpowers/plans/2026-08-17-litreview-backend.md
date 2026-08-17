@@ -2553,9 +2553,13 @@ git commit -m "feat(backend): add library CRUD, PDF download, and PDF upload end
 - Test: `backend/tests/test_analysis_router.py`
 
 **Interfaces:**
-- Consumes: `db.get_db`, `keys.get_key`, `deepseek_client.DeepSeekClient`,
-  `pdf_utils.extract_text`
-- Produces: `POST /library/{id}/analyze`, `POST /library/{id}/chat`
+- Consumes: `db.get_db`, `keys.get_key`, `keys.KeyringUnavailableError`,
+  `deepseek_client.DeepSeekClient`, `pdf_utils.extract_text`
+- Produces: `POST /library/{id}/analyze`, `POST /library/{id}/chat`. Both return
+  400 if the DeepSeek key isn't configured, 503 if the keyring itself is
+  unavailable (same distinction Task 11's settings router makes) — required
+  here, unlike Task 12's search router, because analysis genuinely cannot
+  proceed without a key at all.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2597,6 +2601,16 @@ def test_analyze_without_key_returns_400(client, monkeypatch):
     article = _add_article_with_pdf(client)
     resp = client.post(f"/library/{article['id']}/analyze", json={"mode": "summary"})
     assert resp.status_code == 400
+
+
+def test_analyze_keyring_unavailable_returns_503(client, monkeypatch):
+    def raise_unavailable(name):
+        raise keys.KeyringUnavailableError("no backend")
+
+    monkeypatch.setattr(keys, "get_key", raise_unavailable)
+    article = _add_article_with_pdf(client)
+    resp = client.post(f"/library/{article['id']}/analyze", json={"mode": "summary"})
+    assert resp.status_code == 503
 
 
 def test_analyze_without_pdf_returns_400(client, monkeypatch):
@@ -2702,7 +2716,10 @@ class ChatRequest(BaseModel):
 
 
 def _get_client() -> DeepSeekClient:
-    api_key = keys.get_key("deepseek_api_key")
+    try:
+        api_key = keys.get_key("deepseek_api_key")
+    except keys.KeyringUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
     if not api_key:
         raise HTTPException(status_code=400, detail="DeepSeek API key not configured")
     return DeepSeekClient(api_key)
