@@ -1,0 +1,126 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e ".[dev]" pyinstaller
+        working-directory: backend
+      - name: Build
+        run: pyinstaller --distpath dist --workpath build packaging/litreview.spec
+        working-directory: backend
+      - name: Smoke test
+        shell: powershell
+        working-directory: backend
+        run: |
+          $env:LITREVIEW_NO_BROWSER = "1"
+          $p = Start-Process -FilePath "dist\litreview-backend-windows.exe" -PassThru
+          $ok = $false
+          for ($i = 0; $i -lt 30; $i++) {
+            try {
+              $r = Invoke-WebRequest -Uri "http://127.0.0.1:8756/docs" -UseBasicParsing -TimeoutSec 2
+              if ($r.StatusCode -eq 200) { $ok = $true; break }
+            } catch { Start-Sleep 1 }
+          }
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          if (-not $ok) { throw "smoke test fallito: /docs non risponde" }
+          Write-Output "SMOKE OK"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-binary
+          path: backend/dist/litreview-backend-windows.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e ".[dev]" pyinstaller
+        working-directory: backend
+      - name: Build
+        run: pyinstaller --distpath dist --workpath build packaging/litreview.spec
+        working-directory: backend
+      - name: Smoke test
+        working-directory: backend
+        run: |
+          LITREVIEW_NO_BROWSER=1 ./dist/litreview-backend-macos &
+          PID=$!
+          ok=""
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8756/docs >/dev/null; then ok=1; break; fi
+            sleep 1
+          done
+          kill $PID 2>/dev/null || true
+          [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
+          echo "SMOKE OK"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-binary
+          path: backend/dist/litreview-backend-macos
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e ".[dev]" pyinstaller
+        working-directory: backend
+      - name: Build
+        run: pyinstaller --distpath dist --workpath build packaging/litreview.spec
+        working-directory: backend
+      - name: Smoke test
+        working-directory: backend
+        run: |
+          LITREVIEW_NO_BROWSER=1 ./dist/litreview-backend-linux &
+          PID=$!
+          ok=""
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8756/docs >/dev/null; then ok=1; break; fi
+            sleep 1
+          done
+          kill $PID 2>/dev/null || true
+          [ -n "$ok" ] || { echo "smoke test fallito: /docs non risponde"; exit 1; }
+          echo "SMOKE OK"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: backend/dist/litreview-backend-linux
+
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*-binary"
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/litreview-backend-windows.exe
+            artifacts/litreview-backend-macos
+            artifacts/litreview-backend-linux
+            backend/packaging/launchers/litreview.bat
+            backend/packaging/launchers/litreview-unix.sh
+            backend/packaging/launchers/litreview.command
