@@ -57,3 +57,12 @@ def test_merge_fills_missing_abstract_from_later_source():
 
 def test_merge_empty_input_returns_empty_list():
     assert merge_results({}) == []
+
+
+def test_merge_does_not_merge_different_confirmed_dois_even_if_titles_are_similar():
+    by_source = {
+        "openalex": [_r("A Study of Neural Networks in Practice", doi="10.1/x")],
+        "crossref": [_r("A Study of Neural Networks in Practice!", doi="10.2/y")],
+    }
+    merged = merge_results(by_source)
+    assert len(merged) == 2
