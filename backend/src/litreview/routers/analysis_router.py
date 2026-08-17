@@ -46,7 +46,10 @@ def analyze(article_id: int, payload: AnalyzeRequest, conn=Depends(db_module.get
     row = _require_article_with_text(article_id, conn)
     text = pdf_utils.extract_text(Path(row["pdf_path"]))
     authors = json.loads(row["authors"])
-    result = client.analyze(payload.mode, text, title=row["title"], authors=authors, year=row["year"])
+    try:
+        result = client.analyze(payload.mode, text, title=row["title"], authors=authors, year=row["year"])
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     analysis = json.loads(row["analysis_json"]) if row["analysis_json"] else {}
     analysis[payload.mode] = result

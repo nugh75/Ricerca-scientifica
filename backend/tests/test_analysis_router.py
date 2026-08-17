@@ -82,6 +82,29 @@ def test_analyze_unmapped_article_returns_404(client, monkeypatch):
     assert resp.status_code == 404
 
 
+def test_analyze_invalid_mode_returns_400(client, monkeypatch, tmp_path):
+    class RaisingFakeDeepSeekClient:
+        def __init__(self, api_key):
+            pass
+
+        def analyze(self, mode, text, **kwargs):
+            raise ValueError(f"unknown mode: {mode}")
+
+    monkeypatch.setattr(keys, "get_key", lambda name: "sk-test")
+    monkeypatch.setattr(analysis_router, "DeepSeekClient", RaisingFakeDeepSeekClient)
+    monkeypatch.setattr(pdf_utils, "extract_text", lambda path, max_pages=30: "full text")
+    from litreview.routers import library_router
+    monkeypatch.setattr(library_router, "PDF_DIR", tmp_path)
+    monkeypatch.setattr(pdf_utils, "download_pdf", lambda url, dest: dest.write_bytes(b"x") or dest)
+    monkeypatch.setattr(pdf_utils, "has_extractable_text", lambda text: True)
+
+    article = _add_article_with_pdf(client)
+    client.post(f"/library/{article['id']}/download")
+
+    resp = client.post(f"/library/{article['id']}/analyze", json={"mode": "not_a_real_mode"})
+    assert resp.status_code == 400
+
+
 def test_chat_creates_session_and_returns_reply(client, monkeypatch, tmp_path):
     monkeypatch.setattr(keys, "get_key", lambda name: "sk-test")
     monkeypatch.setattr(analysis_router, "DeepSeekClient", FakeDeepSeekClient)
@@ -102,6 +125,24 @@ def test_chat_creates_session_and_returns_reply(client, monkeypatch, tmp_path):
     data = resp.json()
     assert data["reply"] == "assistant reply"
     assert len(data["messages"]) == 2
+
+
+def test_chat_second_call_updates_existing_session(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(keys, "get_key", lambda name: "sk-test")
+    monkeypatch.setattr(analysis_router, "DeepSeekClient", FakeDeepSeekClient)
+    monkeypatch.setattr(pdf_utils, "extract_text", lambda path, max_pages=30: "full text")
+    from litreview.routers import library_router
+    monkeypatch.setattr(library_router, "PDF_DIR", tmp_path)
+    monkeypatch.setattr(pdf_utils, "download_pdf", lambda url, dest: dest.write_bytes(b"x") or dest)
+    monkeypatch.setattr(pdf_utils, "has_extractable_text", lambda text: True)
+
+    article = _add_article_with_pdf(client)
+    client.post(f"/library/{article['id']}/download")
+
+    client.post(f"/library/{article['id']}/chat", json={"message": "First question"})
+    resp = client.post(f"/library/{article['id']}/chat", json={"message": "Second question"})
+    assert resp.status_code == 200
+    assert len(resp.json()["messages"]) == 4
 
 
 def test_chat_without_pdf_returns_400(client, monkeypatch):
