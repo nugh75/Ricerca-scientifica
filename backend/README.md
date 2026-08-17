@@ -28,6 +28,25 @@ Il servizio ascolta solo su `127.0.0.1`: non è mai esposto oltre la macchina
 locale. Le chiavi API si configurano via `PUT /settings/keys/{name}` e sono
 salvate nel keyring di sistema, mai in chiaro su disco.
 
+## Installazione one-click (release GitHub)
+
+1. Vai su <https://github.com/nugh75/Ricerca-scientifica/releases> e scarica
+   lo script del tuo sistema dalla release più recente:
+   - Windows: `litreview.bat`
+   - macOS: `litreview.command`
+   - Linux: `litreview-unix.sh`
+2. Doppio click sullo script (su Linux: `chmod +x litreview-unix.sh` la prima
+   volta, poi `./litreview-unix.sh`).
+3. Lo script scarica l'ultima versione del backend in `~/.litreview/bin/`,
+   avvia il server e apre il browser su `http://127.0.0.1:8756/docs`.
+   Ri-eseguirlo aggiorna automaticamente all'ultima release.
+
+Note:
+- Non serve installare Python: il binario è autonomo.
+- Primo avvio su macOS (Gatekeeper) / Windows (SmartScreen): se compare un
+  avviso, scegliere "Apri comunque".
+- Se la porta 8756 è occupata, il server si ferma con un messaggio chiaro.
+
 ## Note per l'integrazione futura (shell desktop Tauri)
 
 Questo backend è pensato per essere lanciato come sidecar da un'app Tauri
