@@ -95,7 +95,15 @@ def test_main_runs_uvicorn_without_browser_when_env_set(monkeypatch):
     monkeypatch.setenv("LITREVIEW_NO_BROWSER", "1")
     monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: False)
     timers = []
-    monkeypatch.setattr("litreview.__main__.threading.Timer", lambda *a: timers.append(a) or timers)
+
+    class FakeTimer:
+        def __init__(self, *args):
+            timers.append(args)
+
+        def start(self):
+            pass
+
+    monkeypatch.setattr("litreview.__main__.threading.Timer", FakeTimer)
     kwargs = {}
     monkeypatch.setattr(
         "litreview.__main__.uvicorn.run", lambda app, **k: kwargs.update(k)
@@ -109,7 +117,15 @@ def test_main_schedules_browser_timer_by_default(monkeypatch):
     monkeypatch.delenv("LITREVIEW_NO_BROWSER", raising=False)
     monkeypatch.setattr("litreview.__main__._port_in_use", lambda h, p: False)
     timers = []
-    monkeypatch.setattr("litreview.__main__.threading.Timer", lambda *a: timers.append(a) or timers)
+
+    class FakeTimer:
+        def __init__(self, *args):
+            timers.append(args)
+
+        def start(self):
+            pass
+
+    monkeypatch.setattr("litreview.__main__.threading.Timer", FakeTimer)
     monkeypatch.setattr("litreview.__main__.uvicorn.run", lambda *a, **k: None)
     assert main() == 0
     assert len(timers) == 1
@@ -173,7 +189,7 @@ import webbrowser
 
 import uvicorn
 
-from .config import APP_DIR
+from . import config
 
 HOST = "127.0.0.1"
 PORT = 8756
@@ -196,8 +212,8 @@ def _redirect_logs_if_frozen() -> None:
         return
     if sys.stdout is not None and sys.stdout.isatty():
         return
-    APP_DIR.mkdir(parents=True, exist_ok=True)
-    log_file = open(APP_DIR / "server.log", "a", encoding="utf-8")
+    config.APP_DIR.mkdir(parents=True, exist_ok=True)
+    log_file = open(config.APP_DIR / "server.log", "a", encoding="utf-8")
     sys.stdout = log_file
     sys.stderr = log_file
 
