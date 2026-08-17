@@ -1,5 +1,7 @@
 import json
 
+from openai import OpenAIError
+
 from litreview import keys, pdf_utils
 from litreview.routers import analysis_router
 
@@ -13,6 +15,17 @@ class FakeDeepSeekClient:
 
     def chat(self, text, messages):
         return "assistant reply"
+
+
+class OpenAIErrorRaisingClient:
+    def __init__(self, api_key):
+        self.api_key = api_key
+
+    def analyze(self, mode, text, **kwargs):
+        raise OpenAIError("invalid api key")
+
+    def chat(self, text, messages):
+        raise OpenAIError("quota exceeded")
 
 
 def _add_article_with_pdf(client, conn_monkeypatch=None):
@@ -150,3 +163,38 @@ def test_chat_without_pdf_returns_400(client, monkeypatch):
     article = _add_article_with_pdf(client)
     resp = client.post(f"/library/{article['id']}/chat", json={"message": "hi"})
     assert resp.status_code == 400
+
+
+def _prepare_downloaded_article(client, monkeypatch, tmp_path):
+    from litreview.routers import library_router
+    monkeypatch.setattr(library_router, "PDF_DIR", tmp_path)
+    monkeypatch.setattr(
+        pdf_utils, "download_pdf", lambda url, dest: dest.write_bytes(b"x") or dest
+    )
+    monkeypatch.setattr(pdf_utils, "has_extractable_text", lambda text: True)
+
+    article = _add_article_with_pdf(client)
+    client.post(f"/library/{article['id']}/download")
+    return article
+
+
+def test_analyze_deepseek_error_returns_502(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(keys, "get_key", lambda name: "sk-test")
+    monkeypatch.setattr(analysis_router, "DeepSeekClient", OpenAIErrorRaisingClient)
+    monkeypatch.setattr(pdf_utils, "extract_text", lambda path, max_pages=30: "full text")
+
+    article = _prepare_downloaded_article(client, monkeypatch, tmp_path)
+    resp = client.post(f"/library/{article['id']}/analyze", json={"mode": "summary"})
+    assert resp.status_code == 502
+    assert "invalid api key" in resp.json()["detail"]
+
+
+def test_chat_deepseek_error_returns_502(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(keys, "get_key", lambda name: "sk-test")
+    monkeypatch.setattr(analysis_router, "DeepSeekClient", OpenAIErrorRaisingClient)
+    monkeypatch.setattr(pdf_utils, "extract_text", lambda path, max_pages=30: "full text")
+
+    article = _prepare_downloaded_article(client, monkeypatch, tmp_path)
+    resp = client.post(f"/library/{article['id']}/chat", json={"message": "hi"})
+    assert resp.status_code == 502
+    assert "quota exceeded" in resp.json()["detail"]

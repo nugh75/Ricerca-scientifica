@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from openai import OpenAIError
 from pydantic import BaseModel
 
 from .. import db as db_module
@@ -50,6 +51,8 @@ def analyze(article_id: int, payload: AnalyzeRequest, conn=Depends(db_module.get
         result = client.analyze(payload.mode, text, title=row["title"], authors=authors, year=row["year"])
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+    except OpenAIError as e:
+        raise HTTPException(status_code=502, detail=str(e)) from e
 
     analysis = json.loads(row["analysis_json"]) if row["analysis_json"] else {}
     analysis[payload.mode] = result
@@ -73,7 +76,10 @@ def chat(article_id: int, payload: ChatRequest, conn=Depends(db_module.get_db)):
     messages = json.loads(session["messages_json"]) if session else []
     messages.append({"role": "user", "content": payload.message})
 
-    reply = client.chat(text, messages)
+    try:
+        reply = client.chat(text, messages)
+    except OpenAIError as e:
+        raise HTTPException(status_code=502, detail=str(e)) from e
     messages.append({"role": "assistant", "content": reply})
 
     now = datetime.now(timezone.utc).isoformat()
