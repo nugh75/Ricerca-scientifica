@@ -8,7 +8,13 @@ from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -226,6 +232,7 @@ async def cerca(
             conteggi=history.conteggi(id_ricerca),
             fonti=history.voce(id_ricerca).get("fonti", []),
             esito_pdf="",
+            pdf_su_disco=pdf.quanti_scaricati(works),
         ),
     )
 
@@ -264,6 +271,7 @@ def _elenco(request: Request, id_ricerca: str, campo: list[str], vista: str, esi
             conteggi=history.conteggi(id_ricerca),
             fonti=voce.get("fonti", []),
             esito_pdf=esito_pdf,
+            pdf_su_disco=pdf.quanti_scaricati(works),
         ),
     )
 
@@ -334,6 +342,22 @@ async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
             scaricato=pdf.gia_scaricato(work) is not None,
             errore=errore,
         ),
+    )
+
+
+@app.get("/pdf/{id_ricerca}.zip")
+async def scarica_archivio_pdf(id_ricerca: str):
+    """I PDF già scaricati, in un solo file da salvare sul proprio computer."""
+
+    contenuto, quanti = pdf.archivio(history.record(id_ricerca))
+    if not quanti:
+        return PlainTextResponse(
+            i18n.strings(current_config().lang)["zip_empty"], status_code=404
+        )
+    return Response(
+        contenuto,
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="pdf-della-ricerca.zip"'},
     )
 
 
@@ -567,6 +591,7 @@ async def cronologia_voce(request: Request, id_ricerca: str):
             conteggi=history.conteggi(id_ricerca),
             fonti=voce.get("fonti", []),
             esito_pdf="",
+            pdf_su_disco=pdf.quanti_scaricati(works),
         ),
     )
 

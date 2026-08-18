@@ -7,6 +7,10 @@
   <a class="tasto" href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa_btn }}</a>
   <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol_md }}</a>
   <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.txt">{{ t.download_protocol_txt }}</a>
+  {% if pdf_su_disco %}
+  <a class="tasto" href="/pdf/{{ id_ricerca }}.zip">{{ t.download_zip }}
+     <em>{{ t.pdf_on_disk.format(quanti=pdf_su_disco) }}</em></a>
+  {% endif %}
 </div>
 <p><span id="conteggi" class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span></p>
 {% if config.zotero_api_key and config.zotero_library_id %}
@@ -26,7 +30,7 @@
   <thead><tr>
     <th class="spunta"></th>
     {% for campo in campi %}<th>{{ t['field_' ~ campo] }}</th>{% endfor %}
-    {% if vista != 'apa' %}<th>{{ t.screening_title }}</th>{% endif %}
+    {% if vista != 'apa' %}<th>{{ t.pdf_column }}</th><th>{{ t.screening_title }}</th>{% endif %}
   </tr></thead>
   <tbody>
   {% for w in works %}
@@ -52,9 +56,10 @@
     {% elif campo == 'fonti' %}
       <td class="fonti-cella">{{ w.sources|join(' · ') }}</td>
     {% elif campo == 'pdf' %}
-      <td>{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
+      <td class="fonti-cella">{{ w.oa_url or '' }}</td>
     {% endif %}
     {% endfor %}
+    <td class="cella-pdf">{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
     <td class="cella-screening">{% with work = w, indice = riga, fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}</td>
   </tr>
   {% endfor %}

@@ -305,3 +305,6 @@ a.tasto {
   padding: .45rem .7rem;
 }
 a.tasto:hover { background: var(--evidenziatore-tenue); }
+
+td.cella-pdf { white-space: nowrap; }
+a.tasto em { font-style: normal; font: .72rem/1 var(--mono); color: var(--inchiostro-tenue); margin-left: .35rem; }

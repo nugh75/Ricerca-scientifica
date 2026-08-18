@@ -7,7 +7,9 @@ si aggira nessun paywall.
 from __future__ import annotations
 
 import hashlib
+import io
 import re
+import zipfile
 
 import httpx
 
@@ -59,3 +61,22 @@ async def scarica(work: Work, client: httpx.AsyncClient):
     percorso.write_bytes(contenuto)
     biblioteca.estrai(percorso)  # il testo serve per cercare dentro i PDF
     return percorso
+
+
+def archivio(works: list[Work]) -> tuple[bytes, int]:
+    """Uno zip con i PDF già scaricati dei record indicati."""
+
+    buffer = io.BytesIO()
+    quanti = 0
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for work in works:
+            percorso = gia_scaricato(work)
+            if percorso is None:
+                continue
+            zip_file.write(percorso, arcname=percorso.name)
+            quanti += 1
+    return buffer.getvalue(), quanti
+
+
+def quanti_scaricati(works: list[Work]) -> int:
+    return sum(1 for work in works if gia_scaricato(work))

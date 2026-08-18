@@ -25,7 +25,9 @@ banca dati, poi esegue le query ed esporta i risultati.
    quanti li ha trovati **solo lei** e in quanto tempo.
 5. **Selezione** — ogni record si marca *incluso*, *forse* o *escluso* con un
    motivo, uno per volta o **in blocco** sui record spuntati — includi, forse,
-   escludi, annulla le decisioni, manda a Zotero, scarica i PDF aperti. I conteggi seguono il diagramma di flusso PRISMA e
+   escludi, annulla le decisioni, manda a Zotero, scarica i PDF aperti. Ogni
+   riga ha il suo tasto **PDF**; quelli scaricati si portano via tutti insieme
+   in uno **zip**, con il nome della chiave di citazione. I conteggi seguono il diagramma di flusso PRISMA e
    il **protocollo** raccoglie stringhe, numeri e decisioni per la sezione
    «Metodo», in Markdown o in testo semplice.
 6. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
@@ -128,7 +130,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 187 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 193 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -174,7 +176,9 @@ then runs the queries and exports the results.
    found, and how long it took.
 5. **Screening** — mark each record *include*, *maybe* or *exclude* with a
    reason, one at a time or **in bulk** on the ticked records — include, maybe,
-   exclude, clear decisions, send to Zotero, download the open PDFs. The counters follow the PRISMA flow diagram and the
+   exclude, clear decisions, send to Zotero, download the open PDFs. Every row
+   has its own **PDF** button; the downloaded ones come out together as a
+   **zip**, named after the citation key. The counters follow the PRISMA flow diagram and the
    **protocol** gathers strings, numbers and decisions for your Methods
    section, as Markdown or plain text.
 6. **History** — every search is stored with its strategy and its records:
@@ -268,7 +272,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 187 tests, none touches the network
+.venv/bin/pytest -q                       # 193 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

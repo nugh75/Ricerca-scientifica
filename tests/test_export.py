@@ -75,3 +75,15 @@ def test_to_apa_ordina_alfabeticamente():
         Work(title="A", authors=["Alfa B"], year=2021),
     ])
     assert testo.index("Alfa") < testo.index("Zeta")
+
+
+def test_la_chiave_di_citazione_usa_il_cognome_non_l_iniziale():
+    from ricerca.export import cite_key, cognome
+
+    assert cognome("Rossi M") == "Rossi"          # stile PubMed
+    assert cognome("Duri Long") == "Long"
+    assert cognome("Lacruz-Pérez I") == "Lacruz-Pérez"
+    assert cognome("Platone") == "Platone"
+
+    chiave = cite_key(Work(title="Studio sulle competenze", authors=["Rossi M"], year=2024), set())
+    assert chiave.startswith("rossi2024")

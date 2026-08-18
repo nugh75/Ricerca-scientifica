@@ -34,9 +34,25 @@ _NON_WORD = re.compile(r"[^a-z0-9]+")
 _STOPWORDS = {"the", "a", "an", "of", "on", "in", "and", "for", "il", "lo", "la", "di", "e"}
 
 
+def cognome(nome: str) -> str:
+    """«Duri Long» → Long; «Rossi M» (stile PubMed) → Rossi.
+
+    Prendere sempre l'ultimo pezzo darebbe «M» come cognome, e chiavi di
+    citazione come `m2024studio`.
+    """
+
+    parti = [p for p in nome.replace(",", " ").split() if p]
+    if not parti:
+        return ""
+    ultimo = parti[-1]
+    if len(parti) > 1 and len(ultimo) <= 3 and ultimo.isupper():
+        return " ".join(parti[:-1])
+    return ultimo
+
+
 def cite_key(work: Work, taken: set[str]) -> str:
-    author = work.authors[0].split()[-1].lower() if work.authors else "anon"
-    author = _ascii(author) or "anon"
+    author = cognome(work.authors[0]).lower() if work.authors else "anon"
+    author = _NON_WORD.sub("", _ascii(author)) or "anon"
     year = str(work.year or "s.d.").replace(".", "")
     word = ""
     for candidate in _NON_WORD.split(_ascii(work.title.lower())):
@@ -109,12 +125,10 @@ def apa_autore(nome: str) -> str:
         return parti[0]
     ultimo = parti[-1]
     if len(ultimo) <= 3 and ultimo.isupper():
-        cognome = " ".join(parti[:-1])
         iniziali = " ".join(f"{lettera}." for lettera in ultimo)
-        return f"{cognome}, {iniziali}"
-    cognome = ultimo
+        return f"{' '.join(parti[:-1])}, {iniziali}"
     iniziali = " ".join(f"{p[0].upper()}." for p in parti[:-1] if p)
-    return f"{cognome}, {iniziali}" if iniziali else cognome
+    return f"{ultimo}, {iniziali}" if iniziali else ultimo
 
 
 def apa_autori(autori: list[str]) -> str:
