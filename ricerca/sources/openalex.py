@@ -27,8 +27,8 @@ class OpenAlex(Source):
             "per_page": str(min(limit, 50)),
             "select": "id,doi,title,publication_year,authorships,primary_location,best_oa_location",
         }
-        if config.mailto:
-            params["mailto"] = config.mailto
+        if config.mailto_valido:
+            params["mailto"] = config.mailto_valido
         response = await client.get(API, params=params, timeout=25)
         response.raise_for_status()
         return [_work(item) for item in response.json().get("results", [])]

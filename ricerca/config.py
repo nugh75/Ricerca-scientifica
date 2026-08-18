@@ -7,12 +7,15 @@ anche senza file di configurazione, con le fonti a chiave disattivate.
 from __future__ import annotations
 
 import os
+import re
 import tomllib
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 CONFIG_DIR = Path(os.environ.get("RICERCA_HOME", Path.home() / ".ricerca"))
 CONFIG_FILE = CONFIG_DIR / "config.toml"
+
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 PRESETS = {
     "ollama": "http://localhost:11434/v1",
@@ -38,6 +41,14 @@ class Config:
     @property
     def llm_enabled(self) -> bool:
         return bool(self.llm_base_url and self.llm_model)
+
+    @property
+    def mailto_valido(self) -> str:
+        """L'email di cortesia solo se è un indirizzo: OpenAlex rifiuta con
+        `400` un `mailto` malformato, e l'errore sembra un guasto dell'app."""
+
+        indirizzo = self.mailto.strip()
+        return indirizzo if _EMAIL.match(indirizzo) else ""
 
 
 def load(path: Path | None = None) -> Config:

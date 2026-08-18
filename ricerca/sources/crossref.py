@@ -24,8 +24,8 @@ class Crossref(Source):
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         params = {"query.bibliographic": query, "rows": str(min(limit, 100))}
-        if config.mailto:
-            params["mailto"] = config.mailto
+        if config.mailto_valido:
+            params["mailto"] = config.mailto_valido
         vincoli = []
         if filtri and filtri.anno_da:
             vincoli.append(f"from-pub-date:{filtri.anno_da}-01-01")

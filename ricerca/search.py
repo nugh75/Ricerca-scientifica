@@ -11,6 +11,7 @@ from .config import Config
 from .cache import client as client_con_cache
 from .dedup import merge
 from .i18n import strings
+from .keywords import messaggio_api
 from .models import SourceResult, Strategy, Work
 
 USER_AGENT = "ricerca/0.1 (assistente di strategia bibliografica)"
@@ -97,7 +98,9 @@ async def _one(
 
 def _message(exc: Exception, t: dict[str, str]) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
-        return f"HTTP {exc.response.status_code}"
+        spiegazione = messaggio_api(exc.response)
+        codice = exc.response.status_code
+        return f"HTTP {codice} — {spiegazione}" if spiegazione else f"HTTP {codice}"
     if isinstance(exc, httpx.TimeoutException):
         return t["err_timeout"]
     text = str(exc) or exc.__class__.__name__

@@ -82,6 +82,12 @@ In CI li produce `.github/workflows/release.yml` a ogni tag `v*`.
 
 ## Chiavi ed email: tutto dall'interfaccia
 
+Dal 2026 OpenAlex misura le richieste a consumo: c'è un budget giornaliero
+gratuito, oltre il quale risponde `429` spiegando che il credito è finito.
+L'app mostra il messaggio così com'è e continua a lavorare con le altre
+fonti. L'email di cortesia resta utile e viene spedita solo se è un
+indirizzo valido: un `mailto` malformato fa rispondere `400`.
+
 Nessuna chiave è obbligatoria e nessuna va scritta in un file a mano.
 Dalla pagina **Impostazioni**:
 
@@ -115,7 +121,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 152 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 157 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

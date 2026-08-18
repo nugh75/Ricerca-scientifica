@@ -45,6 +45,24 @@ _APOSTROPHE = re.compile(r"['\u2019]")
 _MESH = re.compile(r'"([^"]+)"\[MeSH Terms\]')
 
 
+def messaggio_api(response: httpx.Response) -> str:
+    """Il testo che l'API restituisce insieme all'errore.
+
+    OpenAlex, per esempio, spiega nel corpo che il credito giornaliero è
+    finito: senza questo si vedrebbe solo «HTTP 429» e la causa resterebbe
+    un mistero.
+    """
+
+    try:
+        dati = response.json()
+    except ValueError:
+        return ""
+    if not isinstance(dati, dict):
+        return ""
+    testo = dati.get("message") or dati.get("error") or ""
+    return " ".join(str(testo).split())[:200]
+
+
 async def gather(
     topic: str,
     client: httpx.AsyncClient,
@@ -107,8 +125,8 @@ async def _openalex_concepts(
     topic: str, client: httpx.AsyncClient, config: Config
 ) -> list[tuple[str, float]]:
     params = {"title": topic}
-    if config.mailto:
-        params["mailto"] = config.mailto
+    if config.mailto_valido:
+        params["mailto"] = config.mailto_valido
     response = await client.get(f"{OPENALEX}/text/concepts", params=params, timeout=20)
     response.raise_for_status()
     data = response.json()
@@ -121,8 +139,8 @@ async def _openalex_concepts(
 
 async def _openalex_topics(topic: str, client: httpx.AsyncClient, config: Config) -> list[str]:
     params = {"title": topic}
-    if config.mailto:
-        params["mailto"] = config.mailto
+    if config.mailto_valido:
+        params["mailto"] = config.mailto_valido
     response = await client.get(f"{OPENALEX}/text/topics", params=params, timeout=20)
     response.raise_for_status()
     data = response.json()
@@ -155,8 +173,8 @@ async def _cooccurring_terms(
     """Unigrammi e bigrammi ricorrenti nei titoli dei primi risultati."""
 
     params = {"search": topic, "per_page": "50", "select": "title"}
-    if config.mailto:
-        params["mailto"] = config.mailto
+    if config.mailto_valido:
+        params["mailto"] = config.mailto_valido
     response = await client.get(f"{OPENALEX}/works", params=params, timeout=25)
     response.raise_for_status()
     titles = [w.get("title") or "" for w in response.json().get("results", [])]
@@ -189,6 +207,9 @@ def count_terms(titles: list[str], exclude: str = "", min_count: int = 2) -> lis
 def _short(exc: Exception, t: dict[str, str]) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
         code = exc.response.status_code
+        spiegazione = messaggio_api(exc.response)
+        if spiegazione:
+            return f"HTTP {code} — {spiegazione}"
         if code == 429:
             return t["err_429"]
         return f"HTTP {code}"
