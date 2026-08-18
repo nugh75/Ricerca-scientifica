@@ -5,6 +5,7 @@ from __future__ import annotations
 import httpx
 
 from ..config import Config
+from ..i18n import strings
 from ..models import Strategy, Work
 from ..strategy import render
 
@@ -16,14 +17,14 @@ class Source:
     # Le fonti non eseguibili producono solo la stringa da incollare altrove.
     executable: bool = True
     key_field: str = ""
-    key_hint: str = ""
+    key_hint_key: str = "needs_key"
 
     def render_query(self, strategy: Strategy) -> str:
         return render(strategy)
 
-    def unavailable_reason(self, config: Config) -> str | None:
+    def unavailable_reason(self, config: Config, lang: str | None = None) -> str | None:
         if self.key_field and not getattr(config, self.key_field, ""):
-            return self.key_hint or "richiede una chiave API"
+            return strings(lang)[self.key_hint_key]
         return None
 
     async def search(

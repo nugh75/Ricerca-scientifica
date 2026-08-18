@@ -163,6 +163,8 @@ fieldset { border: 0; border-top: 1px solid var(--riga); margin: 1.2rem 0 0; pad
 legend { font: .72rem/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; color: var(--inchiostro-tenue); padding: 0; }
 .fonti { display: flex; flex-wrap: wrap; gap: .4rem .9rem; margin-top: .7rem; }
 .fonte { display: inline-flex; align-items: center; gap: .4rem; width: auto; font-size: .95rem; }
+.fonte label { display: inline-flex; align-items: center; gap: .4rem; }
+.fonte a { color: var(--verde); font: .74rem/1 var(--mono); }
 .fonte input { width: auto; accent-color: var(--verde); }
 .fonte.spenta { color: var(--inchiostro-tenue); }
 .fonte em { font: .74rem/1.3 var(--mono); font-style: normal; }
@@ -230,3 +232,14 @@ td a:hover { text-decoration-color: var(--evidenziatore); }
 
 .riga-mailto { display: flex; gap: .5rem; margin-top: .5rem; max-width: 26rem; }
 .riga-mailto input { flex: 1; }
+
+.lingue { display: inline-flex; gap: .2rem; margin-left: .4rem; }
+.lingua {
+  font: .72rem/1 var(--mono); letter-spacing: .08em; padding: .28rem .4rem;
+  border: 1px solid var(--riga); color: var(--inchiostro-tenue); background: none;
+}
+.lingua.attiva { color: var(--inchiostro); border-color: var(--inchiostro); background: var(--evidenziatore); }
+
+.chiave { display: flex; align-items: center; gap: .7rem; }
+.rimuovi { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; margin: 0; font: .72rem/1 var(--mono); color: var(--inchiostro-tenue); text-transform: none; letter-spacing: 0; }
+.rimuovi input { width: auto; accent-color: var(--timbro); }

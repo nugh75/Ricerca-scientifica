@@ -14,6 +14,7 @@ from collections import Counter
 import httpx
 
 from .config import Config
+from .i18n import strings
 from .models import Suggestions
 
 OPENALEX = "https://api.openalex.org"
@@ -55,21 +56,23 @@ async def gather(topic: str, client: httpx.AsyncClient, config: Config) -> Sugge
         _retry(_cooccurring_terms, topic, client, config),
         return_exceptions=True,
     )
-    for label, value, target in (
-        ("concetti OpenAlex", concepts, "concepts"),
-        ("topic OpenAlex", topics, "topics"),
-        ("termini MeSH", mesh, "mesh"),
-        ("termini co-occorrenti", cooccurring, "cooccurring"),
+    t = strings(config.lang)
+    mesh_failed = False
+    for key, value, target in (
+        ("label_concepts", concepts, "concepts"),
+        ("label_topics", topics, "topics"),
+        ("label_mesh", mesh, "mesh"),
+        ("label_cooccurring", cooccurring, "cooccurring"),
     ):
         if isinstance(value, Exception):
-            suggestions.notes.append(f"{label}: non disponibili ({_short(value)})")
+            mesh_failed = mesh_failed or target == "mesh"
+            suggestions.notes.append(
+                t["note_unavailable"].format(label=t[key], error=_short(value, t))
+            )
         else:
             setattr(suggestions, target, value)
-    if not suggestions.mesh and not any("MeSH" in n for n in suggestions.notes):
-        suggestions.notes.append(
-            "nessun termine MeSH: PubMed non traduce i topic in italiano, "
-            "prova a riscrivere il topic in inglese"
-        )
+    if not suggestions.mesh and not mesh_failed:
+        suggestions.notes.append(t["mesh_missing"])
     return suggestions
 
 
@@ -171,13 +174,13 @@ def count_terms(titles: list[str], exclude: str = "", min_count: int = 2) -> lis
     return ranked[:20]
 
 
-def _short(exc: Exception) -> str:
+def _short(exc: Exception, t: dict[str, str]) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
         code = exc.response.status_code
         if code == 429:
-            return "HTTP 429, troppe richieste: aggiungi l'email di cortesia in Impostazioni"
+            return t["err_429"]
         return f"HTTP {code}"
     if isinstance(exc, httpx.TimeoutException):
-        return "tempo scaduto"
+        return t["err_timeout"]
     text = str(exc) or exc.__class__.__name__
     return text[:120]

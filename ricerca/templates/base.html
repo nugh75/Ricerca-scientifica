@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,23 +12,27 @@
 </head>
 <body>
 <header>
-  <a class="brand" href="/">Ricerca<span>strategia bibliografica</span></a>
+  <a class="brand" href="/">Ricerca<span>{{ t.brand_sub }}</span></a>
   <nav>
-    <a href="/">Strategia</a>
-    <a href="/impostazioni">Impostazioni</a>
+    <a href="/">{{ t.nav_strategy }}</a>
+    <a href="/impostazioni">{{ t.nav_settings }}</a>
+    <span class="lingue">
+      <button type="button" class="lingua {% if lang == 'it' %}attiva{% endif %}" hx-post="/lingua/it" hx-target="body" hx-swap="outerHTML" lang="it">IT</button>
+      <button type="button" class="lingua {% if lang == 'en' %}attiva{% endif %}" hx-post="/lingua/en" hx-target="body" hx-swap="outerHTML" lang="en">EN</button>
+    </span>
   </nav>
 </header>
 <main>
 {% block content %}{% endblock %}
 </main>
-<footer>Tutto in locale. Chiavi e preferenze restano in ~/.ricerca/config.toml</footer>
+<footer>{{ t.footer }}</footer>
 <script>
 document.addEventListener("click", function (event) {
   const bottone = event.target.closest("[data-copia]");
   if (!bottone || !navigator.clipboard) return;
   navigator.clipboard.writeText(bottone.getAttribute("data-copia")).then(function () {
     const testo = bottone.textContent;
-    bottone.textContent = "copiata";
+    bottone.textContent = bottone.getAttribute("data-copiato");
     setTimeout(function () { bottone.textContent = testo; }, 1500);
   });
 });

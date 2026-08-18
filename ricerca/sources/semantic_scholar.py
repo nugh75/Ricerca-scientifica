@@ -3,6 +3,7 @@ from __future__ import annotations
 import httpx
 
 from ..config import Config
+from ..i18n import strings
 from ..models import Strategy, Work
 from ..strategy import flat_terms
 from .base import Source, clean
@@ -15,7 +16,6 @@ class SemanticScholar(Source):
     id = "semanticscholar"
     label = "Semantic Scholar"
     homepage = "https://www.semanticscholar.org"
-    key_hint = "senza chiave il servizio risponde spesso 429"
 
     def render_query(self, strategy: Strategy) -> str:
         # L'endpoint di ricerca non interpreta gli operatori booleani.
@@ -30,10 +30,7 @@ class SemanticScholar(Source):
             timeout=30,
         )
         if response.status_code == 429:
-            raise RuntimeError(
-                "limite di richieste raggiunto: aggiungi una chiave Semantic Scholar "
-                "nelle impostazioni"
-            )
+            raise RuntimeError(strings(config.lang)["s2_hint"])
         response.raise_for_status()
         return [_work(item) for item in response.json().get("data", [])]
 

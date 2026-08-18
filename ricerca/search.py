@@ -9,6 +9,7 @@ import httpx
 from . import sources as sources_registry
 from .config import Config
 from .dedup import merge
+from .i18n import strings
 from .models import SourceResult, Strategy, Work
 
 USER_AGENT = "ricerca/0.1 (assistente di strategia bibliografica)"
@@ -58,12 +59,13 @@ async def _one(
     query = source.render_query(strategy)
     result = SourceResult(source_id=source.id, label=source.label, query=query)
 
-    reason = source.unavailable_reason(config)
+    t = strings(config.lang)
+    reason = source.unavailable_reason(config, config.lang)
     if reason:
         result.error = reason
         return result
     if not query:
-        result.error = "strategia vuota"
+        result.error = t["err_empty_strategy"]
         return result
 
     for attempt in (1, 2):
@@ -72,16 +74,16 @@ async def _one(
             result.error = None
             return result
         except Exception as exc:  # una fonte rotta non deve fermare le altre
-            result.error = _message(exc)
+            result.error = _message(exc, t)
             if attempt == 1:
                 await asyncio.sleep(1)
     return result
 
 
-def _message(exc: Exception) -> str:
+def _message(exc: Exception, t: dict[str, str]) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
         return f"HTTP {exc.response.status_code}"
     if isinstance(exc, httpx.TimeoutException):
-        return "tempo scaduto"
+        return t["err_timeout"]
     text = str(exc) or exc.__class__.__name__
     return text[:200]

@@ -15,6 +15,7 @@ import shutil
 import httpx
 
 from ..config import Config
+from ..i18n import strings
 from ..models import Strategy, Work
 from ..strategy import flat_terms
 from .base import Source, clean
@@ -31,9 +32,9 @@ class OpacSbn(Source):
     def render_query(self, strategy: Strategy) -> str:
         return flat_terms(strategy, limit=6)
 
-    def unavailable_reason(self, config: Config) -> str | None:
+    def unavailable_reason(self, config: Config, lang: str | None = None) -> str | None:
         if shutil.which(BINARY) is None:
-            return f"richiede la CLI {BINARY} nel PATH"
+            return strings(lang)["need_opac_cli"].format(binary=BINARY)
         return None
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):

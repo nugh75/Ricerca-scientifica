@@ -1,18 +1,18 @@
 <div class="scheda">
-  <h3>Stringhe pronte per ogni banca dati</h3>
+  <h3>{{ t.card_queries }}</h3>
   <div class="query">
     {% for source in sources %}
     <div class="riga-query">
       <span>{{ source.label }}</span>
       <code>{{ queries[source.id] }}</code>
-      <button type="button" class="copia" data-copia="{{ queries[source.id] }}">copia</button>
+      <button type="button" class="copia" data-copia="{{ queries[source.id] }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button>
     </div>
     {% endfor %}
     {% for source in copy_only %}
     <div class="riga-query incolla">
-      <span>{{ source.label }} · da incollare</span>
+      <span>{{ source.label }} · {{ t.paste_suffix }}</span>
       <code>{{ queries[source.id] }}</code>
-      <button type="button" class="copia" data-copia="{{ queries[source.id] }}">copia</button>
+      <button type="button" class="copia" data-copia="{{ queries[source.id] }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button>
     </div>
     {% endfor %}
   </div>

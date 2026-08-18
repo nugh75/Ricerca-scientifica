@@ -1,4 +1,4 @@
-{% if error %}<p class="nota errore">Endpoint non raggiungibile: {{ error }}</p>
-{% elif models %}<p class="aiuto">Modelli disponibili:
+{% if error %}<p class="nota errore">{{ t.endpoint_unreachable }} {{ error }}</p>
+{% elif models %}<p class="aiuto">
   {% for m in models %}<button type="button" class="chip" onclick="document.getElementById('llm_model').value='{{ m }}'">{{ m }}</button>{% endfor %}</p>
-{% else %}<p class="nota">L'endpoint non elenca modelli.</p>{% endif %}
+{% else %}<p class="nota">{{ t.no_models }}</p>{% endif %}

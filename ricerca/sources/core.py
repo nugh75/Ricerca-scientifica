@@ -14,7 +14,7 @@ class Core(Source):
     label = "CORE"
     homepage = "https://core.ac.uk"
     key_field = "core_api_key"
-    key_hint = "richiede una chiave gratuita da core.ac.uk/services/api"
+    key_hint_key = "need_core_key"
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
         response = await client.get(

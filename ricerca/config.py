@@ -24,6 +24,7 @@ PRESETS = {
 
 @dataclass
 class Config:
+    lang: str = "it"
     mailto: str = ""
     llm_base_url: str = ""
     llm_model: str = ""

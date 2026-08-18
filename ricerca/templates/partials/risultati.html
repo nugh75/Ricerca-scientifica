@@ -1,6 +1,6 @@
 <section class="passo entra" data-passo="3">
-  <p class="occhiello">Passo tre</p>
-  <h2>Risultati</h2>
+  <p class="occhiello">{{ t.step3_eyebrow }}</p>
+  <h2>{{ t.step3_title }}</h2>
 
   <ul class="stato">
     {% for r in results %}
@@ -9,11 +9,11 @@
   </ul>
 
   {% if works %}
-  <p class="riepilogo"><b>{{ works|length }}</b> record dopo la deduplica ·
-     <a href="/export/{{ token }}.bib">scarica .bib</a> ·
-     <a href="/export/{{ token }}.csv">scarica .csv</a></p>
+  <p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }} ·
+     <a href="/export/{{ token }}.bib">{{ t.download_bib }}</a> ·
+     <a href="/export/{{ token }}.csv">{{ t.download_csv }}</a></p>
   <table>
-    <thead><tr><th>Anno</th><th>Titolo</th><th>Autori</th><th>Sede</th><th>Fonti</th></tr></thead>
+    <thead><tr><th>{{ t.th_year }}</th><th>{{ t.th_title }}</th><th>{{ t.th_authors }}</th><th>{{ t.th_venue }}</th><th>{{ t.th_sources }}</th></tr></thead>
     <tbody>
     {% for w in works %}
     <tr>
@@ -28,6 +28,6 @@
     </tbody>
   </table>
   {% else %}
-  <p class="nota">Nessun record. Allarga i blocchi, togli un vincolo o aggiungi una fonte.</p>
+  <p class="nota">{{ t.empty_results }}</p>
   {% endif %}
 </section>

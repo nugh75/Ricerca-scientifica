@@ -1,11 +1,11 @@
 {% if config.mailto %}
-<p class="nota">Email di cortesia attiva: <b>{{ config.mailto }}</b> — OpenAlex applica i limiti più larghi.</p>
+<p class="nota">{{ t.mailto_active }} <b>{{ config.mailto }}</b> {{ t.mailto_active_tail }}</p>
 {% else %}
 <form class="nota" hx-post="/mailto" hx-target="#cortesia">
-  <label for="mailto-veloce">Senza email di cortesia OpenAlex risponde spesso <b>429</b>. Inseriscila una volta sola:</label>
+  <label for="mailto-veloce">{{ t.mailto_prompt|safe }}</label>
   <span class="riga-mailto">
     <input id="mailto-veloce" name="mailto" type="email" required placeholder="nome@esempio.it">
-    <button type="submit">Salva</button>
+    <button type="submit">{{ t.btn_save }}</button>
   </span>
 </form>
 {% endif %}

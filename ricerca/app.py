@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
-from . import keywords, search
+from . import i18n, keywords, search
 from . import sources as sources_registry
 from .config import PRESETS, Config
 from .export import to_bibtex, to_csv
@@ -35,19 +35,35 @@ def current_config() -> Config:
     return config_module.load()
 
 
+def base_context(config: Config, **extra) -> dict:
+    """Ogni pagina riceve le stringhe nella lingua scelta."""
+
+    context = {"config": config, "lang": config.lang, "t": i18n.strings(config.lang)}
+    context.update(extra)
+    return context
+
+
+@app.post("/lingua/{lang}")
+async def cambia_lingua(lang: str):
+    config = current_config()
+    config.lang = i18n.normalize(lang)
+    config_module.save(config)
+    return RedirectResponse("/", status_code=303)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     config = current_config()
     return templates.TemplateResponse(
         request,
         "index.html",
-        {
-            "sources": sources_registry.executable(),
-            "copy_only": sources_registry.copy_only(),
-            "selected": sources_registry.DEFAULT_SELECTED,
-            "config": config,
-            "llm_enabled": config.llm_enabled,
-        },
+        base_context(
+            config,
+            sources=sources_registry.executable(),
+            copy_only=sources_registry.copy_only(),
+            selected=sources_registry.DEFAULT_SELECTED,
+            llm_enabled=config.llm_enabled,
+        ),
     )
 
 
@@ -58,7 +74,7 @@ async def salva_mailto(request: Request, mailto: str = Form(...)):
     config = current_config()
     config.mailto = mailto.strip()
     config_module.save(config)
-    return templates.TemplateResponse(request, "partials/mailto.html", {"config": config})
+    return templates.TemplateResponse(request, "partials/mailto.html", base_context(config))
 
 
 @app.post("/suggerimenti", response_class=HTMLResponse)
@@ -77,21 +93,23 @@ async def suggerimenti(request: Request, topic: str = Form(...)):
                 strategy = Strategy(blocks=blocks, mesh=suggestions.mesh)
                 suggestions.llm_used = True
             except (LLMError, httpx.HTTPError, OSError) as exc:
-                suggestions.notes.append(f"LLM non utilizzabile ({str(exc)[:120]}) — blocchi dai soli dati")
+                suggestions.notes.append(
+                    i18n.strings(config.lang)["llm_unusable"].format(error=str(exc)[:120])
+                )
 
     return templates.TemplateResponse(
         request,
         "partials/strategia.html",
-        {
-            "topic": topic,
-            "suggestions": suggestions,
-            "strategy": strategy,
-            "queries": search.queries_for(strategy),
-            "sources": sources_registry.executable(),
-            "copy_only": sources_registry.copy_only(),
-            "selected": sources_registry.DEFAULT_SELECTED,
-            "config": config,
-        },
+        base_context(
+            config,
+            topic=topic,
+            suggestions=suggestions,
+            strategy=strategy,
+            queries=search.queries_for(strategy),
+            sources=sources_registry.executable(),
+            copy_only=sources_registry.copy_only(),
+            selected=sources_registry.DEFAULT_SELECTED,
+        ),
     )
 
 
@@ -106,12 +124,12 @@ async def query(
     return templates.TemplateResponse(
         request,
         "partials/query.html",
-        {
-            "queries": search.queries_for(strategy),
-            "sources": sources_registry.executable(),
-            "copy_only": sources_registry.copy_only(),
-            "config": current_config(),
-        },
+        base_context(
+            current_config(),
+            queries=search.queries_for(strategy),
+            sources=sources_registry.executable(),
+            copy_only=sources_registry.copy_only(),
+        ),
     )
 
 
@@ -134,7 +152,7 @@ async def cerca(
     return templates.TemplateResponse(
         request,
         "partials/risultati.html",
-        {"results": results, "works": works, "token": token},
+        base_context(config, results=results, works=works, token=token),
     )
 
 
@@ -160,14 +178,17 @@ async def impostazioni(request: Request, salvato: int = 0):
     return templates.TemplateResponse(
         request,
         "impostazioni.html",
-        {
-            "config": current_config(),
-            "presets": PRESETS,
-            "salvato": bool(salvato),
-            "percorso": config_module.CONFIG_FILE,
-            "sources": sources_registry.ALL,
-        },
+        base_context(
+            current_config(),
+            presets=PRESETS,
+            salvato=bool(salvato),
+            percorso=config_module.CONFIG_FILE,
+            sources=sources_registry.ALL,
+        ),
     )
+
+
+SECRET_FIELDS = ("llm_api_key", "core_api_key", "s2_api_key", "ncbi_api_key")
 
 
 @app.post("/impostazioni")
@@ -179,18 +200,33 @@ async def salva_impostazioni(
     core_api_key: str = Form(default=""),
     s2_api_key: str = Form(default=""),
     ncbi_api_key: str = Form(default=""),
+    rimuovi: list[str] = Form(default=[]),
 ):
-    config_module.save(
-        Config(
-            mailto=mailto.strip(),
-            llm_base_url=llm_base_url.strip(),
-            llm_model=llm_model.strip(),
-            llm_api_key=llm_api_key.strip(),
-            core_api_key=core_api_key.strip(),
-            s2_api_key=s2_api_key.strip(),
-            ncbi_api_key=ncbi_api_key.strip(),
-        )
-    )
+    """Un campo chiave lasciato vuoto conserva la chiave gia' salvata.
+
+    Le chiavi non vengono mai rimandate al browser, quindi il modulo arriva
+    vuoto anche quando sono impostate: per cancellarne una si spunta
+    "rimuovi" accanto al campo.
+    """
+
+    config = current_config()
+    config.mailto = mailto.strip()
+    config.llm_base_url = llm_base_url.strip()
+    config.llm_model = llm_model.strip()
+
+    nuovi = {
+        "llm_api_key": llm_api_key.strip(),
+        "core_api_key": core_api_key.strip(),
+        "s2_api_key": s2_api_key.strip(),
+        "ncbi_api_key": ncbi_api_key.strip(),
+    }
+    for campo, valore in nuovi.items():
+        if campo in rimuovi:
+            setattr(config, campo, "")
+        elif valore:
+            setattr(config, campo, valore)
+
+    config_module.save(config)
     return RedirectResponse("/impostazioni?salvato=1", status_code=303)
 
 
@@ -203,5 +239,7 @@ async def modelli(request: Request, llm_base_url: str = Form(...), llm_api_key: 
     except (httpx.HTTPError, OSError, ValueError) as exc:
         models, error = [], str(exc)[:200]
     return templates.TemplateResponse(
-        request, "partials/modelli.html", {"models": models, "error": error}
+        request,
+        "partials/modelli.html",
+        base_context(current_config(), models=models, error=error),
     )
