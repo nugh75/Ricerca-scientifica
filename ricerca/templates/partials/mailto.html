@@ -4,7 +4,7 @@
 <form class="nota" hx-post="/mailto" hx-target="#cortesia">
   <label for="mailto-veloce">{{ t.mailto_prompt|safe }}</label>
   <span class="riga-mailto">
-    <input id="mailto-veloce" name="mailto" type="email" required placeholder="nome@esempio.it">
+    <input id="mailto-veloce" name="mailto" type="email" required placeholder="{{ t.mailto_placeholder }}">
     <button type="submit">{{ t.btn_save }}</button>
   </span>
 </form>
