@@ -193,9 +193,32 @@ salvata, la spunta *rimuovi* la cancella.
   favicon). I file stanno nel repository: né la CI né chi installa hanno
   bisogno di un browser.
 
+## Dodici miglioramenti (secondo giro)
+
+| Fatto | Dove |
+|---|---|
+| Limiti di anno e tipo di documento | `models.Filtri`, `render_filtri` di ogni fonte |
+| Traduzione del topic italiano per PubMed | `llm.traduci`, usata solo se un LLM è configurato |
+| Cache locale delle risposte (un giorno) | `cache.TrasportoConCache`, SQLite in `~/.ricerca` |
+| Ordinamento per pertinenza | `search.assegna_pertinenza`, reciprocal rank fusion |
+| Deduplica sfumata sui titoli | `dedup._stesso_lavoro`, solo per i record senza DOI |
+| Screening PRISMA con motivo | `history.decide`, `history.conteggi` |
+| Export del protocollo metodologico | `export.protocollo` |
+| Affinamento iterativo dai risultati | rotta `/affina`, riusa `keywords.count_terms` |
+| Crossref | `sources/crossref.py` |
+| Invio a Zotero | `zotero.py`, chiave e libreria dalle impostazioni |
+| Testo pieno dei PDF scaricati | `biblioteca.py`, estrazione con pypdf dopo lo scaricamento |
+| Test a contratto sulle API vere | `tests/contratto`, marcatore `rete`, CI settimanale |
+
+Due difetti emersi mentre si costruiva, entrambi corretti: due lavori omonimi
+di annate diverse finivano uniti, e la cache rimandava le risposte compresse
+con l'intestazione `content-encoding` intatta, per cui PubMed falliva con
+«incorrect header check».
+
 ## Stato
 
-104 test, nessuno tocca la rete. Schermate in `docs/screenshot/`.
+152 test, nessuno tocca la rete; altri 8 a contratto, che la interrogano
+apposta. Schermate in `docs/screenshot/`.
 
 Fasi successive, ancora da progettare: libreria persistente con annotazioni
 (fase 2) e analisi LLM del testo degli articoli (fase 3).

@@ -62,3 +62,21 @@ async def test_spenta_la_cache_ogni_richiesta_passa(monkeypatch, isolated_config
         await client.get("https://api.esempio.org/w")
         await client.get("https://api.esempio.org/w")
     assert rotta.call_count == 2
+
+
+@respx.mock
+async def test_una_risposta_compressa_non_viene_decompressa_due_volte(cache_accesa):
+    import gzip
+
+    corpo = gzip.compress(b'{"esearchresult": {"idlist": ["1"]}}')
+    respx.get("https://eutils.esempio.org/esearch").mock(
+        return_value=httpx.Response(
+            200, content=corpo, headers={"content-encoding": "gzip", "content-type": "application/json"}
+        )
+    )
+    async with cache.client() as client:
+        prima = await client.get("https://eutils.esempio.org/esearch")
+        seconda = await client.get("https://eutils.esempio.org/esearch")
+
+    assert prima.json()["esearchresult"]["idlist"] == ["1"]
+    assert seconda.json() == prima.json()

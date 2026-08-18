@@ -11,6 +11,7 @@ import re
 
 import httpx
 
+from . import biblioteca
 from . import config as config_module
 from .export import cite_key
 from .models import Work
@@ -56,4 +57,5 @@ async def scarica(work: Work, client: httpx.AsyncClient):
 
     percorso = cartella() / nome_file(work)
     percorso.write_bytes(contenuto)
+    biblioteca.estrai(percorso)  # il testo serve per cercare dentro i PDF
     return percorso

@@ -5,6 +5,12 @@
    <a href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa }}</a> ·
    <a href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol }}</a></p>
 <p><span id="conteggi" class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span></p>
+{% if config.zotero_api_key and config.zotero_library_id %}
+<div class="azioni">
+  <button type="button" hx-post="/zotero/{{ id_ricerca }}" hx-target="#zotero-{{ id_ricerca }}">{{ t.zotero_send }}</button>
+  <span id="zotero-{{ id_ricerca }}"></span>
+</div>
+{% endif %}
 
 {% if vista == 'apa' %}
 <p class="nota">{{ t.apa_note }}</p>

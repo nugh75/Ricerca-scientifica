@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ t.library_title }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo" data-passo="🔍">
+  <p class="occhiello">{{ t.library_eyebrow }}</p>
+  <h1>{{ t.library_title }}</h1>
+  <p>{{ t.library_intro }}</p>
+
+  {% if documenti %}
+  <form method="get" class="topic-form">
+    <input name="q" value="{{ query }}" placeholder="{{ t.library_placeholder }}" aria-label="{{ t.library_search }}">
+    <button type="submit" class="primario">{{ t.library_search }}</button>
+  </form>
+
+  {% if query %}
+    {% if trovati %}
+    <div class="scheda">
+      {% for trovato in trovati %}
+      <div class="gruppo-chip">
+        <h3>{{ trovato.file }} — {{ t.library_count.format(quante=trovato.occorrenze) }}</h3>
+        <p class="aiuto">…{{ trovato.estratto }}…</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="nota">{{ t.library_none.format(quanti=documenti) }}</p>
+    {% endif %}
+  {% endif %}
+  {% else %}
+  <p class="nota">{{ t.library_empty }}</p>
+  {% endif %}
+</section>
+{% endblock %}

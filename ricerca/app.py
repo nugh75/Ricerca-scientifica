@@ -13,7 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
-from . import cache, history, i18n, keywords, pdf, search, watchdog
+from . import biblioteca, cache, history, i18n, keywords, pdf, search, watchdog
+from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
 from .export import (
@@ -380,6 +381,43 @@ async def affina(request: Request, id_ricerca: str):
     )
 
 
+@app.post("/zotero/{id_ricerca}", response_class=HTMLResponse)
+async def invia_a_zotero(request: Request, id_ricerca: str):
+    """Manda a Zotero i record inclusi; se non ce ne sono, manda tutti."""
+
+    config = current_config()
+    works = history.record(id_ricerca)
+    inclusi = [w for w in works if w.decisione == "incluso"]
+    da_inviare = inclusi or works
+
+    esito, errore = None, None
+    try:
+        async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
+            esito = await zotero_client.invia(da_inviare, config, client)
+    except (zotero_client.ZoteroError, httpx.HTTPError, OSError) as exc:
+        errore = str(exc)[:160]
+
+    return templates.TemplateResponse(
+        request,
+        "partials/zotero.html",
+        base_context(config, esito=esito, errore=errore, soltanto_inclusi=bool(inclusi)),
+    )
+
+
+@app.get("/biblioteca", response_class=HTMLResponse)
+async def biblioteca_pagina(request: Request, q: str = ""):
+    return templates.TemplateResponse(
+        request,
+        "biblioteca.html",
+        base_context(
+            current_config(),
+            query=q,
+            trovati=biblioteca.cerca(q) if q else [],
+            documenti=len(biblioteca.documenti()),
+        ),
+    )
+
+
 @app.get("/cronologia", response_class=HTMLResponse)
 async def cronologia(request: Request):
     return templates.TemplateResponse(
@@ -440,7 +478,7 @@ async def impostazioni(request: Request, salvato: int = 0):
     )
 
 
-SECRET_FIELDS = ("llm_api_key", "core_api_key", "s2_api_key", "ncbi_api_key")
+SECRET_FIELDS = ("llm_api_key", "core_api_key", "s2_api_key", "ncbi_api_key", "zotero_api_key")
 
 
 @app.post("/impostazioni")
@@ -452,6 +490,9 @@ async def salva_impostazioni(
     core_api_key: str = Form(default=""),
     s2_api_key: str = Form(default=""),
     ncbi_api_key: str = Form(default=""),
+    zotero_api_key: str = Form(default=""),
+    zotero_library_id: str = Form(default=""),
+    zotero_library_type: str = Form(default="users"),
     rimuovi: list[str] = Form(default=[]),
 ):
     """Un campo chiave lasciato vuoto conserva la chiave gia' salvata.
@@ -465,12 +506,15 @@ async def salva_impostazioni(
     config.mailto = mailto.strip()
     config.llm_base_url = llm_base_url.strip()
     config.llm_model = llm_model.strip()
+    config.zotero_library_id = zotero_library_id.strip()
+    config.zotero_library_type = zotero_library_type.strip() or "users"
 
     nuovi = {
         "llm_api_key": llm_api_key.strip(),
         "core_api_key": core_api_key.strip(),
         "s2_api_key": s2_api_key.strip(),
         "ncbi_api_key": ncbi_api_key.strip(),
+        "zotero_api_key": zotero_api_key.strip(),
     }
     for campo, valore in nuovi.items():
         if campo in rimuovi:

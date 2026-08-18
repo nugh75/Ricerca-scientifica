@@ -31,6 +31,9 @@ class Config:
     core_api_key: str = ""
     s2_api_key: str = ""
     ncbi_api_key: str = ""
+    zotero_api_key: str = ""
+    zotero_library_id: str = ""
+    zotero_library_type: str = "users"
 
     @property
     def llm_enabled(self) -> bool:

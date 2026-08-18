@@ -1,0 +1,2 @@
+{% if errore %}<p class="nota errore">{{ t.zotero_error.format(errore=errore) }}</p>
+{% else %}<p class="nota">{{ t.zotero_done.format(**esito) }} {% if soltanto_inclusi %}{{ t.zotero_only_included }}{% endif %}</p>{% endif %}

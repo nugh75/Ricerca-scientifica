@@ -78,6 +78,14 @@ def svuota() -> None:
         pass
 
 
+def _intestazioni(risposta: httpx.Response) -> dict:
+    """Il corpo è già decompresso: tenere `content-encoding` farebbe
+    ritentare la decompressione al chiamante («incorrect header check»)."""
+
+    saltate = {"content-encoding", "content-length", "transfer-encoding"}
+    return {k: v for k, v in risposta.headers.items() if k.lower() not in saltate}
+
+
 class TrasportoConCache(httpx.AsyncHTTPTransport):
     """Serve dalla cache le GET già viste; le altre passano oltre."""
 
@@ -104,7 +112,7 @@ class TrasportoConCache(httpx.AsyncHTTPTransport):
                 risposta.headers.get("content-type", "application/json"),
                 corpo,
             )
-            return httpx.Response(risposta.status_code, content=corpo, headers=risposta.headers)
+            return httpx.Response(risposta.status_code, content=corpo, headers=_intestazioni(risposta))
         return risposta
 
 

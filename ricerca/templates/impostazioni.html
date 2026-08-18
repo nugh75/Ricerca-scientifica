@@ -50,6 +50,20 @@
       {% if config.ncbi_api_key %}<label class="rimuovi"><input type="checkbox" name="rimuovi" value="ncbi_api_key"> {{ t.key_remove }}</label>{% endif %}
     </span>
 
+    <label for="zotero_api_key">{{ t.settings_zotero }}</label>
+    <span class="chiave">
+      <input id="zotero_api_key" name="zotero_api_key" type="password" autocomplete="off"
+             placeholder="{% if config.zotero_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+      {% if config.zotero_api_key %}<label class="rimuovi"><input type="checkbox" name="rimuovi" value="zotero_api_key"> {{ t.key_remove }}</label>{% endif %}
+    </span>
+    <label for="zotero_library_id">{{ t.settings_zotero_id }}</label>
+    <input id="zotero_library_id" name="zotero_library_id" value="{{ config.zotero_library_id }}" placeholder="123456">
+    <label for="zotero_library_type">{{ t.settings_zotero_type }}</label>
+    <select id="zotero_library_type" name="zotero_library_type">
+      <option value="users" {% if config.zotero_library_type != 'groups' %}selected{% endif %}>users</option>
+      <option value="groups" {% if config.zotero_library_type == 'groups' %}selected{% endif %}>groups</option>
+    </select>
+
     <p class="aiuto">{{ t.key_help }}</p>
     <div class="azioni"><button type="submit" class="primario">{{ t.btn_save }}</button></div>
   </form>

@@ -1,6 +1,6 @@
 [project]
 name = "ricerca"
-version = "1.3.0"
+version = "1.4.0"
 description = "Assistente di strategia di ricerca bibliografica: suggerisce parole chiave e interroga i motori accademici"
 requires-python = ">=3.11"
 dependencies = [
@@ -9,6 +9,7 @@ dependencies = [
     "httpx>=0.27",
     "jinja2>=3.1",
     "python-multipart>=0.0.9",
+    "pypdf>=4.0",
 ]
 
 [project.optional-dependencies]
@@ -27,3 +28,6 @@ packages = ["ricerca"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# I test a contratto interrogano le API vere: fuori dalla suite normale.
+addopts = "-m 'not rete'"
+markers = ["rete: interroga le API reali (CI settimanale, `pytest -m rete`)"]

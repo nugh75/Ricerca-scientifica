@@ -16,15 +16,24 @@ banca dati, poi esegue le query ed esporta i risultati.
    blocchi booleani, modificabili a mano, e le stringhe per ogni motore.
    Nessuna ricerca parte finché non la avvii tu.
 3. **Risultati** — le fonti scelte vengono interrogate in parallelo, i
-   duplicati uniti per DOI o titolo. Scegli quali campi mostrare, guarda
-   l'elenco come tabella o come **riferimenti APA**, scarica i **PDF ad
-   accesso aperto** ed esporta in `.bib`, `.csv` o `.txt`.
-4. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
+   duplicati uniti per DOI o titolo (anche quando un titolo è troncato o
+   punteggiato diversamente), l'elenco ordinato per pertinenza. Scegli quali
+   campi mostrare, leggi come tabella o come **riferimenti APA**, scarica i
+   **PDF ad accesso aperto**, esporta in `.bib`, `.csv`, `.txt`.
+4. **Selezione** — ogni record si marca *incluso*, *forse* o *escluso* con un
+   motivo; i conteggi seguono il diagramma di flusso PRISMA e il **protocollo**
+   in Markdown raccoglie stringhe, numeri e decisioni per la sezione «Metodo».
+5. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
    record: si riapre, si riesporta e se ne scaricano i PDF senza ripeterla.
+6. **Biblioteca** — i PDF scaricati sono cercabili a testo pieno.
 
-Motori interrogati: OpenAlex, PubMed, Europe PMC, arXiv, DOAJ, Semantic
-Scholar (meglio con chiave), CORE (chiave gratuita), OPAC SBN per i libri
-italiani (tramite la CLI `opac-sbn-pp-cli`, se installata). Per Scopus e Web
+Limiti di anno e «solo articoli di rivista» valgono per tutte le fonti,
+ognuna con la propria sintassi. Le risposte restano in una cache locale di un
+giorno: affinare una strategia non ribatte sulle API.
+
+Motori interrogati: OpenAlex, Crossref, PubMed, Europe PMC, arXiv, DOAJ,
+Semantic Scholar (meglio con chiave), CORE (chiave gratuita), OPAC SBN per i
+libri italiani (tramite la CLI `opac-sbn-pp-cli`, se installata). Per Scopus e Web
 of Science l'app produce la stringa da incollare nella loro interfaccia.
 
 ## Scarica e avvia
@@ -80,7 +89,10 @@ Dalla pagina **Impostazioni**:
   più larghi; senza, risponde spesso `429`. Si può inserire anche dalla
   pagina iniziale, al primo avvio;
 - **chiave Semantic Scholar**, **chiave CORE**, **chiave NCBI/PubMed**;
-- **endpoint e modello LLM** (facoltativi).
+- **chiave e libreria Zotero**, per spedire i record inclusi nella tua
+  libreria con un bottone;
+- **endpoint e modello LLM** (facoltativi: servono anche a tradurre un topic
+  italiano prima di interrogare PubMed, che in italiano non trova i MeSH).
 
 Le chiavi restano in `~/.ricerca/config.toml` con permessi `600`, non
 vengono mai rimandate al browser e si cancellano con la spunta *rimuovi*.
@@ -103,7 +115,8 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 104 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 152 test, nessuno tocca la rete
+.venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
 
@@ -118,6 +131,9 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 - `ricerca/pdf.py` — scaricamento dei PDF ad accesso aperto
 - `ricerca/export.py` — BibTeX, CSV e riferimenti APA
 - `ricerca/watchdog.py` — chiusura automatica quando la pagina si chiude
+- `ricerca/cache.py` — cache SQLite delle risposte, come trasporto httpx
+- `ricerca/zotero.py` — invio dei record inclusi a Zotero
+- `ricerca/biblioteca.py` — testo dei PDF e ricerca a testo pieno
 - `ricerca/i18n.py` — stringhe italiane e inglesi
 - `docs/specs/` — il documento di progetto
 
@@ -136,16 +152,24 @@ then runs the queries and exports the results.
    terms recurring in the titles of the first results. These become editable
    boolean blocks and one query string per engine. No search runs until you
    start it.
-3. **Results** — the selected sources are queried in parallel, duplicates
-   merged by DOI or title. Pick which fields to show, read the list as a table
-   or as **APA references**, download **open-access PDFs**, and export to
-   `.bib`, `.csv` or `.txt`.
-4. **History** — every search is stored with its strategy and its records:
+3. **Results** — sources are queried in parallel, duplicates merged by DOI or
+   title (even when one title is truncated or punctuated differently), the
+   list ranked by relevance. Pick the fields, read it as a table or as **APA
+   references**, download **open-access PDFs**, export to `.bib`, `.csv`, `.txt`.
+4. **Screening** — mark each record *include*, *maybe* or *exclude* with a
+   reason; the counters follow the PRISMA flow diagram and the **protocol** in
+   Markdown gathers strings, numbers and decisions for your Methods section.
+5. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
+6. **Library** — the downloaded PDFs are searchable in full text.
 
-Sources queried: OpenAlex, PubMed, Europe PMC, arXiv, DOAJ, Semantic Scholar
-(better with a key), CORE (free key), OPAC SBN for Italian books (through the
-`opac-sbn-pp-cli` CLI, if installed). For Scopus and Web of Science the app
+Year limits and “journal articles only” apply to every source, each in its own
+syntax. Responses are cached locally for a day: refining a strategy does not
+hammer the APIs.
+
+Sources queried: OpenAlex, Crossref, PubMed, Europe PMC, arXiv, DOAJ, Semantic
+Scholar (better with a key), CORE (free key), OPAC SBN for Italian books
+(through the `opac-sbn-pp-cli` CLI, if installed). For Scopus and Web of Science the app
 produces the string to paste into their own interface.
 
 ## Download and run
