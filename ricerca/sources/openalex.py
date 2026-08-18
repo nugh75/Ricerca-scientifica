@@ -14,9 +14,16 @@ class OpenAlex(Source):
     label = "OpenAlex"
     homepage = "https://openalex.org"
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
+        pezzi = [f"title_and_abstract.search:{query}"]
+        if filtri and filtri.anno_da:
+            pezzi.append(f"from_publication_date:{filtri.anno_da}-01-01")
+        if filtri and filtri.anno_a:
+            pezzi.append(f"to_publication_date:{filtri.anno_a}-12-31")
+        if filtri and filtri.solo_articoli:
+            pezzi.append("type:article")
         params = {
-            "filter": f"title_and_abstract.search:{query}",
+            "filter": ",".join(pezzi),
             "per_page": str(min(limit, 50)),
             "select": "id,doi,title,publication_year,authorships,primary_location,best_oa_location",
         }

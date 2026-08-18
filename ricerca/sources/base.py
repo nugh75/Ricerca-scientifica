@@ -6,7 +6,7 @@ import httpx
 
 from ..config import Config
 from ..i18n import strings
-from ..models import Strategy, Work
+from ..models import Filtri, Strategy, Work
 from ..strategy import render
 
 
@@ -20,7 +20,12 @@ class Source:
     key_hint_key: str = "needs_key"
 
     def render_query(self, strategy: Strategy) -> str:
-        return render(strategy)
+        return render(strategy) + self.render_filtri(strategy)
+
+    def render_filtri(self, strategy: Strategy) -> str:
+        """Coda da aggiungere alla query: ogni fonte ha la sua sintassi."""
+
+        return ""
 
     def unavailable_reason(self, config: Config, lang: str | None = None) -> str | None:
         if self.key_field and not getattr(config, self.key_field, ""):
@@ -28,7 +33,12 @@ class Source:
         return None
 
     async def search(
-        self, client: httpx.AsyncClient, query: str, limit: int, config: Config
+        self,
+        client: httpx.AsyncClient,
+        query: str,
+        limit: int,
+        config: Config,
+        filtri: Filtri | None = None,
     ) -> list[Work]:
         raise NotImplementedError
 

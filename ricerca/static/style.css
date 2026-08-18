@@ -254,3 +254,6 @@ td.abstract { max-width: 26rem; font-size: .85rem; color: var(--inchiostro-tenue
 .viste { display: inline-flex; gap: .2rem; margin-left: auto; }
 .assente { font: .74rem/1 var(--mono); color: var(--inchiostro-tenue); }
 .riga-query form { display: inline; }
+
+.filtri { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; align-items: center; margin-top: .6rem; }
+.filtri .limite input { width: 6rem; }

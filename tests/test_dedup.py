@@ -28,3 +28,41 @@ def test_merge_unisce_per_titolo_quando_manca_il_doi():
         Work(title="Altro lavoro", sources=["doaj"]),
     ]
     assert len(merge(works)) == 2
+
+
+def test_titoli_troncati_o_ripuntati_sono_lo_stesso_lavoro():
+    works = [
+        Work(title="Artificial intelligence literacy in teacher education: a scoping review",
+             year=2024, sources=["arxiv"]),
+        Work(title="Artificial intelligence literacy in teacher education: A scoping review.",
+             year=2024, sources=["doaj"]),
+    ]
+    unito = merge(works)
+    assert len(unito) == 1
+    assert unito[0].sources == ["arxiv", "doaj"]
+
+
+def test_titoli_lunghi_ma_diversi_restano_separati():
+    works = [
+        Work(title="Artificial intelligence literacy in primary school teacher education", year=2024),
+        Work(title="Artificial intelligence literacy in nursing degree programmes", year=2024),
+    ]
+    assert len(merge(works)) == 2
+
+
+def test_anni_lontani_non_vengono_uniti():
+    works = [
+        Work(title="Artificial intelligence literacy in teacher education programmes", year=2015),
+        Work(title="Artificial intelligence literacy in teacher education programmes", year=2024),
+    ]
+    assert len(merge(works)) == 2
+
+
+def test_titoli_cortissimi_non_si_uniscono_per_somiglianza():
+    assert len(merge([Work(title="AI e scuola"), Work(title="AI e scuole")])) == 2
+
+
+def test_la_fusione_somma_i_punteggi():
+    uno = Work(title="Uno", doi="10.1/x", punteggio=0.5, sources=["a"])
+    due = Work(title="Uno", doi="10.1/x", punteggio=0.3, sources=["b"])
+    assert merge([uno, due])[0].punteggio == 0.8

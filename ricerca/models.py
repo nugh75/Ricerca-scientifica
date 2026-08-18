@@ -17,11 +17,24 @@ class Block:
 
 
 @dataclass
+class Filtri:
+    """Vincoli che valgono per tutte le fonti, ognuna con la sua sintassi."""
+
+    anno_da: int | None = None
+    anno_a: int | None = None
+    solo_articoli: bool = False
+
+    def attivi(self) -> bool:
+        return bool(self.anno_da or self.anno_a or self.solo_articoli)
+
+
+@dataclass
 class Strategy:
     """Blocchi in AND fra loro; `mesh` sono i termini controllati PubMed."""
 
     blocks: list[Block] = field(default_factory=list)
     mesh: list[str] = field(default_factory=list)
+    filtri: Filtri = field(default_factory=Filtri)
 
     def non_empty_blocks(self) -> list[Block]:
         return [b for b in self.blocks if b.clean_terms()]
@@ -43,6 +56,9 @@ class Work:
     abstract: str | None = None
     oa_url: str | None = None
     sources: list[str] = field(default_factory=list)
+    # Pertinenza: somma dei contributi delle fonti in cui il record compare
+    # in alto (reciprocal rank fusion). Non viene mostrata, ordina l'elenco.
+    punteggio: float = 0.0
 
     @property
     def authors_short(self) -> str:

@@ -16,7 +16,13 @@ class Doaj(Source):
     label = "DOAJ"
     homepage = "https://doaj.org"
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    def render_filtri(self, strategy) -> str:
+        filtri = strategy.filtri
+        if not (filtri.anno_da or filtri.anno_a):
+            return ""
+        return f" AND bibjson.year:[{filtri.anno_da or 1800} TO {filtri.anno_a or 3000}]"
+
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         url = f"{API}/{quote(query, safe='')}"
         response = await client.get(url, params={"pageSize": str(min(limit, 100))}, timeout=25)
         response.raise_for_status()

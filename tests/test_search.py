@@ -3,7 +3,7 @@ import respx
 
 from ricerca import search
 from ricerca.config import Config
-from ricerca.models import Block, Strategy
+from ricerca.models import Block, Strategy, Work
 
 OPENALEX_OK = {"results": [{"id": "https://openalex.org/W1", "title": "Uno", "publication_year": 2024,
                             "doi": "https://doi.org/10.1/x", "authorships": [], "primary_location": {}}]}
@@ -50,3 +50,29 @@ async def test_fonte_senza_chiave_segnala_il_motivo(strategy, config):
     results, works = await search.run(strategy, ["core"], 5, config)
     assert "key" in results[0].error
     assert works == []
+
+
+def test_la_pertinenza_premia_le_prime_posizioni():
+    works = [Work(title=f"n{i}") for i in range(3)]
+    search.assegna_pertinenza(works)
+    assert works[0].punteggio > works[1].punteggio > works[2].punteggio
+
+
+@respx.mock
+async def test_l_ordine_finale_mette_avanti_chi_e_alto_in_piu_fonti(strategy, config):
+    comune = {"id": "https://openalex.org/W1", "title": "Trovato da tutti",
+              "publication_year": 2019, "doi": "https://doi.org/10.1/comune",
+              "authorships": [], "primary_location": {}}
+    recente = {"id": "https://openalex.org/W2", "title": "Solo recente",
+               "publication_year": 2026, "doi": "https://doi.org/10.1/recente",
+               "authorships": [], "primary_location": {}}
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json={"results": [comune, recente]}))
+    respx.get(url__startswith="https://doaj.org").mock(
+        return_value=httpx.Response(200, json={"results": [{"bibjson": {
+            "title": "Trovato da tutti", "year": "2019",
+            "identifier": [{"type": "doi", "id": "10.1/comune"}]}}]}))
+
+    _, works = await search.run(strategy, ["openalex", "doaj"], 5, config)
+
+    assert [w.title for w in works] == ["Trovato da tutti", "Solo recente"]

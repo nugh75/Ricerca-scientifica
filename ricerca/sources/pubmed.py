@@ -23,9 +23,19 @@ class PubMed(Source):
             groups.append(or_group(strategy.mesh, '"{term}"[MeSH Terms]'))
         if not groups:
             return ""
-        return " AND ".join(f"({g})" for g in groups)
+        return " AND ".join(f"({g})" for g in groups) + self.render_filtri(strategy)
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    def render_filtri(self, strategy: Strategy) -> str:
+        filtri, coda = strategy.filtri, ""
+        if filtri.anno_da or filtri.anno_a:
+            da = filtri.anno_da or 1800
+            a = filtri.anno_a or 3000
+            coda += f' AND ("{da}"[dp] : "{a}"[dp])'
+        if filtri.solo_articoli:
+            coda += ' AND ("journal article"[pt])'
+        return coda
+
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         params = {"db": "pubmed", "term": query, "retmode": "json", "retmax": str(limit)}
         if config.ncbi_api_key:
             params["api_key"] = config.ncbi_api_key

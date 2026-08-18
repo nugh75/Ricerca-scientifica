@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from .i18n import strings
 from .keywords import words_of
-from .models import Block, Strategy, Suggestions
+from .models import Block, Filtri, Strategy, Suggestions
 
 
 def or_group(terms: list[str], term_fmt: str = '"{term}"') -> str:
@@ -78,7 +78,14 @@ def topic_seed(topic: str, max_words: int = 3) -> list[str]:
     return words[:5]
 
 
-def strategy_from_form(labels: list[str], term_lines: list[str], mesh: str = "") -> Strategy:
+def strategy_from_form(
+    labels: list[str],
+    term_lines: list[str],
+    mesh: str = "",
+    anno_da: str = "",
+    anno_a: str = "",
+    solo_articoli: bool = False,
+) -> Strategy:
     """Ricostruisce la strategia dai campi di testo della pagina."""
 
     blocks = []
@@ -87,4 +94,17 @@ def strategy_from_form(labels: list[str], term_lines: list[str], mesh: str = "")
         if terms:
             blocks.append(Block(label.strip() or "Blocco", terms))
     mesh_terms = [t.strip() for t in mesh.replace("\n", ",").split(",") if t.strip()]
-    return Strategy(blocks=blocks, mesh=mesh_terms)
+    return Strategy(
+        blocks=blocks,
+        mesh=mesh_terms,
+        filtri=Filtri(
+            anno_da=_anno(anno_da),
+            anno_a=_anno(anno_a),
+            solo_articoli=bool(solo_articoli),
+        ),
+    )
+
+
+def _anno(valore: str) -> int | None:
+    valore = str(valore).strip()
+    return int(valore) if valore.isdigit() and 1000 <= int(valore) <= 2999 else None

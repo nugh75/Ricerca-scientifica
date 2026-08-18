@@ -37,7 +37,7 @@ class OpacSbn(Source):
             return strings(lang)["need_opac_cli"].format(binary=BINARY)
         return None
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         binary = shutil.which(BINARY)
         if binary is None:
             raise RuntimeError(f"{BINARY} non trovato nel PATH")

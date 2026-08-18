@@ -57,6 +57,15 @@
     </div>
 
     <fieldset>
+      <legend>{{ t.legend_filters }}</legend>
+      <div class="filtri">
+        <label class="limite">{{ t.filter_from }} <input type="number" name="anno_da" min="1900" max="2100" placeholder="2019"></label>
+        <label class="limite">{{ t.filter_to }} <input type="number" name="anno_a" min="1900" max="2100" placeholder="2026"></label>
+        <label class="fonte"><input type="checkbox" name="solo_articoli" value="true"> {{ t.filter_articles }}</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
       <legend>{{ t.legend_sources }}</legend>
       <div class="fonti">
         {% for source in sources %}

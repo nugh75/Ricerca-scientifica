@@ -21,11 +21,14 @@ class SemanticScholar(Source):
         # L'endpoint di ricerca non interpreta gli operatori booleani.
         return flat_terms(strategy)
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         headers = {"x-api-key": config.s2_api_key} if config.s2_api_key else {}
+        params = {"query": query, "limit": str(min(limit, 100)), "fields": FIELDS}
+        if filtri and (filtri.anno_da or filtri.anno_a):
+            params["year"] = f"{filtri.anno_da or ''}-{filtri.anno_a or ''}"
         response = await client.get(
             API,
-            params={"query": query, "limit": str(min(limit, 100)), "fields": FIELDS},
+            params=params,
             headers=headers,
             timeout=30,
         )

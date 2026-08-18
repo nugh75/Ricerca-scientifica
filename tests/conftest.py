@@ -22,6 +22,13 @@ def config():
 
 
 @pytest.fixture(autouse=True)
+def cache_spenta(monkeypatch):
+    """La cache falserebbe i conteggi di chiamata dei test."""
+
+    monkeypatch.setenv("RICERCA_CACHE", "0")
+
+
+@pytest.fixture(autouse=True)
 def isolated_config(tmp_path, monkeypatch):
     """Nessun test deve leggere o scrivere la configurazione reale."""
 

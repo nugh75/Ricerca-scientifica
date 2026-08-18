@@ -22,9 +22,17 @@ class Arxiv(Source):
         groups = [or_group(b.clean_terms(), 'all:"{term}"') for b in strategy.non_empty_blocks()]
         if not groups:
             return ""
-        return " AND ".join(f"({g})" for g in groups)
+        return " AND ".join(f"({g})" for g in groups) + self.render_filtri(strategy)
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    def render_filtri(self, strategy: Strategy) -> str:
+        filtri = strategy.filtri
+        if not (filtri.anno_da or filtri.anno_a):
+            return ""
+        da = f"{filtri.anno_da or 1800}0101"
+        a = f"{filtri.anno_a or 2999}1231"
+        return f" AND submittedDate:[{da} TO {a}]"
+
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         params = {"search_query": query, "max_results": str(min(limit, 50))}
         response = await client.get(API, params=params, timeout=30)
         response.raise_for_status()

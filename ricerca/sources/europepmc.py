@@ -21,9 +21,17 @@ class EuropePMC(Source):
         ]
         if not groups:
             return ""
-        return " AND ".join(f"({g})" for g in groups)
+        return " AND ".join(f"({g})" for g in groups) + self.render_filtri(strategy)
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    def render_filtri(self, strategy: Strategy) -> str:
+        filtri, coda = strategy.filtri, ""
+        if filtri.anno_da or filtri.anno_a:
+            coda += f" AND (PUB_YEAR:[{filtri.anno_da or 1800} TO {filtri.anno_a or 3000}])"
+        if filtri.solo_articoli:
+            coda += ' AND (PUB_TYPE:"Journal Article")'
+        return coda
+
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         params = {
             "query": query,
             "format": "json",

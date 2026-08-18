@@ -6,6 +6,7 @@ from .arxiv import Arxiv
 from .base import Source
 from .copy_only import Scopus, WebOfScience
 from .core import Core
+from .crossref import Crossref
 from .doaj import Doaj
 from .europepmc import EuropePMC
 from .opac_sbn import OpacSbn
@@ -15,6 +16,7 @@ from .semantic_scholar import SemanticScholar
 
 ALL: list[Source] = [
     OpenAlex(),
+    Crossref(),
     PubMed(),
     EuropePMC(),
     Arxiv(),
@@ -28,7 +30,7 @@ ALL: list[Source] = [
 
 BY_ID: dict[str, Source] = {source.id: source for source in ALL}
 
-DEFAULT_SELECTED = ["openalex", "pubmed", "europepmc", "arxiv", "doaj"]
+DEFAULT_SELECTED = ["openalex", "crossref", "pubmed", "europepmc", "arxiv", "doaj"]
 
 
 def executable() -> list[Source]:

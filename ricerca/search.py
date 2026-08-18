@@ -8,6 +8,7 @@ import httpx
 
 from . import sources as sources_registry
 from .config import Config
+from .cache import client as client_con_cache
 from .dedup import merge
 from .i18n import strings
 from .models import SourceResult, Strategy, Work
@@ -39,7 +40,7 @@ async def run(
         return [], []
 
     owned = client is None
-    client = client or httpx.AsyncClient(headers={"User-Agent": USER_AGENT}, follow_redirects=True)
+    client = client or client_con_cache(headers={"User-Agent": USER_AGENT}, follow_redirects=True)
     try:
         results = await asyncio.gather(
             *(_one(source, strategy, limit, config, client) for source in chosen)
@@ -48,9 +49,23 @@ async def run(
         if owned:
             await client.aclose()
 
+    for result in results:
+        assegna_pertinenza(result.works)
     works = merge([w for result in results for w in result.works])
-    works.sort(key=lambda w: (-(w.year or 0), w.title.lower()))
+    # Prima la pertinenza, poi l'anno: un record trovato in alto da piu'
+    # fonti conta piu' di uno recente trovato da una sola.
+    works.sort(key=lambda w: (-w.punteggio, -(w.year or 0), w.title.lower()))
     return list(results), works
+
+
+# Costante della reciprocal rank fusion: attenua il peso delle prime
+# posizioni, così una fonte sola non decide da sola l'ordine.
+COSTANTE_RRF = 60
+
+
+def assegna_pertinenza(works: list[Work]) -> None:
+    for posizione, work in enumerate(works, start=1):
+        work.punteggio = 1 / (COSTANTE_RRF + posizione)
 
 
 async def _one(
@@ -70,7 +85,7 @@ async def _one(
 
     for attempt in (1, 2):
         try:
-            result.works = await source.search(client, query, limit, config)
+            result.works = await source.search(client, query, limit, config, strategy.filtri)
             result.error = None
             return result
         except Exception as exc:  # una fonte rotta non deve fermare le altre

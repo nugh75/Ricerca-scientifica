@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
-from . import history, i18n, keywords, pdf, search, watchdog
+from . import cache, history, i18n, keywords, pdf, search, watchdog
 from . import sources as sources_registry
 from .config import PRESETS, Config
 from .export import CAMPI, CAMPI_PREDEFINITI, apa, normalizza_campi, to_apa, to_bibtex, to_csv
@@ -101,7 +101,7 @@ async def salva_mailto(request: Request, mailto: str = Form(...)):
 @app.post("/suggerimenti", response_class=HTMLResponse)
 async def suggerimenti(request: Request, topic: str = Form(...)):
     config = current_config()
-    async with httpx.AsyncClient(
+    async with cache.client(
         headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
     ) as client:
         suggestions = await keywords.gather(topic, client, config)
@@ -144,8 +144,11 @@ async def query(
     label: list[str] = Form(default=[]),
     terms: list[str] = Form(default=[]),
     mesh: str = Form(default=""),
+    anno_da: str = Form(default=""),
+    anno_a: str = Form(default=""),
+    solo_articoli: bool = Form(default=False),
 ):
-    strategy = strategy_from_form(label, terms, mesh)
+    strategy = strategy_from_form(label, terms, mesh, anno_da, anno_a, solo_articoli)
     return templates.TemplateResponse(
         request,
         "partials/query.html",
@@ -167,9 +170,12 @@ async def cerca(
     fonte: list[str] = Form(default=[]),
     limite: int = Form(default=25),
     topic: str = Form(default=""),
+    anno_da: str = Form(default=""),
+    anno_a: str = Form(default=""),
+    solo_articoli: bool = Form(default=False),
 ):
     config = current_config()
-    strategy = strategy_from_form(label, terms, mesh)
+    strategy = strategy_from_form(label, terms, mesh, anno_da, anno_a, solo_articoli)
     results, works = await search.run(strategy, fonte, max(1, min(limite, 100)), config)
     id_ricerca = history.salva(topic, strategy, results, works)
 

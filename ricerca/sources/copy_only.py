@@ -15,7 +15,17 @@ class Scopus(Source):
 
     def render_query(self, strategy: Strategy) -> str:
         inner = render(strategy)
-        return f"TITLE-ABS-KEY({inner})" if inner else ""
+        if not inner:
+            return ""
+        query = f"TITLE-ABS-KEY({inner})"
+        filtri = strategy.filtri
+        if filtri.anno_da:
+            query += f" AND PUBYEAR > {filtri.anno_da - 1}"
+        if filtri.anno_a:
+            query += f" AND PUBYEAR < {filtri.anno_a + 1}"
+        if filtri.solo_articoli:
+            query += " AND DOCTYPE(ar)"
+        return query
 
 
 class WebOfScience(Source):
@@ -26,4 +36,12 @@ class WebOfScience(Source):
 
     def render_query(self, strategy: Strategy) -> str:
         inner = render(strategy)
-        return f"TS=({inner})" if inner else ""
+        if not inner:
+            return ""
+        query = f"TS=({inner})"
+        filtri = strategy.filtri
+        if filtri.anno_da or filtri.anno_a:
+            query += f" AND PY=({filtri.anno_da or 1800}-{filtri.anno_a or 3000})"
+        if filtri.solo_articoli:
+            query += " AND DT=(Article)"
+        return query

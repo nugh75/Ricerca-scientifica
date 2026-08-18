@@ -16,7 +16,7 @@ class Core(Source):
     key_field = "core_api_key"
     key_hint_key = "need_core_key"
 
-    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config):
+    async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         response = await client.get(
             API,
             params={"q": query, "limit": str(min(limit, 50))},
