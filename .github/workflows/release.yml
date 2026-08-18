@@ -199,6 +199,14 @@ jobs:
       - name: Build installer
         working-directory: frontend
         run: npm run tauri build -- --target aarch64-apple-darwin
+      # An unsigned bundle makes Gatekeeper report the app as "damaged".
+      # Ad-hoc signing is configured in tauri.conf.json; fail here if it did not run.
+      - name: Verify code signature
+        working-directory: frontend
+        run: |
+          APP=src-tauri/target/aarch64-apple-darwin/release/bundle/macos/LitReview.app
+          [ -d "$APP/Contents/_CodeSignature" ] || { echo "app bundle non firmato: _CodeSignature mancante"; exit 1; }
+          codesign --verify --deep --strict --verbose=2 "$APP"
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-macos
