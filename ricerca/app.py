@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
@@ -11,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
-from . import history, i18n, keywords, pdf, search
+from . import history, i18n, keywords, pdf, search, watchdog
 from . import sources as sources_registry
 from .config import PRESETS, Config
 from .export import CAMPI, CAMPI_PREDEFINITI, apa, normalizza_campi, to_apa, to_bibtex, to_csv
@@ -23,7 +25,31 @@ BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 templates.env.filters["apa_list"] = lambda works: [apa(w) for w in sorted(works, key=lambda w: apa(w).lower())]
 
-app = FastAPI(title="Ricerca")
+@asynccontextmanager
+async def ciclo_di_vita(_: FastAPI):
+    sorveglianza = asyncio.create_task(watchdog.sorveglia()) if watchdog.attiva() else None
+    yield
+    if sorveglianza is not None:
+        sorveglianza.cancel()
+
+
+app = FastAPI(title="Ricerca", lifespan=ciclo_di_vita)
+
+
+@app.post("/battito")
+async def battito():
+    """La pagina aperta si fa viva."""
+
+    watchdog.stato.battito()
+    return PlainTextResponse("", status_code=204)
+
+
+@app.post("/chiudi")
+async def chiudi():
+    """La pagina sta per essere chiusa: se non ne arrivano altre, si spegne."""
+
+    watchdog.stato.pagina_chiusa()
+    return PlainTextResponse("", status_code=204)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 def current_config() -> Config:

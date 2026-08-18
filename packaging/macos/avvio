@@ -1,0 +1,44 @@
+#!/bin/bash
+# Eseguibile del bundle Ricerca.app: nessuna finestra di Terminale.
+# Ricerca.app executable: no Terminal window.
+set -uo pipefail
+
+BUNDLE="$(cd "$(dirname "$0")/../.." && pwd)"
+APP="$BUNDLE/Contents/Resources/app"
+CASA="$HOME/.ricerca"
+REGISTRO="$CASA/avvio.log"
+mkdir -p "$CASA"
+
+{
+  echo "--- $(date) ---"
+  cd "$APP" || exit 1
+
+  TOOLS="$CASA/strumenti"
+  mkdir -p "$TOOLS"
+  export UV_PROJECT_ENVIRONMENT="$CASA/venv"
+
+  UV=""
+  if command -v uv > /dev/null 2>&1; then
+    UV="$(command -v uv)"
+  elif [ -x "$TOOLS/uv" ]; then
+    UV="$TOOLS/uv"
+  else
+    echo "scarico uv…"
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="$TOOLS" UV_NO_MODIFY_PATH=1 sh
+    [ -x "$TOOLS/uv" ] && UV="$TOOLS/uv"
+  fi
+
+  if [ -z "$UV" ]; then
+    osascript -e 'display alert "Ricerca" message "Non sono riuscito a scaricare uv. Serve una connessione a internet al primo avvio."'
+    exit 1
+  fi
+
+  # Il bundle non è scrivibile: ambiente e installazione stanno in ~/.ricerca.
+  if [ ! -x "$CASA/venv/bin/ricerca" ]; then
+    echo "preparo l'ambiente…"
+    "$UV" venv --python 3.12 "$CASA/venv" || exit 1
+    "$UV" pip install --python "$CASA/venv/bin/python" . || exit 1
+  fi
+
+  exec "$CASA/venv/bin/ricerca" serve
+} >> "$REGISTRO" 2>&1

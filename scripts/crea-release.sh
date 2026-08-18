@@ -2,36 +2,76 @@
 # Costruisce gli archivi da pubblicare. / Builds the downloadable archives.
 #
 # Nessuna compilazione, nessun binario da firmare: dentro c'è il sorgente e
-# il lanciatore, che al primo avvio si procura uv (e con esso Python).
+# un lanciatore che al primo avvio si procura uv (e con esso Python).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 VERSIONE="$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
 DIST="dist"
-rm -rf "$DIST/lavoro" && mkdir -p "$DIST/lavoro"
+LAVORO="$DIST/lavoro"
+rm -rf "$LAVORO" && mkdir -p "$LAVORO"
 
-BASE="$DIST/lavoro/ricerca"
-mkdir -p "$BASE"
-cp -r ricerca pyproject.toml README.md "$BASE/"
-mkdir -p "$BASE/docs" && cp -r docs/screenshot "$BASE/docs/"
-find "$BASE" -name '__pycache__' -type d -prune -exec rm -rf {} +
+sorgente_in() {
+  # Copia il sorgente dell'app dentro la cartella indicata.
+  local destinazione="$1"
+  mkdir -p "$destinazione"
+  cp -r ricerca pyproject.toml README.md "$destinazione/"
+  mkdir -p "$destinazione/docs" && cp -r docs/screenshot "$destinazione/docs/"
+  find "$destinazione" -name '__pycache__' -type d -prune -exec rm -rf {} +
+}
 
-# Linux e macOS: tar.gz, conserva il bit di esecuzione.
-for sistema in linux macos; do
-  rm -f "$BASE/avvia.sh" "$BASE/avvia.command" "$BASE/avvia.bat"
-  if [ "$sistema" = "macos" ]; then
-    cp avvia.command "$BASE/avvia.command"
-    cp avvia.sh "$BASE/avvia.sh"
-  else
-    cp avvia.sh "$BASE/avvia.sh"
-  fi
-  tar -czf "$DIST/ricerca-$VERSIONE-$sistema.tar.gz" -C "$DIST/lavoro" ricerca
-done
+# ── Linux: sorgente, lanciatore, scorciatoia per il menu ──────────────
+LINUX="$LAVORO/linux/ricerca"
+sorgente_in "$LINUX"
+cp avvia.sh "$LINUX/"
+cp packaging/installa-scorciatoia-linux.sh "$LINUX/"
+tar -czf "$DIST/ricerca-$VERSIONE-linux.tar.gz" -C "$LAVORO/linux" ricerca
 
-# Windows: zip con il solo .bat.
-rm -f "$BASE/avvia.sh" "$BASE/avvia.command"
-cp avvia.bat "$BASE/avvia.bat"
-( cd "$DIST/lavoro" && zip -qr "../ricerca-$VERSIONE-windows.zip" ricerca )
+# ── macOS: un vero bundle, si apre senza finestra di Terminale ────────
+MAC="$LAVORO/macos"
+BUNDLE="$MAC/Ricerca.app/Contents"
+mkdir -p "$BUNDLE/MacOS" "$BUNDLE/Resources"
+sorgente_in "$BUNDLE/Resources/app"
+cp packaging/macos/avvio "$BUNDLE/MacOS/Ricerca"
+chmod +x "$BUNDLE/MacOS/Ricerca"
+cp packaging/Ricerca.icns "$BUNDLE/Resources/Ricerca.icns"
+sed "s/1\.3\.0/$VERSIONE/g" packaging/macos/Info.plist > "$BUNDLE/Info.plist"
+cp avvia.command "$MAC/avvia-da-terminale.command"
+cat > "$MAC/LEGGIMI.txt" <<'FINE'
+Ricerca — installazione su macOS
 
-rm -rf "$DIST/lavoro"
+1. Trascina Ricerca.app nella cartella Applicazioni.
+2. Al primo avvio: clic destro sull'icona → Apri → Apri.
+   Serve perché l'app non è firmata con un Developer ID Apple.
+   Se macOS la dice «danneggiata», apri il Terminale una volta sola:
+       xattr -dr com.apple.quarantine /Applications/Ricerca.app
+3. Poi basta il doppio clic: si apre il browser, senza Terminale.
+   Chiudendo la pagina l'app si chiude da sola.
+
+Il primo avvio scarica uv e l'interprete Python in ~/.ricerca
+(serve la connessione a internet). Il registro sta in ~/.ricerca/avvio.log.
+
+---
+
+Ricerca — installing on macOS
+
+1. Drag Ricerca.app into your Applications folder.
+2. First launch: right-click the icon → Open → Open.
+   Needed because the app is not signed with an Apple Developer ID.
+   If macOS calls it “damaged”, run this once in Terminal:
+       xattr -dr com.apple.quarantine /Applications/Ricerca.app
+3. After that a double-click is enough: the browser opens, no Terminal.
+   Closing the page quits the app.
+FINE
+tar -czf "$DIST/ricerca-$VERSIONE-macos.tar.gz" -C "$MAC" Ricerca.app avvia-da-terminale.command LEGGIMI.txt
+
+# ── Windows: sorgente, .bat, icona e creatore di collegamento ─────────
+WIN="$LAVORO/windows/ricerca"
+sorgente_in "$WIN"
+cp avvia.bat "$WIN/"
+cp packaging/Ricerca.ico "$WIN/"
+cp packaging/crea-scorciatoia-windows.bat "$WIN/"
+( cd "$LAVORO/windows" && zip -qr "../../ricerca-$VERSIONE-windows.zip" ricerca )
+
+rm -rf "$LAVORO"
 ls -lh "$DIST"

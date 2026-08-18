@@ -179,9 +179,23 @@ salvata, la spunta *rimuovi* la cancella.
   `.txt`. Le iniziali si ricavano dal nome, quindi con metadati poveri la
   voce resta parziale.
 
+- **Avvio senza terminale** (`packaging/macos`): su macOS l'app è un bundle
+  `Ricerca.app` il cui eseguibile è uno script; il Finder non apre nessuna
+  finestra di Terminale. Dentro il bundle c'è il sorgente; l'ambiente si
+  crea in `~/.ricerca`, perché il bundle non è scrivibile.
+- **Chiusura automatica** (`ricerca/watchdog.py`): la pagina manda un
+  battito ogni 4 secondi e un segnale quando viene chiusa. Dopo 12 secondi
+  di silenzio il processo si ferma da solo — chi avvia dall'icona non ha un
+  terminale dove premere Ctrl-C. Attiva solo tramite `ricerca serve`, così i
+  test e uvicorn a mano non ne sono toccati.
+- **Icona** (`scripts/crea-icona.py`): disegnata in HTML, resa con Chromium e
+  impacchettata in `.icns` (macOS), `.ico` (Windows) e `.png` (Linux,
+  favicon). I file stanno nel repository: né la CI né chi installa hanno
+  bisogno di un browser.
+
 ## Stato
 
-97 test, nessuno tocca la rete. Schermate in `docs/screenshot/`.
+104 test, nessuno tocca la rete. Schermate in `docs/screenshot/`.
 
 Fasi successive, ancora da progettare: libreria persistente con annotazioni
 (fase 2) e analisi LLM del testo degli articoli (fase 3).

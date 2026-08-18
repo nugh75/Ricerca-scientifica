@@ -34,9 +34,21 @@ scarica l'archivio del tuo sistema, estrailo e avvia:
 
 | Sistema | Archivio | Avvio |
 |---|---|---|
-| Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat` |
-| macOS | `ricerca-*-macos.tar.gz` | doppio clic su `avvia.command` — la prima volta clic destro → *Apri* |
-| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` |
+| macOS | `ricerca-*-macos.tar.gz` | trascina **Ricerca.app** in Applicazioni; la prima volta clic destro → *Apri* |
+| Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat` — `crea-scorciatoia-windows.bat` mette l'icona sul Desktop |
+| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` — `installa-scorciatoia-linux.sh` la mette nel menu applicazioni |
+
+Su macOS l'app è un vero bundle: si avvia dall'icona, **senza finestra di
+Terminale**. Se macOS la dichiara «danneggiata» (succede agli archivi
+scaricati e non firmati), una volta sola:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Ricerca.app
+```
+
+**Chiudendo la pagina del browser l'app si chiude da sola** entro una decina
+di secondi: non resta nessun processo appeso e non serve un terminale per
+fermarla. Per tenerla accesa anche a pagina chiusa: `ricerca serve --resta-aperto`.
 
 **Non serve installare Python.** Al primo avvio il lanciatore scarica `uv`
 dentro la cartella dell'app e con esso l'interprete e le librerie: nessun
@@ -91,7 +103,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 97 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 104 test, nessuno tocca la rete
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
 
@@ -105,6 +117,7 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 - `ricerca/history.py` — cronologia delle ricerche in JSON
 - `ricerca/pdf.py` — scaricamento dei PDF ad accesso aperto
 - `ricerca/export.py` — BibTeX, CSV e riferimenti APA
+- `ricerca/watchdog.py` — chiusura automatica quando la pagina si chiude
 - `ricerca/i18n.py` — stringhe italiane e inglesi
 - `docs/specs/` — il documento di progetto
 
@@ -143,9 +156,21 @@ extract it and start it:
 
 | System | Archive | Start |
 |---|---|---|
-| Windows | `ricerca-*-windows.zip` | double-click `avvia.bat` |
-| macOS | `ricerca-*-macos.tar.gz` | double-click `avvia.command` — first time, right-click → *Open* |
-| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` |
+| macOS | `ricerca-*-macos.tar.gz` | drag **Ricerca.app** into Applications; first launch, right-click → *Open* |
+| Windows | `ricerca-*-windows.zip` | double-click `avvia.bat` — `crea-scorciatoia-windows.bat` puts an icon on the Desktop |
+| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` — `installa-scorciatoia-linux.sh` adds it to the applications menu |
+
+On macOS it is a real app bundle: it starts from its icon, **with no Terminal
+window**. If macOS calls it “damaged” (which happens with unsigned downloaded
+archives), run once:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Ricerca.app
+```
+
+**Closing the browser page quits the app** within about ten seconds: no
+process left behind, no terminal needed to stop it. To keep it running:
+`ricerca serve --resta-aperto`.
 
 **Python is not required.** On first run the launcher downloads `uv` into the
 app folder and lets it fetch the interpreter and the libraries: no admin

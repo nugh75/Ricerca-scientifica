@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import os
 import socket
 import threading
 import webbrowser
 
 import uvicorn
+
+from . import watchdog
 
 
 def free_port(start: int = 8000, attempts: int = 20) -> int:
@@ -27,11 +30,19 @@ def main(argv: list[str] | None = None) -> int:
     serve = sub.add_parser("serve", help="avvia l'app e apre il browser")
     serve.add_argument("--port", type=int, default=8000, help="porta di partenza (default 8000)")
     serve.add_argument("--no-browser", action="store_true", help="non aprire il browser")
+    serve.add_argument(
+        "--resta-aperto",
+        action="store_true",
+        help="non fermarsi quando la pagina viene chiusa",
+    )
     args = parser.parse_args(argv)
 
     if args.comando is None:
         parser.print_help()
         return 0
+
+    if not args.resta_aperto:
+        os.environ[watchdog.VARIABILE] = "1"
 
     port = free_port(args.port)
     url = f"http://127.0.0.1:{port}"
