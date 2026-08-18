@@ -7,7 +7,7 @@ generati dal codice (note, errori delle fonti).
 from __future__ import annotations
 
 LANGS = ("it", "en")
-DEFAULT = "it"
+DEFAULT = "en"
 
 STRINGS: dict[str, dict[str, str]] = {
     "it": {
@@ -31,7 +31,7 @@ STRINGS: dict[str, dict[str, str]] = {
             "Nessun LLM configurato: i blocchi vengono costruiti dai soli dati. "
             "Per farli riorganizzare da un modello, imposta un endpoint in"
         ),
-        "llm_missing_tail": "— Ollama, llama-swap, DeepSeek o OpenAI.",
+        "llm_missing_tail": "— Ollama, DeepSeek o OpenAI.",
         "mailto_active": "Email di cortesia attiva:",
         "mailto_active_tail": "— OpenAlex applica i limiti più larghi.",
         "mailto_placeholder": "nome@esempio.it",
@@ -50,6 +50,9 @@ STRINGS: dict[str, dict[str, str]] = {
             "Nessun termine dalle banche dati questa volta: i blocchi qui sotto partono "
             "dalle parole del topic. Puoi scriverli a mano e aggiornare le stringhe."
         ),
+        "block_main": "Concetto principale",
+        "block_related": "Termini correlati",
+        "llm_labels_language": "in italiano",
         "card_blocks": "Blocchi della ricerca",
         "blocks_help": (
             "Termini separati da virgola: dentro un blocco vanno in OR, i blocchi fra loro "
@@ -147,7 +150,7 @@ STRINGS: dict[str, dict[str, str]] = {
             "No LLM configured: blocks are built from the data alone. To have a model "
             "reorganise them, set an endpoint in"
         ),
-        "llm_missing_tail": "— Ollama, llama-swap, DeepSeek or OpenAI.",
+        "llm_missing_tail": "— Ollama, DeepSeek or OpenAI.",
         "mailto_active": "Courtesy email set:",
         "mailto_active_tail": "— OpenAlex grants the higher rate limits.",
         "mailto_placeholder": "name@example.org",
@@ -166,6 +169,9 @@ STRINGS: dict[str, dict[str, str]] = {
             "No terms from the databases this time: the blocks below start from the words "
             "of your topic. Edit them by hand and update the strings."
         ),
+        "block_main": "Main concept",
+        "block_related": "Related terms",
+        "llm_labels_language": "in English",
         "card_blocks": "Search blocks",
         "blocks_help": (
             "Comma-separated terms: inside a block they are OR-ed, blocks are AND-ed "

@@ -75,7 +75,7 @@ async def test_gather_avvisa_quando_mancano_i_mesh():
         return_value=httpx.Response(200, json={"esearchresult": {}})
     )
     async with httpx.AsyncClient() as client:
-        result = await keywords.gather("topic in italiano", client, Config())
+        result = await keywords.gather("topic in italiano", client, Config(lang="it"))
     assert any("MeSH" in nota and "inglese" in nota for nota in result.notes)
 
 
@@ -92,5 +92,5 @@ async def test_nota_leggibile_quando_openalex_limita_le_richieste():
     respx.get(url__startswith=f"{keywords.OPENALEX}/works").mock(return_value=httpx.Response(200, json=WORKS))
     respx.get(url__startswith=f"{keywords.EUTILS}/esearch.fcgi").mock(return_value=httpx.Response(200, json=MESH))
     async with httpx.AsyncClient() as client:
-        result = await keywords.gather("AI literacy", client, Config())
+        result = await keywords.gather("AI literacy", client, Config(lang="it"))
     assert any("email di cortesia" in nota for nota in result.notes)

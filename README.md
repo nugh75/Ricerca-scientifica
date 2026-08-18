@@ -72,20 +72,20 @@ vengono mai rimandate al browser e si cancellano con la spunta *rimuovi*.
 ## LLM (facoltativo)
 
 Un endpoint compatibile con l'API OpenAI — Ollama
-(`http://localhost:11434/v1`), llama-swap, DeepSeek, OpenAI. Serve solo a
+(`http://localhost:11434/v1`), DeepSeek, OpenAI. Serve solo a
 riorganizzare i termini in blocchi concettuali: senza, l'app costruisce i
 blocchi dai soli dati e funziona lo stesso.
 
 ## Lingua
 
-L'interfaccia è in italiano e in inglese: si cambia con i pulsanti `IT` /
-`EN` in alto a destra e la scelta resta memorizzata.
+L'interfaccia parte in inglese e si porta in italiano con i pulsanti
+`IT` / `EN` in alto a destra: la scelta resta memorizzata.
 
 ## Sviluppo
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 70 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 73 test, nessuno tocca la rete
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
 
@@ -164,5 +164,5 @@ sent back to the browser, and can be deleted with the *remove* checkbox.
 
 ## Language
 
-The interface is available in Italian and English: switch with the `IT` / `EN`
-buttons in the header. The choice is remembered.
+The interface starts in English; the `IT` / `EN` buttons in the header switch
+it to Italian. The choice is remembered.

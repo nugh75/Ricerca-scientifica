@@ -48,5 +48,5 @@ async def test_una_fonte_rotta_non_ferma_le_altre(strategy, config):
 
 async def test_fonte_senza_chiave_segnala_il_motivo(strategy, config):
     results, works = await search.run(strategy, ["core"], 5, config)
-    assert "chiave" in results[0].error
+    assert "key" in results[0].error
     assert works == []

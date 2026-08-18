@@ -20,8 +20,8 @@ WORKS_FULL = {"results": [{"id": "https://openalex.org/W1", "title": "Uno", "pub
 def test_home_mostra_il_form():
     page = client.get("/")
     assert page.status_code == 200
-    assert "Suggerisci le parole chiave" in page.text
-    assert "Nessun LLM configurato" in page.text
+    assert "Suggest keywords" in page.text
+    assert "No LLM configured" in page.text
 
 
 @respx.mock
@@ -36,8 +36,8 @@ def test_suggerimenti_costruisce_i_blocchi_senza_llm():
     assert page.status_code == 200
     assert "Literacy" in page.text
     assert "higher education" in page.text
-    assert "blocchi costruiti dai soli dati" in page.text
-    assert "nessuna ricerca è ancora partita" in page.text  # il passo 2 non cerca da solo
+    assert "blocks built from the data alone" in page.text
+    assert "no search has run yet" in page.text  # il passo 2 non cerca da solo
     assert "TITLE-ABS-KEY(" in page.text  # la stringa Scopus e' gia' pronta
 
 
@@ -74,14 +74,14 @@ def test_impostazioni_salva_su_file(isolated_config):
     }, follow_redirects=True)
     assert risposta.status_code == 200
     assert config_module.load().llm_model == "qwen3:8b"
-    assert "salvato in" in risposta.text
+    assert "saved to" in risposta.text
 
 
 @respx.mock
 def test_elenco_modelli_riporta_errore_leggibile():
     respx.get("http://spento/v1/models").mock(side_effect=httpx.ConnectError("connessione rifiutata"))
     page = client.post("/impostazioni/modelli", data={"llm_base_url": "http://spento/v1", "llm_api_key": ""})
-    assert "non raggiungibile" in page.text
+    assert "unreachable" in page.text
 
 
 def test_mailto_veloce_salva_e_conferma():
@@ -101,7 +101,7 @@ def test_le_chiavi_non_finiscono_nell_html():
     salva_impostazioni(core_api_key="segretissima-123")
     pagina = client.get("/impostazioni")
     assert "segretissima-123" not in pagina.text
-    assert "chiave impostata" in pagina.text
+    assert "key set" in pagina.text
 
 
 def test_un_campo_chiave_vuoto_conserva_la_chiave():

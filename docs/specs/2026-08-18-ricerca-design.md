@@ -42,9 +42,9 @@ Fuori ambito, rimandato a fasi successive: libreria persistente e PDF
 | HTTP diretto verso le API; CLI `*-pp-cli` opzionali | funziona ovunque; le CLI restano una scorciatoia se presenti |
 | Config in `~/.ricerca/config.toml` (chmod 600) | il keyring era una delle cause dei problemi di permessi |
 | Email di cortesia e chiavi API solo dall'interfaccia | l'app va distribuita: nessun segreto nel codice, nessun file da scrivere a mano |
-| Interfaccia bilingue italiano/inglese | il pubblico dell'app è misto; le stringhe stanno in `ricerca/i18n.py` |
+| Interfaccia bilingue, inglese come lingua predefinita | l'app è distribuita a un pubblico misto; le stringhe stanno in `ricerca/i18n.py` |
 | Avvio con `avvia.sh` / `avvia.bat` | chi scarica l'app ha solo Python: i lanciatori creano l'ambiente al primo uso |
-| LLM opzionale, client OpenAI-compatible | copre Ollama, llama-swap, DeepSeek, OpenAI con una sola implementazione |
+| LLM opzionale, client OpenAI-compatible | copre Ollama, DeepSeek, OpenAI con una sola implementazione |
 | Nessun dato fuori da `~/.ricerca/` | nessun `sudo`, nessun `chmod`, nessuna cartella di sistema |
 
 ## Architettura
@@ -167,7 +167,7 @@ salvata, la spunta *rimuovi* la cancella.
 
 ## Stato
 
-Fase 1 completa: 70 test, nessuno tocca la rete. Schermate in
+Fase 1 completa: 73 test, nessuno tocca la rete. Schermate in
 `docs/screenshot/`.
 
 Fasi successive, ancora da progettare: libreria persistente con PDF (fase 2)

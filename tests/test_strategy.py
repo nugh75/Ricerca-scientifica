@@ -68,3 +68,12 @@ def test_heuristic_non_ripete_le_parole_del_topic_fra_i_correlati():
     result = heuristic_strategy(suggestions)
     assert "intelligenza" in result.blocks[0].terms
     assert result.blocks[1].terms == ["formazione docenti"]
+
+
+def test_le_etichette_dei_blocchi_seguono_la_lingua():
+    suggestions = Suggestions(topic="AI literacy", cooccurring=[("higher education", 4)])
+    assert [b.label for b in heuristic_strategy(suggestions, "en").blocks] == [
+        "Main concept",
+        "Related terms",
+    ]
+    assert heuristic_strategy(suggestions, "it").blocks[0].label == "Concetto principale"

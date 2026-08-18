@@ -26,7 +26,7 @@ TIMEOUT = 30
 
 class OpacSbn(Source):
     id = "opacsbn"
-    label = "OPAC SBN (libri)"
+    label = "OPAC SBN"
     homepage = "https://opac.sbn.it"
 
     def render_query(self, strategy: Strategy) -> str:

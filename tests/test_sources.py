@@ -156,7 +156,7 @@ async def test_semantic_scholar_spiega_il_429():
         try:
             await sources.BY_ID["semanticscholar"].search(client, "q", 5, Config())
         except RuntimeError as exc:
-            assert "chiave" in str(exc)
+            assert "key" in str(exc)
         else:
             raise AssertionError("doveva sollevare un errore")
 

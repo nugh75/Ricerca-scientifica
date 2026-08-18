@@ -1,6 +1,6 @@
 """Client per qualsiasi endpoint compatibile con l'API OpenAI.
 
-Copre Ollama (`/v1`), llama-swap, DeepSeek, OpenAI e OpenRouter senza
+Copre Ollama (`/v1`), DeepSeek, OpenAI e OpenRouter senza
 codice dedicato: cambia solo la configurazione.
 """
 
@@ -12,6 +12,7 @@ import re
 import httpx
 
 from .config import Config
+from .i18n import strings
 from .models import Block
 
 _PROMPT = """Sei un bibliotecario esperto di ricerca bibliografica.
@@ -22,7 +23,8 @@ Termini raccolti dalle banche dati:
 - termini co-occorrenti nei titoli: {cooccurring}
 - termini controllati MeSH: {mesh}
 
-Organizza la ricerca in 2-4 blocchi concettuali. Ogni blocco raccoglie
+Organizza la ricerca in 2-4 blocchi concettuali. Scrivi le etichette dei
+blocchi {lingua}. Ogni blocco raccoglie
 sinonimi e varianti (inglese e italiano) di UNO stesso concetto: i termini
 dentro un blocco andranno in OR, i blocchi fra loro in AND.
 Usa termini realmente usati nella letteratura scientifica, preferendo
@@ -56,7 +58,7 @@ class LLMClient:
             data = response.json()
         return sorted(item.get("id", "") for item in data.get("data", []) if item.get("id"))
 
-    async def blocks_for(self, topic: str, concepts, cooccurring, mesh) -> list[Block]:
+    async def blocks_for(self, topic: str, concepts, cooccurring, mesh, lang=None) -> list[Block]:
         payload = {
             "model": self.model,
             "messages": [
@@ -67,6 +69,7 @@ class LLMClient:
                         concepts=", ".join(name for name, _ in concepts[:12]) or "-",
                         cooccurring=", ".join(term for term, _ in cooccurring[:12]) or "-",
                         mesh=", ".join(mesh[:8]) or "-",
+                        lingua=strings(lang)["llm_labels_language"],
                     ),
                 }
             ],

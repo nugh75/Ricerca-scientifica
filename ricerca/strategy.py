@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .i18n import strings
 from .keywords import words_of
 from .models import Block, Strategy, Suggestions
 
@@ -32,7 +33,7 @@ def flat_terms(strategy: Strategy, limit: int = 8) -> str:
     return " ".join(terms[:limit])
 
 
-def heuristic_strategy(suggestions: Suggestions) -> Strategy:
+def heuristic_strategy(suggestions: Suggestions, lang: str | None = None) -> Strategy:
     """Strategia costruita senza LLM, solo dai dati raccolti."""
 
     topic = suggestions.topic.strip()
@@ -54,9 +55,10 @@ def heuristic_strategy(suggestions: Suggestions) -> Strategy:
         if len(related) == 6:
             break
 
-    blocks = [Block("Concetto principale", primary)]
+    t = strings(lang)
+    blocks = [Block(t["block_main"], primary)]
     if related:
-        blocks.append(Block("Termini correlati", related))
+        blocks.append(Block(t["block_related"], related))
     return Strategy(blocks=blocks, mesh=list(suggestions.mesh))
 
 

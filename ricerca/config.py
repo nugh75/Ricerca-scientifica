@@ -16,7 +16,6 @@ CONFIG_FILE = CONFIG_DIR / "config.toml"
 
 PRESETS = {
     "ollama": "http://localhost:11434/v1",
-    "llama-swap": "http://localhost:8080/v1",
     "deepseek": "https://api.deepseek.com/v1",
     "openai": "https://api.openai.com/v1",
 }
@@ -24,7 +23,7 @@ PRESETS = {
 
 @dataclass
 class Config:
-    lang: str = "it"
+    lang: str = "en"
     mailto: str = ""
     llm_base_url: str = ""
     llm_model: str = ""

@@ -84,11 +84,15 @@ async def suggerimenti(request: Request, topic: str = Form(...)):
         headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
     ) as client:
         suggestions = await keywords.gather(topic, client, config)
-        strategy = heuristic_strategy(suggestions)
+        strategy = heuristic_strategy(suggestions, config.lang)
         if config.llm_enabled:
             try:
                 blocks = await LLMClient(config, client).blocks_for(
-                    topic, suggestions.concepts, suggestions.cooccurring, suggestions.mesh
+                    topic,
+                    suggestions.concepts,
+                    suggestions.cooccurring,
+                    suggestions.mesh,
+                    config.lang,
                 )
                 strategy = Strategy(blocks=blocks, mesh=suggestions.mesh)
                 suggestions.llm_used = True
