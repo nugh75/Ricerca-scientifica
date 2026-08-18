@@ -54,8 +54,10 @@ downloads the frozen backend and starts it — everything runs locally,
 bound to `127.0.0.1`, with keys only in the system keyring.
 
 The launcher downloads the latest frozen backend into `~/.litreview/bin/`,
-starts the server on `127.0.0.1:8756`, and opens the API UI
-(`/docs`). Re-running always updates to the latest release. API keys are
+starts the server on `127.0.0.1:8756` — or the next free port up to `8765` if
+something else holds it — and opens the API UI (`/docs`). If LitReview is
+already running, the launcher opens that instance instead of starting a second
+one. Re-running always updates to the latest release. API keys are
 configured from the Settings endpoints and stored in the system keyring.
 
 ## Features

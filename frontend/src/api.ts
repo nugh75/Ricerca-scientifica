@@ -1,4 +1,15 @@
-export const BASE_URL = "http://127.0.0.1:8756";
+const DEFAULT_PORT = 8756;
+let baseUrl = `http://127.0.0.1:${DEFAULT_PORT}`;
+
+// The backend picks a free port at startup, so the base URL is only known once
+// it has announced itself. Until then the default is the best guess we have.
+export function getBaseUrl(): string {
+  return baseUrl;
+}
+
+export function setBackendPort(port: number): void {
+  baseUrl = `http://127.0.0.1:${port}`;
+}
 
 export const KNOWN_KEYS = [
   "openalex_mailto",
@@ -72,7 +83,7 @@ export interface ChatResponse {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, init);
+  const res = await fetch(`${getBaseUrl()}${path}`, init);
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     const detail = body && typeof body === "object" && "detail" in body ? String((body as { detail: unknown }).detail) : `HTTP ${res.status}`;

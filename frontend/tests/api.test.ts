@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { BASE_URL, ApiError, searchArticles, listArticles, addArticle, analyze, exportBib, setKey, testKey } from "../src/api";
+import { getBaseUrl, setBackendPort, ApiError, searchArticles, listArticles, addArticle, analyze, exportBib, setKey, testKey } from "../src/api";
 
 function mockFetchOnce(body: unknown, status = 200) {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -20,7 +20,7 @@ describe("api client", () => {
     const fetchMock = mockFetchOnce({ results: [], errors: {} });
     await searchArticles("deep learning", ["openalex", "doaj"]);
     expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE_URL}/search`,
+      `${getBaseUrl()}/search`,
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ query: "deep learning", sources: ["openalex", "doaj"] }),
@@ -31,7 +31,7 @@ describe("api client", () => {
   it("lists articles via GET /library", async () => {
     const fetchMock = mockFetchOnce([{ id: 1, title: "A" }]);
     const result = await listArticles();
-    expect(fetchMock).toHaveBeenCalledWith(`${BASE_URL}/library`, expect.objectContaining({ method: "GET" }));
+    expect(fetchMock).toHaveBeenCalledWith(`${getBaseUrl()}/library`, expect.objectContaining({ method: "GET" }));
     expect(result).toEqual([{ id: 1, title: "A" }]);
   });
 
@@ -39,7 +39,7 @@ describe("api client", () => {
     const fetchMock = mockFetchOnce({ id: 1 });
     await addArticle({ title: "T", authors: ["A"], source: "openalex" });
     expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE_URL}/library`,
+      `${getBaseUrl()}/library`,
       expect.objectContaining({ method: "POST" })
     );
   });
@@ -48,7 +48,7 @@ describe("api client", () => {
     const fetchMock = mockFetchOnce({ article_id: 1, mode: "summary", result: "ok" });
     await analyze(1, "summary");
     expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE_URL}/library/1/analyze`,
+      `${getBaseUrl()}/library/1/analyze`,
       expect.objectContaining({ method: "POST", body: JSON.stringify({ mode: "summary" }) })
     );
   });
@@ -63,7 +63,7 @@ describe("api client", () => {
     const fetchMock = mockFetchOnce({ name: "deepseek_api_key", saved: true });
     await setKey("deepseek_api_key", "sk-test");
     expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE_URL}/settings/keys/deepseek_api_key`,
+      `${getBaseUrl()}/settings/keys/deepseek_api_key`,
       expect.objectContaining({ method: "PUT", body: JSON.stringify({ value: "sk-test" }) })
     );
   });
@@ -78,5 +78,25 @@ describe("api client", () => {
     mockFetchOnce({ detail: "article not found" }, 404);
     await expect(listArticles()).rejects.toBeInstanceOf(ApiError);
     await expect(listArticles()).rejects.toThrow("article not found");
+  });
+});
+
+describe("backend port discovery", () => {
+  it("defaults to 8756 before the backend announces a port", () => {
+    expect(getBaseUrl()).toBe("http://127.0.0.1:8756");
+  });
+
+  it("routes requests to the announced port", async () => {
+    try {
+      setBackendPort(8759);
+      const fetchMock = mockFetchOnce([]);
+      await listArticles();
+      expect(fetchMock).toHaveBeenCalledWith(
+        "http://127.0.0.1:8759/library",
+        expect.objectContaining({ method: "GET" })
+      );
+    } finally {
+      setBackendPort(8756);
+    }
   });
 });

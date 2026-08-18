@@ -1,7 +1,7 @@
 import "./style.css";
-import { BASE_URL } from "./api";
+import { getBaseUrl, setBackendPort } from "./api";
 import { navigate, startRouter } from "./router";
-import { subscribeToBackendStatus } from "./backendStatus";
+import { subscribeToBackendStatus, subscribeToBackendPort, fetchBackendPort } from "./backendStatus";
 import "./views/settings";
 import "./views/onboarding";
 import "./views/search";
@@ -28,7 +28,7 @@ subscribeToBackendStatus(
 async function waitForBackend(maxAttempts = 50, delayMs = 300): Promise<boolean> {
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const res = await fetch(`${BASE_URL}/docs`);
+      const res = await fetch(`${getBaseUrl()}/docs`);
       if (res.ok) return true;
     } catch {
       // backend not up yet, keep polling
@@ -62,9 +62,14 @@ function renderStarting(): void {
 
 async function boot(): Promise<void> {
   renderStarting();
+  // subscribe first, then ask: covers both an announcement still to come and
+  // one that already landed before this code ran
+  subscribeToBackendPort(setBackendPort);
+  const port = await fetchBackendPort();
+  if (port !== null) setBackendPort(port);
   const ready = await waitForBackend();
   if (!ready) {
-    app.innerHTML = `<main><p class="banner banner-error">Impossibile contattare il backend su ${BASE_URL}. Riavvia l'applicazione.</p></main>`;
+    app.innerHTML = `<main><p class="banner banner-error">Impossibile contattare il backend su ${getBaseUrl()}. Riavvia l'applicazione.</p></main>`;
     return;
   }
   renderShell();

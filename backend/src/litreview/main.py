@@ -12,6 +12,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    """Identity probe: lets a second launch tell our backend from a stranger."""
+    return {"app": "litreview"}
+
+
 app.include_router(settings_router.router)
 app.include_router(search_router.router)
 app.include_router(library_router.router)

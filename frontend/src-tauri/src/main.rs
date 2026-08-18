@@ -11,6 +11,27 @@ struct RestartCount(Mutex<u8>);
 
 struct ShuttingDown(AtomicBool);
 
+/// Port the backend announced on stdout, once it is known.
+#[derive(Default)]
+struct BackendPort(Mutex<Option<u16>>);
+
+/// Set when the sidecar reused a backend that was already running: it exits
+/// right after announcing, and that exit is expected rather than a crash.
+struct ExternalBackend(AtomicBool);
+
+fn handle_backend_line(app: &tauri::AppHandle, line: &str) {
+    if let Some(value) = line.strip_prefix("LITREVIEW_REUSED=") {
+        app.state::<ExternalBackend>()
+            .0
+            .store(value.trim() == "1", Ordering::SeqCst);
+    } else if let Some(value) = line.strip_prefix("LITREVIEW_PORT=") {
+        if let Ok(port) = value.trim().parse::<u16>() {
+            *app.state::<BackendPort>().0.lock().unwrap() = Some(port);
+            app.emit("backend-ready", port).ok();
+        }
+    }
+}
+
 fn spawn_backend(app: tauri::AppHandle) {
     let sidecar = app
         .shell()
@@ -24,24 +45,44 @@ fn spawn_backend(app: tauri::AppHandle) {
     let app_for_events = app.clone();
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
-            if let CommandEvent::Terminated(_) = event {
-                if app_for_events.state::<ShuttingDown>().0.load(Ordering::SeqCst) {
+            match event {
+                CommandEvent::Stdout(bytes) => {
+                    for line in String::from_utf8_lossy(&bytes).lines() {
+                        handle_backend_line(&app_for_events, line);
+                    }
+                }
+                CommandEvent::Terminated(_) => {
+                    if app_for_events.state::<ShuttingDown>().0.load(Ordering::SeqCst) {
+                        break;
+                    }
+                    // the backend we talk to is another process: this exit is the
+                    // sidecar stepping aside, not the server going down
+                    if app_for_events.state::<ExternalBackend>().0.load(Ordering::SeqCst) {
+                        break;
+                    }
+                    app_for_events.emit("backend-down", ()).ok();
+                    let restarts = app_for_events.state::<RestartCount>();
+                    let mut count = restarts.0.lock().unwrap();
+                    if *count == 0 {
+                        *count += 1;
+                        drop(count);
+                        spawn_backend(app_for_events.clone());
+                    } else {
+                        app_for_events.emit("backend-crashed", ()).ok();
+                    }
                     break;
                 }
-                app_for_events.emit("backend-down", ()).ok();
-                let restarts = app_for_events.state::<RestartCount>();
-                let mut count = restarts.0.lock().unwrap();
-                if *count == 0 {
-                    *count += 1;
-                    drop(count);
-                    spawn_backend(app_for_events.clone());
-                } else {
-                    app_for_events.emit("backend-crashed", ()).ok();
-                }
-                break;
+                _ => {}
             }
         }
     });
+}
+
+/// Lets the webview ask for the port directly: the announcement can land before
+/// the frontend has subscribed to the event.
+#[tauri::command]
+fn backend_port(state: tauri::State<'_, BackendPort>) -> Option<u16> {
+    *state.0.lock().unwrap()
 }
 
 #[tauri::command]
@@ -56,7 +97,9 @@ fn main() {
         .manage(BackendProcess::default())
         .manage(RestartCount(Mutex::new(0)))
         .manage(ShuttingDown(AtomicBool::new(false)))
-        .invoke_handler(tauri::generate_handler![write_export])
+        .manage(BackendPort::default())
+        .manage(ExternalBackend(AtomicBool::new(false)))
+        .invoke_handler(tauri::generate_handler![write_export, backend_port])
         .setup(|app| {
             spawn_backend(app.handle().clone());
             Ok(())

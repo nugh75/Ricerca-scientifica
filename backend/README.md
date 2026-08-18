@@ -61,7 +61,12 @@ Note:
   sistema: nessuna esposizione di rete, sandbox di fatto locale.
 - Primo avvio su Windows (SmartScreen): se compare un avviso, scegliere
   "Esegui comunque".
-- Se la porta 8756 è occupata, il server si ferma con un messaggio chiaro.
+- Porta: il server prova `8756` e, se occupata, sale fino a `8765`. La porta
+  scelta viene annunciata su stdout come `LITREVIEW_PORT=<n>`, che è il modo in
+  cui l'app desktop la scopre.
+- Se `8756` è già servita da LitReview, il nuovo avvio non parte affatto: apre
+  il browser sull'istanza esistente ed esce. Due server sullo stesso
+  `~/.litreview/library.db` sarebbero un problema, non una comodità.
 
 ## Note per l'integrazione futura (shell desktop Tauri)
 
