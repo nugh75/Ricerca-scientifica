@@ -25,3 +25,11 @@
 <div id="elenco-{{ id_ricerca }}">
 {% include "partials/tabella.html" %}
 </div>
+
+<div class="scheda">
+  <h3>{{ t.refine_title }}</h3>
+  <div class="azioni">
+    <button type="button" hx-post="/affina/{{ id_ricerca }}" hx-target="#affina-{{ id_ricerca }}">{{ t.refine_button }}</button>
+  </div>
+  <div id="affina-{{ id_ricerca }}"></div>
+</div>

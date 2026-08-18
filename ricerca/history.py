@@ -80,7 +80,15 @@ def record(id_voce: str) -> list[Work]:
     trovata = voce(id_voce)
     if not trovata:
         return []
-    return [Work(**dati) for dati in trovata.get("record", [])]
+    prese = trovata.get("decisioni", {})
+    lavori = []
+    for indice, dati in enumerate(trovata.get("record", [])):
+        lavoro = Work(**dati)
+        decisione = prese.get(str(indice), {})
+        lavoro.decisione = decisione.get("stato", "")
+        lavoro.motivo = decisione.get("motivo", "")
+        lavori.append(lavoro)
+    return lavori
 
 
 def strategia(id_voce: str) -> Strategy:
@@ -89,6 +97,45 @@ def strategia(id_voce: str) -> Strategy:
     trovata = voce(id_voce) or {}
     blocchi = [Block(**b) for b in trovata.get("blocchi", [])]
     return Strategy(blocks=blocchi, mesh=list(trovata.get("mesh", [])))
+
+
+STATI = ("incluso", "forse", "escluso")
+
+
+def decide(id_voce: str, indice: int, stato: str, motivo: str = "") -> dict:
+    """Registra la decisione di screening su un record. Ripetere annulla."""
+
+    voci = _leggi()
+    for voce_corrente in voci:
+        if voce_corrente.get("id") != id_voce:
+            continue
+        decisioni = voce_corrente.setdefault("decisioni", {})
+        chiave = str(indice)
+        if stato not in STATI or decisioni.get(chiave, {}).get("stato") == stato:
+            decisioni.pop(chiave, None)
+        else:
+            decisioni[chiave] = {"stato": stato, "motivo": motivo.strip()}
+        _scrivi(voci)
+        return decisioni
+    return {}
+
+
+def decisioni(id_voce: str) -> dict:
+    return (voce(id_voce) or {}).get("decisioni", {})
+
+
+def conteggi(id_voce: str) -> dict:
+    """I numeri che servono al diagramma di flusso PRISMA."""
+
+    trovata = voce(id_voce) or {}
+    prese = trovata.get("decisioni", {}).values()
+    conta = {stato: sum(1 for d in prese if d.get("stato") == stato) for stato in STATI}
+    grezzi = sum(f.get("trovati", 0) for f in trovata.get("fonti", []))
+    conta["grezzi"] = grezzi
+    conta["dopo_deduplica"] = trovata.get("totale", 0)
+    conta["duplicati"] = max(grezzi - trovata.get("totale", 0), 0)
+    conta["da_valutare"] = trovata.get("totale", 0) - sum(conta[s] for s in STATI)
+    return conta
 
 
 def elimina(id_voce: str) -> bool:

@@ -1,0 +1,6 @@
+{% if termini %}
+<p class="aiuto">{{ t.refine_hint }}</p>
+{% for termine, quante in termini %}<span class="chip">{{ termine }} <em>{{ quante }}</em></span>{% endfor %}
+{% else %}
+<p class="nota">{{ t.refine_empty }}</p>
+{% endif %}

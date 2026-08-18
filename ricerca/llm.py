@@ -39,6 +39,12 @@ class LLMError(Exception):
     pass
 
 
+_TRADUZIONE = """Traduci in inglese accademico questo argomento di ricerca.
+Rispondi con la sola traduzione, senza virgolette e senza spiegazioni.
+
+Argomento: {topic}"""
+
+
 class LLMClient:
     def __init__(self, config: Config, client: httpx.AsyncClient | None = None):
         self.base_url = config.llm_base_url.rstrip("/")
@@ -90,6 +96,30 @@ class LLMClient:
         except (KeyError, IndexError) as exc:
             raise LLMError(f"risposta inattesa dall'LLM: {data}") from exc
         return _parse_blocks(content)
+
+    async def traduci(self, topic: str) -> str:
+        """Il topic in inglese: PubMed e MeSH non capiscono l'italiano."""
+
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": _TRADUZIONE.format(topic=topic)}],
+            "temperature": 0,
+            "stream": False,
+        }
+        async with self._session() as client:
+            response = await client.post(
+                f"{self.base_url}/chat/completions",
+                json=payload,
+                headers=self._headers(),
+                timeout=60,
+            )
+            response.raise_for_status()
+            data = response.json()
+        try:
+            testo = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise LLMError(f"risposta inattesa dall'LLM: {data}") from exc
+        return " ".join(testo.strip().strip('"').split())[:200]
 
     def _session(self):
         if self._client is not None:

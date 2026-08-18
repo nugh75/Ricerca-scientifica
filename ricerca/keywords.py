@@ -45,14 +45,24 @@ _APOSTROPHE = re.compile(r"['\u2019]")
 _MESH = re.compile(r'"([^"]+)"\[MeSH Terms\]')
 
 
-async def gather(topic: str, client: httpx.AsyncClient, config: Config) -> Suggestions:
-    """Raccoglie concetti, MeSH e co-occorrenze in parallelo."""
+async def gather(
+    topic: str,
+    client: httpx.AsyncClient,
+    config: Config,
+    topic_inglese: str = "",
+) -> Suggestions:
+    """Raccoglie concetti, MeSH e co-occorrenze in parallelo.
+
+    `topic_inglese`, quando c'è, serve a PubMed: la sua traduzione automatica
+    non funziona sull'italiano e senza di essa i MeSH restano vuoti.
+    """
 
     suggestions = Suggestions(topic=topic.strip())
+    per_pubmed = topic_inglese.strip() or topic
     concepts, topics, mesh, cooccurring = await asyncio.gather(
         _retry(_openalex_concepts, topic, client, config),
         _retry(_openalex_topics, topic, client, config),
-        _retry(_pubmed_mesh, topic, client, config),
+        _retry(_pubmed_mesh, per_pubmed, client, config),
         _retry(_cooccurring_terms, topic, client, config),
         return_exceptions=True,
     )
@@ -71,7 +81,9 @@ async def gather(topic: str, client: httpx.AsyncClient, config: Config) -> Sugge
             )
         else:
             setattr(suggestions, target, value)
-    if not suggestions.mesh and not mesh_failed:
+    if topic_inglese.strip():
+        suggestions.tradotto = topic_inglese.strip()
+    if not suggestions.mesh and not mesh_failed and not topic_inglese.strip():
         suggestions.notes.append(t["mesh_missing"])
     return suggestions
 

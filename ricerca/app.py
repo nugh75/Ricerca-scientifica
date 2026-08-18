@@ -16,7 +16,16 @@ from . import config as config_module
 from . import cache, history, i18n, keywords, pdf, search, watchdog
 from . import sources as sources_registry
 from .config import PRESETS, Config
-from .export import CAMPI, CAMPI_PREDEFINITI, apa, normalizza_campi, to_apa, to_bibtex, to_csv
+from .export import (
+    CAMPI,
+    CAMPI_PREDEFINITI,
+    apa,
+    normalizza_campi,
+    protocollo,
+    to_apa,
+    to_bibtex,
+    to_csv,
+)
 from .llm import LLMClient, LLMError
 from .models import Strategy, Work
 from .strategy import heuristic_strategy, strategy_from_form
@@ -104,7 +113,13 @@ async def suggerimenti(request: Request, topic: str = Form(...)):
     async with cache.client(
         headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
     ) as client:
-        suggestions = await keywords.gather(topic, client, config)
+        tradotto = ""
+        if config.llm_enabled and _sembra_italiano(topic):
+            try:
+                tradotto = await LLMClient(config, client).traduci(topic)
+            except (LLMError, httpx.HTTPError, OSError):
+                tradotto = ""
+        suggestions = await keywords.gather(topic, client, config, tradotto)
         strategy = heuristic_strategy(suggestions, config.lang)
         if config.llm_enabled:
             try:
@@ -191,8 +206,21 @@ async def cerca(
             tutti_i_campi=CAMPI,
             vista="tabella",
             pdf_scaricati=_pdf_presenti(works),
+            conteggi=history.conteggi(id_ricerca),
         ),
     )
+
+
+# Parole che in inglese non esistono: bastano a capire che il topic è italiano.
+_SPIE_ITALIANE = {
+    "di", "del", "della", "dei", "degli", "delle", "gli", "che", "con", "per",
+    "nella", "negli", "sulla", "come", "una", "uno", "sono", "anche", "più",
+}
+
+
+def _sembra_italiano(topic: str) -> bool:
+    parole = {p.strip(".,;:()").lower() for p in topic.split()}
+    return bool(parole & _SPIE_ITALIANE)
 
 
 def _pdf_presenti(works: list[Work]) -> dict[int, bool]:
@@ -222,6 +250,7 @@ async def risultati(
             vista="apa" if vista == "apa" else "tabella",
             pdf_scaricati=_pdf_presenti(works),
             quando=voce.get("quando", ""),
+            conteggi=history.conteggi(id_ricerca),
         ),
     )
 
@@ -294,6 +323,63 @@ async def apri_pdf(id_ricerca: str, indice: int):
     return FileResponse(percorso, media_type="application/pdf", filename=percorso.name)
 
 
+@app.post("/screening/{id_ricerca}/{indice}", response_class=HTMLResponse)
+async def screening(
+    request: Request,
+    id_ricerca: str,
+    indice: int,
+    stato: str = Form(...),
+    motivo: str = Form(default=""),
+):
+    """Segna un record come incluso, forse o escluso. Ripetere annulla."""
+
+    history.decide(id_ricerca, indice, stato, motivo)
+    works = history.record(id_ricerca)
+    if indice >= len(works):
+        return HTMLResponse("")
+    return templates.TemplateResponse(
+        request,
+        "partials/screening.html",
+        base_context(
+            current_config(),
+            work=works[indice],
+            indice=indice,
+            id_ricerca=id_ricerca,
+            conteggi=history.conteggi(id_ricerca),
+            fuori_banda=True,
+        ),
+    )
+
+
+@app.get("/export/{id_ricerca}.protocollo.md", response_class=PlainTextResponse)
+async def export_protocollo(id_ricerca: str):
+    voce = history.voce(id_ricerca) or {}
+    return PlainTextResponse(
+        protocollo(voce, history.conteggi(id_ricerca)),
+        headers={"Content-Disposition": 'attachment; filename="protocollo-di-ricerca.md"'},
+    )
+
+
+@app.post("/affina/{id_ricerca}", response_class=HTMLResponse)
+async def affina(request: Request, id_ricerca: str):
+    """Termini nuovi ricavati dai record trovati: la strategia si allarga."""
+
+    works = history.record(id_ricerca)
+    strategia = history.strategia(id_ricerca)
+    testi = [w.title for w in works] + [w.abstract for w in works if w.abstract]
+    gia_presenti = " ".join(
+        [(history.voce(id_ricerca) or {}).get("topic", "")]
+        + [t for blocco in strategia.blocks for t in blocco.terms]
+        + list(strategia.mesh)
+    )
+    nuovi = keywords.count_terms(testi, exclude=gia_presenti, min_count=3)
+    return templates.TemplateResponse(
+        request,
+        "partials/affina.html",
+        base_context(current_config(), termini=nuovi[:15], id_ricerca=id_ricerca),
+    )
+
+
 @app.get("/cronologia", response_class=HTMLResponse)
 async def cronologia(request: Request):
     return templates.TemplateResponse(
@@ -322,6 +408,7 @@ async def cronologia_voce(request: Request, id_ricerca: str):
             vista="tabella",
             pdf_scaricati=_pdf_presenti(works),
             quando=voce.get("quando", ""),
+            conteggi=history.conteggi(id_ricerca),
         ),
     )
 

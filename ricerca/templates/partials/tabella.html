@@ -2,7 +2,9 @@
 <p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }} ·
    <a href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib }}</a> ·
    <a href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv }}</a> ·
-   <a href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa }}</a></p>
+   <a href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa }}</a> ·
+   <a href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol }}</a></p>
+<p><span id="conteggi" class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span></p>
 
 {% if vista == 'apa' %}
 <p class="nota">{{ t.apa_note }}</p>
@@ -13,6 +15,7 @@
 <table>
   <thead><tr>
     {% for campo in campi %}<th>{{ t['field_' ~ campo] }}</th>{% endfor %}
+    {% if vista != 'apa' %}<th>{{ t.screening_title }}</th>{% endif %}
   </tr></thead>
   <tbody>
   {% for w in works %}
@@ -39,6 +42,7 @@
       <td>{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
     {% endif %}
     {% endfor %}
+    <td class="cella-screening">{% with work = w, indice = riga, fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}</td>
   </tr>
   {% endfor %}
   </tbody>

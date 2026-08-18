@@ -27,6 +27,7 @@
     {% if not (suggestions.concepts or suggestions.mesh or suggestions.cooccurring or suggestions.topics) %}
     <p class="aiuto">{{ t.empty_terms }}</p>
     {% endif %}
+    {% if suggestions.tradotto %}<p class="nota">{{ t.translated_note.format(testo=suggestions.tradotto) }}</p>{% endif %}
     {% for nota in suggestions.notes %}<p class="nota">{{ nota }}</p>{% endfor %}
   </div>
 

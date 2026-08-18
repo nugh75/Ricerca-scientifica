@@ -10,7 +10,10 @@ import unicodedata
 from .models import Work
 
 # Campi selezionabili per la tabella e per gli export.
-CAMPI = ("anno", "titolo", "autori", "sede", "doi", "url", "abstract", "fonti", "pdf")
+CAMPI = (
+    "anno", "titolo", "autori", "sede", "doi", "url", "abstract", "fonti", "pdf",
+    "decisione", "motivo",
+)
 CAMPI_PREDEFINITI = ("anno", "titolo", "autori", "sede", "fonti")
 
 _ATTRIBUTI = {
@@ -23,6 +26,8 @@ _ATTRIBUTI = {
     "abstract": "abstract",
     "fonti": "sources",
     "pdf": "oa_url",
+    "decisione": "decisione",
+    "motivo": "motivo",
 }
 
 _NON_WORD = re.compile(r"[^a-z0-9]+")
@@ -157,3 +162,42 @@ def _clean(value: str) -> str:
 def _ascii(value: str) -> str:
     text = unicodedata.normalize("NFKD", value)
     return "".join(c for c in text if not unicodedata.combining(c) and c.isascii())
+
+
+def protocollo(voce: dict, conteggi: dict) -> str:
+    """Tabella per la sezione «Metodo»: data, motore, stringa, risultati."""
+
+    quando = str(voce.get("quando", "")).replace("T", " ")
+    righe = [
+        f"# Protocollo di ricerca — {voce.get('topic') or 's.t.'}",
+        "",
+        f"Data della ricerca: {quando}",
+        "",
+        "## Blocchi concettuali",
+        "",
+    ]
+    for blocco in voce.get("blocchi", []):
+        righe.append(f"- **{blocco.get('label', '')}**: " + ", ".join(blocco.get("terms", [])))
+    if voce.get("mesh"):
+        righe.append("- **MeSH**: " + ", ".join(voce["mesh"]))
+
+    righe += ["", "## Interrogazioni", "", "| Banca dati | Stringa | Risultati |", "|---|---|---|"]
+    for fonte in voce.get("fonti", []):
+        esito = fonte.get("errore") or fonte.get("trovati", 0)
+        stringa = str(fonte.get("query", "")).replace("|", "\\|")
+        righe.append(f"| {fonte.get('etichetta', '')} | `{stringa}` | {esito} |")
+
+    righe += [
+        "",
+        "## Selezione",
+        "",
+        f"- record recuperati: {conteggi.get('grezzi', 0)}",
+        f"- duplicati rimossi: {conteggi.get('duplicati', 0)}",
+        f"- record esaminati: {conteggi.get('dopo_deduplica', 0)}",
+        f"- inclusi: {conteggi.get('incluso', 0)}",
+        f"- da valutare: {conteggi.get('forse', 0)}",
+        f"- esclusi: {conteggi.get('escluso', 0)}",
+        f"- non ancora valutati: {conteggi.get('da_valutare', 0)}",
+        "",
+    ]
+    return "\n".join(righe)

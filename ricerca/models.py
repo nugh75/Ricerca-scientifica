@@ -59,6 +59,9 @@ class Work:
     # Pertinenza: somma dei contributi delle fonti in cui il record compare
     # in alto (reciprocal rank fusion). Non viene mostrata, ordina l'elenco.
     punteggio: float = 0.0
+    # Screening: riempiti al momento della lettura dalla cronologia.
+    decisione: str = ""
+    motivo: str = ""
 
     @property
     def authors_short(self) -> str:
@@ -91,3 +94,4 @@ class Suggestions:
     cooccurring: list[tuple[str, int]] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     llm_used: bool = False
+    tradotto: str = ""
