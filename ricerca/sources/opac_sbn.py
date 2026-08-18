@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import shutil
+from pathlib import Path
 
 import httpx
 
@@ -22,6 +24,20 @@ from .base import Source, clean
 
 BINARY = "opac-sbn-pp-cli"
 TIMEOUT = 30
+# Avviata da un'icona, l'app eredita un PATH ridotto: le CLI installate con
+# Go o pipx non ci sono. Si guarda anche dove finiscono di solito.
+CARTELLE_NOTE = ("~/go/bin", "~/.local/bin", "/usr/local/bin", "/opt/homebrew/bin")
+
+
+def trova_binario() -> str | None:
+    trovato = shutil.which(BINARY)
+    if trovato:
+        return trovato
+    for cartella in CARTELLE_NOTE:
+        candidato = Path(cartella).expanduser() / BINARY
+        if candidato.is_file() and os.access(candidato, os.X_OK):
+            return str(candidato)
+    return None
 
 
 class OpacSbn(Source):
@@ -33,12 +49,12 @@ class OpacSbn(Source):
         return flat_terms(strategy, limit=6)
 
     def unavailable_reason(self, config: Config, lang: str | None = None) -> str | None:
-        if shutil.which(BINARY) is None:
+        if trova_binario() is None:
             return strings(lang)["need_opac_cli"].format(binary=BINARY)
         return None
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
-        binary = shutil.which(BINARY)
+        binary = trova_binario()
         if binary is None:
             raise RuntimeError(f"{BINARY} non trovato nel PATH")
         process = await asyncio.create_subprocess_exec(

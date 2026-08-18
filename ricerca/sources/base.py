@@ -32,6 +32,11 @@ class Source:
             return strings(lang)[self.key_hint_key]
         return None
 
+    def avviso(self, config: Config, lang: str | None = None) -> str | None:
+        """Limite noto di una fonte che funziona lo stesso."""
+
+        return None
+
     async def search(
         self,
         client: httpx.AsyncClient,

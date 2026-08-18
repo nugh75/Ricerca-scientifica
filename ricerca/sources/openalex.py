@@ -3,6 +3,7 @@ from __future__ import annotations
 import httpx
 
 from ..config import Config
+from ..i18n import strings
 from ..models import Work
 from .base import Source, clean
 
@@ -13,6 +14,10 @@ class OpenAlex(Source):
     id = "openalex"
     label = "OpenAlex"
     homepage = "https://openalex.org"
+
+    def avviso(self, config: Config, lang: str | None = None) -> str | None:
+        # Dal 2026 le richieste sono a consumo: c'è un budget giornaliero.
+        return strings(lang)["openalex_budget"]
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         pezzi = [f"title_and_abstract.search:{query}"]

@@ -73,9 +73,11 @@
     <ul class="stato">
     {% for source in sources %}
       {% set motivo = source.unavailable_reason(config, lang) %}
+      {% set avviso = source.avviso(config, lang) %}
       <li>{{ source.label }} —
         {% if not source.executable %}{{ t.status_string_only }}
         {% elif motivo %}<span class="errore">{{ motivo }}</span>
+        {% elif avviso %}<b>{{ t.status_limited }}</b>: {{ avviso }}
         {% else %}<b>{{ t.status_ready }}</b>{% endif %}</li>
     {% endfor %}
     </ul>

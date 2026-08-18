@@ -121,7 +121,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 157 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 163 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

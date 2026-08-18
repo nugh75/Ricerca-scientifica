@@ -17,6 +17,10 @@ class SemanticScholar(Source):
     label = "Semantic Scholar"
     homepage = "https://www.semanticscholar.org"
 
+    def avviso(self, config: Config, lang: str | None = None) -> str | None:
+        # Funziona senza chiave, ma il servizio limita quasi subito.
+        return None if config.s2_api_key else strings(lang)["s2_hint"]
+
     def render_query(self, strategy: Strategy) -> str:
         # L'endpoint di ricerca non interpreta gli operatori booleani.
         return flat_terms(strategy)
