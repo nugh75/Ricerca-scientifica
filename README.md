@@ -75,6 +75,11 @@ Se la cartella non è scrivibile (per esempio `/Applications` o
 `Program Files`), l'ambiente viene creato in `~/.ricerca` e la cartella
 dell'app resta intatta.
 
+**Aggiornare**: scarica il nuovo archivio e avvialo. Il lanciatore confronta
+la versione con quella già installata e rifà l'ambiente se serve. La versione
+in esecuzione è scritta in fondo a ogni pagina: se non cambia, cancella
+`~/.ricerca/venv` e riavvia.
+
 Poi si apre il browser su `http://127.0.0.1:8000` (o la prima porta libera).
 Il server ascolta solo su `127.0.0.1`: non è raggiungibile da altre macchine.
 
@@ -130,7 +135,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 193 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 200 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -227,6 +232,11 @@ If the folder is read-only (say `/Applications` or `Program Files`), the
 environment is created under `~/.ricerca` and the app folder is left
 untouched.
 
+**Upgrading**: download the new archive and start it. The launcher compares
+the version with the installed one and rebuilds the environment when needed.
+The running version is printed at the bottom of every page: if it does not
+change, delete `~/.ricerca/venv` and start again.
+
 The browser then opens at `http://127.0.0.1:8000` (or the first free port).
 The server listens on `127.0.0.1` only.
 
@@ -272,7 +282,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 193 tests, none touches the network
+.venv/bin/pytest -q                       # 200 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

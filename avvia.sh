@@ -44,10 +44,16 @@ if [ -n "$UV" ]; then
   # Cartella in sola lettura: ambiente separato, installazione non editabile,
   # niente file scritti accanto al sorgente.
   VENV="$HOME/.ricerca/venv"
-  if [ ! -x "$VENV/bin/ricerca" ]; then
+  VERSIONE="$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
+  INSTALLATA="$(cat "$VENV/.versione" 2>/dev/null || true)"
+  # Senza questo confronto un ambiente creato una volta resterebbe per
+  # sempre: chi scarica una versione nuova continuerebbe a eseguire la
+  # vecchia senza capire perché.
+  if [ ! -x "$VENV/bin/ricerca" ] || [ "$INSTALLATA" != "$VERSIONE" ]; then
     echo "Preparazione dell'ambiente in ~/.ricerca … / Setting up ~/.ricerca …"
-    "$UV" venv --quiet --python 3.12 "$VENV"
+    "$UV" venv --quiet --clear --python 3.12 "$VENV"
     "$UV" pip install --quiet --python "$VENV/bin/python" .
+    echo "$VERSIONE" > "$VENV/.versione"
   fi
   exec "$VENV/bin/ricerca" serve "$@"
 fi

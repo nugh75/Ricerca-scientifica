@@ -32,10 +32,17 @@ if defined UV (
     "%UV%" run --quiet ricerca serve %*
   ) else (
     set "VENV=%USERPROFILE%\.ricerca\venv"
-    if not exist "%USERPROFILE%\.ricerca\venv\Scripts\ricerca.exe" (
+    set "VERSIONE="
+    for /f "tokens=2 delims== " %%v in ('findstr /b /c:"version" pyproject.toml') do if not defined VERSIONE set "VERSIONE=%%~v"
+    set "INSTALLATA="
+    if exist "%USERPROFILE%\.ricerca\venv\.versione" set /p INSTALLATA=<"%USERPROFILE%\.ricerca\venv\.versione"
+    REM Senza questo confronto una versione nuova non verrebbe mai installata.
+    if not exist "%USERPROFILE%\.ricerca\venv\Scripts\ricerca.exe" set "INSTALLATA=nessuna"
+    if not "%INSTALLATA%"=="%VERSIONE%" (
       echo Preparazione dell'ambiente in %USERPROFILE%\.ricerca ...
-      "%UV%" venv --quiet --python 3.12 "%USERPROFILE%\.ricerca\venv"
+      "%UV%" venv --quiet --clear --python 3.12 "%USERPROFILE%\.ricerca\venv"
       "%UV%" pip install --quiet --python "%USERPROFILE%\.ricerca\venv\Scripts\python.exe" .
+      echo %VERSIONE%>"%USERPROFILE%\.ricerca\venv\.versione"
     )
     "%USERPROFILE%\.ricerca\venv\Scripts\ricerca.exe" serve %*
   )

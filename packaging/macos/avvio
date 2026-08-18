@@ -34,10 +34,16 @@ mkdir -p "$CASA"
   fi
 
   # Il bundle non è scrivibile: ambiente e installazione stanno in ~/.ricerca.
-  if [ ! -x "$CASA/venv/bin/ricerca" ]; then
+  VERSIONE="$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
+  INSTALLATA="$(cat "$CASA/venv/.versione" 2>/dev/null || true)"
+  # Senza questo confronto un ambiente creato una volta resterebbe per
+  # sempre: chi scarica una versione nuova continuerebbe a eseguire la
+  # vecchia senza capire perché.
+  if [ ! -x "$CASA/venv/bin/ricerca" ] || [ "$INSTALLATA" != "$VERSIONE" ]; then
     echo "preparo l'ambiente…"
-    "$UV" venv --python 3.12 "$CASA/venv" || exit 1
+    "$UV" venv --clear --python 3.12 "$CASA/venv" || exit 1
     "$UV" pip install --python "$CASA/venv/bin/python" . || exit 1
+    echo "$VERSIONE" > "$CASA/venv/.versione"
   fi
 
   exec "$CASA/venv/bin/ricerca" serve

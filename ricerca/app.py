@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
+from . import __version__
 from . import biblioteca, cache, history, i18n, keywords, pdf, search, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
@@ -81,6 +82,7 @@ def base_context(config: Config, **extra) -> dict:
         "lang": config.lang,
         "tema": config.tema if config.tema in ("chiaro", "scuro") else "auto",
         "t": i18n.strings(config.lang),
+        "versione": __version__,
     }
     context.update(extra)
     return context
