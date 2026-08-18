@@ -1,21 +1,60 @@
 @echo off
-REM Avvio di Ricerca su Windows. / Start Ricerca on Windows.
+REM Ricerca - avvio su Windows. / Start Ricerca on Windows.
+REM Non serve installare nulla: se manca Python, lo scarica uv in questa cartella.
+setlocal
 cd /d "%~dp0"
+
+REM Se la cartella dell'app non e' scrivibile, uv lavora sotto %USERPROFILE%\.ricerca.
+set "TOOLS=%CD%\.strumenti"
+set "SCRIVIBILE=1"
+copy /y nul ".prova-scrittura" >nul 2>nul
+if errorlevel 1 (
+  set "SCRIVIBILE=0"
+  set "TOOLS=%USERPROFILE%\.ricerca\strumenti"
+  if not exist "%USERPROFILE%\.ricerca\strumenti" mkdir "%USERPROFILE%\.ricerca\strumenti"
+) else (
+  del ".prova-scrittura" >nul 2>nul
+)
+
+set "UV="
+where uv >nul 2>nul && for /f "delims=" %%i in ('where uv') do set "UV=%%i"
+if not defined UV if exist "%TOOLS%\uv.exe" set "UV=%TOOLS%\uv.exe"
+
+if not defined UV (
+  echo Preparazione al primo avvio... / First-run setup...
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$env:UV_INSTALL_DIR='%TOOLS%'; $env:UV_NO_MODIFY_PATH='1'; irm https://astral.sh/uv/install.ps1 | iex" >nul 2>nul
+  if exist "%TOOLS%\uv.exe" set "UV=%TOOLS%\uv.exe"
+)
+
+if defined UV (
+  if "%SCRIVIBILE%"=="1" (
+    "%UV%" run --quiet ricerca serve %*
+  ) else (
+    set "VENV=%USERPROFILE%\.ricerca\venv"
+    if not exist "%USERPROFILE%\.ricerca\venv\Scripts\ricerca.exe" (
+      echo Preparazione dell'ambiente in %USERPROFILE%\.ricerca ...
+      "%UV%" venv --quiet --python 3.12 "%USERPROFILE%\.ricerca\venv"
+      "%UV%" pip install --quiet --python "%USERPROFILE%\.ricerca\venv\Scripts\python.exe" .
+    )
+    "%USERPROFILE%\.ricerca\venv\Scripts\ricerca.exe" serve %*
+  )
+  goto :fine
+)
 
 where python >nul 2>nul
 if errorlevel 1 (
-  echo Serve Python 3.11 o superiore: https://www.python.org/downloads/
-  echo Python 3.11+ is required: https://www.python.org/downloads/
+  echo Non sono riuscito a scaricare uv e non trovo Python.
+  echo Could not download uv and no Python found: https://www.python.org/downloads/
   pause
   exit /b 1
 )
-
 if not exist .venv (
-  echo Preparazione dell'ambiente... / Preparing the environment...
   python -m venv .venv
   .venv\Scripts\pip install --quiet --upgrade pip
   .venv\Scripts\pip install --quiet -e .
 )
-
 .venv\Scripts\ricerca serve %*
+
+:fine
 pause

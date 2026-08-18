@@ -23,24 +23,37 @@ Scholar (meglio con chiave), CORE (chiave gratuita), OPAC SBN per i libri
 italiani (tramite la CLI `opac-sbn-pp-cli`, se installata). Per Scopus e Web
 of Science l'app produce la stringa da incollare nella loro interfaccia.
 
-## Installazione
+## Scarica e avvia
 
-Serve solo **Python 3.11 o superiore**. Scarica il progetto e avvialo:
+Dalla pagina [Releases](https://github.com/nugh75/Ricerca-scientifica/releases)
+scarica l'archivio del tuo sistema, estrailo e avvia:
 
-| Sistema | Comando |
-|---|---|
-| Linux, macOS | doppio clic su `avvia.sh`, oppure `./avvia.sh` dal terminale |
-| Windows | doppio clic su `avvia.bat` |
+| Sistema | Archivio | Avvio |
+|---|---|---|
+| Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat` |
+| macOS | `ricerca-*-macos.tar.gz` | doppio clic su `avvia.command` — la prima volta clic destro → *Apri* |
+| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` |
 
-Il lanciatore prepara l'ambiente la prima volta e apre il browser su
-`http://127.0.0.1:8000` (o la prima porta libera). Il server ascolta solo su
-`127.0.0.1`: non è raggiungibile da altre macchine.
+**Non serve installare Python.** Al primo avvio il lanciatore scarica `uv`
+dentro la cartella dell'app e con esso l'interprete e le librerie: nessun
+permesso di amministratore, nessuna modifica al sistema, nessun `PATH` da
+sistemare. Serve solo una connessione a internet la prima volta.
 
-In alternativa, da terminale:
+Se la cartella non è scrivibile (per esempio `/Applications` o
+`Program Files`), l'ambiente viene creato in `~/.ricerca` e la cartella
+dell'app resta intatta.
+
+Poi si apre il browser su `http://127.0.0.1:8000` (o la prima porta libera).
+Il server ascolta solo su `127.0.0.1`: non è raggiungibile da altre macchine.
+
+Da terminale, se preferisci:
 
 ```bash
 uv run ricerca serve          # oppure: pip install -e . && ricerca serve
 ```
+
+Per costruire gli archivi: `./scripts/crea-release.sh` (finiscono in `dist/`).
+In CI li produce `.github/workflows/release.yml` a ogni tag `v*`.
 
 ## Chiavi ed email: tutto dall'interfaccia
 
@@ -109,18 +122,29 @@ Sources queried: OpenAlex, PubMed, Europe PMC, arXiv, DOAJ, Semantic Scholar
 `opac-sbn-pp-cli` CLI, if installed). For Scopus and Web of Science the app
 produces the string to paste into their own interface.
 
-## Install
+## Download and run
 
-All you need is **Python 3.11+**. Download the project and start it:
+Grab the archive for your system from the
+[Releases](https://github.com/nugh75/Ricerca-scientifica/releases) page,
+extract it and start it:
 
-| System | Command |
-|---|---|
-| Linux, macOS | double-click `avvia.sh`, or run `./avvia.sh` |
-| Windows | double-click `avvia.bat` |
+| System | Archive | Start |
+|---|---|---|
+| Windows | `ricerca-*-windows.zip` | double-click `avvia.bat` |
+| macOS | `ricerca-*-macos.tar.gz` | double-click `avvia.command` — first time, right-click → *Open* |
+| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` |
 
-The launcher prepares the environment on first run and opens the browser at
-`http://127.0.0.1:8000` (or the first free port). The server listens on
-`127.0.0.1` only.
+**Python is not required.** On first run the launcher downloads `uv` into the
+app folder and lets it fetch the interpreter and the libraries: no admin
+rights, no system changes, no `PATH` edits. Only an internet connection the
+first time.
+
+If the folder is read-only (say `/Applications` or `Program Files`), the
+environment is created under `~/.ricerca` and the app folder is left
+untouched.
+
+The browser then opens at `http://127.0.0.1:8000` (or the first free port).
+The server listens on `127.0.0.1` only.
 
 From a terminal instead:
 

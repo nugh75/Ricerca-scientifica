@@ -1,0 +1,48 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  archivi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Test
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+          uv run pytest -q
+
+      - name: Costruisci gli archivi
+        run: ./scripts/crea-release.sh
+
+      - name: Pubblica la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" dist/* \
+            --title "Ricerca ${{ github.ref_name }}" \
+            --notes "$(cat <<'NOTE'
+          Scarica l'archivio del tuo sistema, estrailo e avvia. / Download the
+          archive for your system, extract it and start it.
+
+          | Sistema | File | Come si avvia |
+          |---|---|---|
+          | Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat` |
+          | macOS | `ricerca-*-macos.tar.gz` | doppio clic su `avvia.command` (la prima volta: clic destro → Apri) |
+          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` |
+
+          Non serve installare Python: al primo avvio il lanciatore scarica
+          `uv` dentro la cartella dell'app, senza toccare il sistema e senza
+          permessi di amministratore. Serve solo una connessione a internet.
+
+          Email di cortesia e chiavi API si inseriscono dall'interfaccia.
+          NOTE
+          )"
