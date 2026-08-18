@@ -40,6 +40,11 @@ window.addEventListener("pagehide", function () {
   navigator.sendBeacon ? navigator.sendBeacon("/chiudi") : fetch("/chiudi", { method: "POST", keepalive: true });
 });
 
+function spunta(id, valore) {
+  document.querySelectorAll('input[form="massa-' + id + '"][name="selezione"]')
+    .forEach(function (casella) { casella.checked = valore; });
+}
+
 document.addEventListener("click", function (event) {
   const bottone = event.target.closest("[data-copia]");
   if (!bottone || !navigator.clipboard) return;

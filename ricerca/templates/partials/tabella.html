@@ -20,6 +20,7 @@
 {% else %}
 <table>
   <thead><tr>
+    <th class="spunta"></th>
     {% for campo in campi %}<th>{{ t['field_' ~ campo] }}</th>{% endfor %}
     {% if vista != 'apa' %}<th>{{ t.screening_title }}</th>{% endif %}
   </tr></thead>
@@ -27,6 +28,8 @@
   {% for w in works %}
   {% set riga = loop.index0 %}
   <tr>
+    <td class="spunta"><input type="checkbox" form="massa-{{ id_ricerca }}" name="selezione" value="{{ riga }}"
+                              aria-label="{{ t.bulk_title }} {{ riga + 1 }}"></td>
     {% for campo in campi %}
     {% if campo == 'titolo' %}
       <td>{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}</td>

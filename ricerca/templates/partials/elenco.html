@@ -1,3 +1,6 @@
+{% set blocco_elenco = true %}<div id="blocco-{{ id_ricerca }}">
+{% if fonti %}{% include "partials/fonti.html" %}{% endif %}
+
 <form class="scheda" id="campi-{{ id_ricerca }}">
   <h3>{{ t.fields_title }}</h3>
   <div class="fonti">
@@ -22,6 +25,27 @@
   </div>
 </form>
 
+<form class="scheda comandi" id="massa-{{ id_ricerca }}">
+  <h3>{{ t.bulk_title }}</h3>
+  <div class="azioni">
+    <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', true)">{{ t.bulk_select_all }}</button>
+    <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', false)">{{ t.bulk_clear }}</button>
+    {% for stato, etichetta in (('incluso', t.bulk_include), ('forse', t.bulk_maybe), ('escluso', t.bulk_exclude)) %}
+    <button type="button" hx-post="/screening-massa/{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-vals='{"stato": "{{ stato }}"}'
+            hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ etichetta }}</button>
+    {% endfor %}
+    <button type="button" class="primario" hx-post="/pdf-massa/{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+            hx-indicator="#attesa-pdf">{{ t.bulk_pdf }}</button>
+    <span id="attesa-pdf" class="htmx-indicator">{{ t.waiting_pdf }}</span>
+    <span id="esito-pdf" class="conteggi">{{ esito_pdf }}</span>
+  </div>
+  <p class="aiuto">{{ t.bulk_pdf_all_hint }}</p>
+</form>
+
 <div id="elenco-{{ id_ricerca }}">
 {% include "partials/tabella.html" %}
 </div>
@@ -32,4 +56,6 @@
     <button type="button" hx-post="/affina/{{ id_ricerca }}" hx-target="#affina-{{ id_ricerca }}">{{ t.refine_button }}</button>
   </div>
   <div id="affina-{{ id_ricerca }}"></div>
+</div>
+
 </div>

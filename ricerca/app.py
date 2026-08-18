@@ -208,6 +208,8 @@ async def cerca(
             vista="tabella",
             pdf_scaricati=_pdf_presenti(works),
             conteggi=history.conteggi(id_ricerca),
+            fonti=history.voce(id_ricerca).get("fonti", []),
+            esito_pdf="",
         ),
     )
 
@@ -228,15 +230,7 @@ def _pdf_presenti(works: list[Work]) -> dict[int, bool]:
     return {i: pdf.gia_scaricato(w) is not None for i, w in enumerate(works)}
 
 
-@app.post("/risultati/{id_ricerca}", response_class=HTMLResponse)
-async def risultati(
-    request: Request,
-    id_ricerca: str,
-    campo: list[str] = Form(default=[]),
-    vista: str = Form(default="tabella"),
-):
-    """Ridisegna l'elenco con i campi scelti, come tabella o come lista APA."""
-
+def _elenco(request: Request, id_ricerca: str, campo: list[str], vista: str, esito_pdf: str = ""):
     works = history.record(id_ricerca)
     voce = history.voce(id_ricerca) or {}
     return templates.TemplateResponse(
@@ -252,8 +246,22 @@ async def risultati(
             pdf_scaricati=_pdf_presenti(works),
             quando=voce.get("quando", ""),
             conteggi=history.conteggi(id_ricerca),
+            fonti=voce.get("fonti", []),
+            esito_pdf=esito_pdf,
         ),
     )
+
+
+@app.post("/risultati/{id_ricerca}", response_class=HTMLResponse)
+async def risultati(
+    request: Request,
+    id_ricerca: str,
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+):
+    """Ridisegna l'elenco con i campi scelti, come tabella o come lista APA."""
+
+    return _elenco(request, id_ricerca, campo, vista)
 
 
 def _campi_da_query(campi: str | None) -> list[str]:
@@ -352,6 +360,62 @@ async def screening(
     )
 
 
+@app.post("/screening-massa/{id_ricerca}", response_class=HTMLResponse)
+async def screening_massa(
+    request: Request,
+    id_ricerca: str,
+    stato: str = Form(...),
+    selezione: list[int] = Form(default=[]),
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+):
+    """Applica la stessa decisione a tutti i record spuntati."""
+
+    for indice in selezione:
+        decisione = history.decisioni(id_ricerca).get(str(indice), {})
+        if decisione.get("stato") != stato:
+            history.decide(id_ricerca, indice, stato, decisione.get("motivo", ""))
+    return _elenco(request, id_ricerca, campo, vista)
+
+
+@app.post("/pdf-massa/{id_ricerca}", response_class=HTMLResponse)
+async def pdf_massa(
+    request: Request,
+    id_ricerca: str,
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+    selezione: list[int] = Form(default=[]),
+):
+    """Scarica in un colpo i PDF aperti: quelli spuntati, o tutti."""
+
+    works = history.record(id_ricerca)
+    indici = [i for i in selezione if i < len(works)] or list(range(len(works)))
+    da_prendere = [(i, works[i]) for i in indici if works[i].oa_url and not pdf.gia_scaricato(works[i])]
+
+    presi = falliti = 0
+    if da_prendere:
+        # Tre alla volta: piu' veloce di uno per uno, senza sembrare un raschiatore.
+        cancello = asyncio.Semaphore(3)
+
+        async def prendi(work, client):
+            async with cancello:
+                try:
+                    await pdf.scarica(work, client)
+                    return True
+                except (httpx.HTTPError, ValueError, OSError):
+                    return False
+
+        async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
+            esiti = await asyncio.gather(*(prendi(w, client) for _i, w in da_prendere))
+        presi = sum(1 for e in esiti if e)
+        falliti = len(esiti) - presi
+
+    esito = i18n.strings(current_config().lang)["pdf_bulk_done"].format(
+        presi=presi, falliti=falliti
+    )
+    return _elenco(request, id_ricerca, campo, vista, esito_pdf=esito)
+
+
 @app.get("/export/{id_ricerca}.protocollo.md", response_class=PlainTextResponse)
 async def export_protocollo(id_ricerca: str):
     voce = history.voce(id_ricerca) or {}
@@ -447,6 +511,8 @@ async def cronologia_voce(request: Request, id_ricerca: str):
             pdf_scaricati=_pdf_presenti(works),
             quando=voce.get("quando", ""),
             conteggi=history.conteggi(id_ricerca),
+            fonti=voce.get("fonti", []),
+            esito_pdf="",
         ),
     )
 

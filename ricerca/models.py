@@ -81,6 +81,7 @@ class SourceResult:
     query: str
     works: list[Work] = field(default_factory=list)
     error: str | None = None
+    secondi: float = 0.0
 
 
 @dataclass

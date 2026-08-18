@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 
 import httpx
 
@@ -84,16 +85,45 @@ async def _one(
         result.error = t["err_empty_strategy"]
         return result
 
+    inizio = time.monotonic()
     for attempt in (1, 2):
         try:
             result.works = await source.search(client, query, limit, config, strategy.filtri)
             result.error = None
+            result.secondi = round(time.monotonic() - inizio, 2)
             return result
         except Exception as exc:  # una fonte rotta non deve fermare le altre
             result.error = _message(exc, t)
             if attempt == 1:
                 await asyncio.sleep(1)
+    result.secondi = round(time.monotonic() - inizio, 2)
     return result
+
+
+def statistiche(results: list[SourceResult], works: list[Work]) -> list[dict]:
+    """Per ogni fonte: quanto ha portato, quanto di suo, quanto ci ha messo.
+
+    «Solo qui» conta i record che nessun'altra fonte ha trovato: dice se una
+    banca dati sta guadagnandosi il posto nella strategia.
+    """
+
+    righe = []
+    for result in results:
+        nel_totale = [w for w in works if result.source_id in w.sources]
+        soltanto = [w for w in nel_totale if len(w.sources) == 1]
+        righe.append(
+            {
+                "id": result.source_id,
+                "etichetta": result.label,
+                "query": result.query,
+                "trovati": len(result.works),
+                "nel_totale": len(nel_totale),
+                "soltanto": len(soltanto),
+                "secondi": result.secondi,
+                "errore": result.error,
+            }
+        )
+    return righe
 
 
 def _message(exc: Exception, t: dict[str, str]) -> str:

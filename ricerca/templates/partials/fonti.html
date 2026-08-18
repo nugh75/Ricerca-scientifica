@@ -1,0 +1,28 @@
+<div class="scheda">
+  <h3>{{ t.sources_panel }}</h3>
+  <table class="fonti-statistiche">
+    <thead><tr>
+      <th>{{ t.col_engine }}</th><th>{{ t.col_query }}</th>
+      <th>{{ t.col_found }}</th><th>{{ t.col_kept }}</th>
+      <th>{{ t.col_only }}</th><th>{{ t.col_time }}</th>
+    </tr></thead>
+    <tbody>
+    {% for fonte in fonti %}
+    <tr>
+      <td>{{ fonte.etichetta }}</td>
+      <td><code>{{ fonte.query }}</code>
+          <button type="button" class="copia" data-copia="{{ fonte.query }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button></td>
+      {% if fonte.errore %}
+      <td colspan="4" class="errore">{{ fonte.errore }}</td>
+      {% else %}
+      <td class="anno">{{ fonte.trovati }}</td>
+      <td class="anno">{{ fonte.nel_totale }}</td>
+      <td class="anno">{{ fonte.soltanto }}</td>
+      <td class="anno">{{ fonte.secondi }}s</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="aiuto">{{ t.only_here_hint }}</p>
+</div>

@@ -215,9 +215,22 @@ di annate diverse finivano uniti, e la cache rimandava le risposte compresse
 con l'intestazione `content-encoding` intatta, per cui PubMed falliva con
 «incorrect header check».
 
+## Dopo l'uso sul campo
+
+- **Pannello per fonte** (`search.statistiche`): la stringa inviata davvero,
+  i record portati, quelli sopravvissuti alla deduplica, quelli trovati solo
+  da quella fonte, il tempo di risposta. Serve a capire quale banca dati vale
+  il posto che occupa nella strategia.
+- **Comandi in blocco**: spunta dei record, inclusione o esclusione di tutti
+  i selezionati, scaricamento dei PDF aperti a tre alla volta (da 19 a 5
+  secondi su sedici PDF).
+- **Errori leggibili**: le fonti riportano il messaggio dell'API. Da qui si è
+  scoperto che OpenAlex misura le richieste a consumo — `/works` costa
+  $0.001, `/text/*` $0.01 — con un budget giornaliero gratuito.
+
 ## Stato
 
-152 test, nessuno tocca la rete; altri 8 a contratto, che la interrogano
+172 test, nessuno tocca la rete; altri 8 a contratto, che la interrogano
 apposta. Schermate in `docs/screenshot/`.
 
 Fasi successive, ancora da progettare: libreria persistente con annotazioni

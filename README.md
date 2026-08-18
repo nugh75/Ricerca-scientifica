@@ -20,12 +20,17 @@ banca dati, poi esegue le query ed esporta i risultati.
    punteggiato diversamente), l'elenco ordinato per pertinenza. Scegli quali
    campi mostrare, leggi come tabella o come **riferimenti APA**, scarica i
    **PDF ad accesso aperto**, esporta in `.bib`, `.csv`, `.txt`.
-4. **Selezione** — ogni record si marca *incluso*, *forse* o *escluso* con un
-   motivo; i conteggi seguono il diagramma di flusso PRISMA e il **protocollo**
-   in Markdown raccoglie stringhe, numeri e decisioni per la sezione «Metodo».
-5. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
+4. **Che cosa ha fatto ogni banca dati** — la stringa esattamente com'è stata
+   inviata, quanti record ha portato, quanti ne sono rimasti dopo la deduplica,
+   quanti li ha trovati **solo lei** e in quanto tempo.
+5. **Selezione** — ogni record si marca *incluso*, *forse* o *escluso* con un
+   motivo, uno per volta o **in blocco** sui record spuntati; i PDF aperti si
+   scaricano tutti insieme. I conteggi seguono il diagramma di flusso PRISMA e
+   il **protocollo** in Markdown raccoglie stringhe, numeri e decisioni per la
+   sezione «Metodo».
+6. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
    record: si riapre, si riesporta e se ne scaricano i PDF senza ripeterla.
-6. **Biblioteca** — i PDF scaricati sono cercabili a testo pieno.
+7. **Biblioteca** — i PDF scaricati sono cercabili a testo pieno.
 
 Limiti di anno e «solo articoli di rivista» valgono per tutte le fonti,
 ognuna con la propria sintassi. Le risposte restano in una cache locale di un
@@ -121,7 +126,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 163 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 172 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -162,12 +167,17 @@ then runs the queries and exports the results.
    title (even when one title is truncated or punctuated differently), the
    list ranked by relevance. Pick the fields, read it as a table or as **APA
    references**, download **open-access PDFs**, export to `.bib`, `.csv`, `.txt`.
-4. **Screening** — mark each record *include*, *maybe* or *exclude* with a
-   reason; the counters follow the PRISMA flow diagram and the **protocol** in
-   Markdown gathers strings, numbers and decisions for your Methods section.
-5. **History** — every search is stored with its strategy and its records:
+4. **What each database did** — the query exactly as it was sent, how many
+   records it returned, how many survived deduplication, how many **only it**
+   found, and how long it took.
+5. **Screening** — mark each record *include*, *maybe* or *exclude* with a
+   reason, one at a time or **in bulk** on the ticked records; open-access PDFs
+   download all at once. The counters follow the PRISMA flow diagram and the
+   **protocol** in Markdown gathers strings, numbers and decisions for your
+   Methods section.
+6. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
-6. **Library** — the downloaded PDFs are searchable in full text.
+7. **Library** — the downloaded PDFs are searchable in full text.
 
 Year limits and “journal articles only” apply to every source, each in its own
 syntax. Responses are cached locally for a day: refining a strategy does not

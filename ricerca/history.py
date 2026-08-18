@@ -49,21 +49,18 @@ def salva(
         "topic": topic,
         "blocchi": [asdict(b) for b in strategy.blocks],
         "mesh": list(strategy.mesh),
-        "fonti": [
-            {
-                "id": r.source_id,
-                "etichetta": r.label,
-                "query": r.query,
-                "trovati": len(r.works),
-                "errore": r.error,
-            }
-            for r in results
-        ],
+        "fonti": _statistiche(results, works),
         "totale": len(works),
         "record": [asdict(w) for w in works],
     }
     _scrivi([voce] + _leggi())
     return voce["id"]
+
+
+def _statistiche(results: list[SourceResult], works: list[Work]) -> list[dict]:
+    from .search import statistiche
+
+    return statistiche(results, works)
 
 
 def elenco() -> list[dict]:
