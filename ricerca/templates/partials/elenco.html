@@ -1,0 +1,27 @@
+<form class="scheda" id="campi-{{ id_ricerca }}">
+  <h3>{{ t.fields_title }}</h3>
+  <div class="fonti">
+    {% for campo in tutti_i_campi %}
+    <label class="fonte">
+      <input type="checkbox" name="campo" value="{{ campo }}" {% if campo in campi %}checked{% endif %}>
+      {{ t['field_' ~ campo] }}
+    </label>
+    {% endfor %}
+  </div>
+  <div class="azioni">
+    <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+            hx-target="#elenco-{{ id_ricerca }}" name="vista" value="tabella">{{ t.btn_apply_fields }}</button>
+    <span class="viste">
+      <button type="button" class="lingua {% if vista == 'tabella' %}attiva{% endif %}"
+              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+              hx-vals='{"vista": "tabella"}' hx-target="#elenco-{{ id_ricerca }}">{{ t.view_table }}</button>
+      <button type="button" class="lingua {% if vista == 'apa' %}attiva{% endif %}"
+              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+              hx-vals='{"vista": "apa"}' hx-target="#elenco-{{ id_ricerca }}">{{ t.view_apa }}</button>
+    </span>
+  </div>
+</form>
+
+<div id="elenco-{{ id_ricerca }}">
+{% include "partials/tabella.html" %}
+</div>

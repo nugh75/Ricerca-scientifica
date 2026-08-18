@@ -64,7 +64,7 @@ def test_cerca_mostra_risultati_ed_export():
     bib = client.get(f"/export/{token}.bib")
     assert "@article{" in bib.text
     csv = client.get(f"/export/{token}.csv")
-    assert csv.text.startswith("titolo,autori,anno")
+    assert csv.text.startswith("anno,titolo,autori,sede,fonti")
 
 
 def test_impostazioni_salva_su_file(isolated_config):
@@ -122,3 +122,118 @@ def test_una_nuova_chiave_sostituisce_la_precedente():
     salva_impostazioni(ncbi_api_key="vecchia")
     salva_impostazioni(ncbi_api_key="nuova")
     assert config_module.load().ncbi_api_key == "nuova"
+
+
+WORKS_OA = {"results": [{
+    "id": "https://openalex.org/W9", "title": "Aperto", "publication_year": 2025,
+    "doi": "https://doi.org/10.1/oa", "authorships": [{"author": {"display_name": "Duri Long"}}],
+    "primary_location": {"source": {"display_name": "Rivista"}},
+    "best_oa_location": {"pdf_url": "https://esempio.org/aperto.pdf"},
+}]}
+
+
+def cerca_finta(**extra):
+    dati = {"label": ["Concetto"], "terms": ["AI literacy"], "mesh": "",
+            "fonte": ["openalex"], "limite": "5", "topic": "AI literacy"}
+    dati.update(extra)
+    return client.post("/cerca", data=dati)
+
+
+@respx.mock
+def test_la_ricerca_finisce_in_cronologia_ed_e_riapribile():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=WORKS_OA))
+
+    pagina = cerca_finta()
+    id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
+
+    cronologia = client.get("/cronologia")
+    assert "AI literacy" in cronologia.text
+
+    salvata = client.get(f"/cronologia/{id_ricerca}")
+    assert "Aperto" in salvata.text
+    assert "Saved search" in salvata.text
+
+
+@respx.mock
+def test_i_campi_scelti_cambiano_tabella_ed_export():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=WORKS_OA))
+    pagina = cerca_finta()
+    id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
+
+    elenco = client.post(f"/risultati/{id_ricerca}", data={"campo": ["doi", "titolo"], "vista": "tabella"})
+    assert "10.1/oa" in elenco.text
+    assert "Rivista" not in elenco.text  # la sede non è più selezionata
+
+    csv = client.get(f"/export/{id_ricerca}.csv?campi=doi,titolo")
+    assert csv.text.splitlines()[0] == "doi,titolo"
+
+
+@respx.mock
+def test_vista_apa_ed_export_dei_riferimenti():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=WORKS_OA))
+    pagina = cerca_finta()
+    id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
+
+    apa = client.post(f"/risultati/{id_ricerca}", data={"vista": "apa"})
+    assert "Long, D. (2025). Aperto. Rivista. https://doi.org/10.1/oa" in apa.text
+
+    scaricato = client.get(f"/export/{id_ricerca}.apa.txt")
+    assert scaricato.text.startswith("Long, D. (2025).")
+
+
+@respx.mock
+def test_scaricamento_del_pdf_aperto_e_apertura():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=WORKS_OA))
+    respx.get("https://esempio.org/aperto.pdf").mock(
+        return_value=httpx.Response(200, content=b"%PDF-1.7\n%%EOF\n"))
+
+    pagina = cerca_finta()
+    id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
+
+    cella = client.post(f"/pdf/{id_ricerca}/0")
+    assert "open PDF" in cella.text
+
+    file_pdf = client.get(f"/pdf/{id_ricerca}/0/file")
+    assert file_pdf.status_code == 200
+    assert file_pdf.content.startswith(b"%PDF")
+
+
+@respx.mock
+def test_un_pdf_irraggiungibile_lascia_un_messaggio():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=WORKS_OA))
+    respx.get("https://esempio.org/aperto.pdf").mock(return_value=httpx.Response(403))
+
+    pagina = cerca_finta()
+    id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
+    cella = client.post(f"/pdf/{id_ricerca}/0")
+    assert "PDF not downloaded" in cella.text
+    assert client.get(f"/pdf/{id_ricerca}/0/file").status_code == 404
+
+
+def test_eliminazione_e_svuotamento_dalla_cronologia():
+    from ricerca import history
+    from ricerca.models import Block, Strategy
+
+    id_voce = history.salva("vecchia", Strategy([Block("c", ["x"])]), [], [])
+    client.post(f"/cronologia/{id_voce}/elimina", follow_redirects=True)
+    assert history.voce(id_voce) is None
+
+    history.salva("altra", Strategy([Block("c", ["x"])]), [], [])
+    client.post("/cronologia/svuota", follow_redirects=True)
+    assert history.elenco() == []
+
+
+@respx.mock
+def test_l_argomento_arriva_in_cronologia_dal_modulo_della_strategia():
+    respx.get(url__startswith="https://api.openalex.org/text/concepts").mock(return_value=httpx.Response(200, json=CONCEPTS))
+    respx.get(url__startswith="https://api.openalex.org/text/topics").mock(return_value=httpx.Response(200, json=TOPICS))
+    respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS_TITLES))
+    respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json=MESH))
+
+    pagina = client.post("/suggerimenti", data={"topic": "AI literacy"})
+    assert '<input type="hidden" name="topic" value="AI literacy">' in pagina.text

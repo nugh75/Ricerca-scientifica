@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ t.history_title }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo" data-passo="⏱">
+  <p class="occhiello">{{ t.history_eyebrow }}</p>
+  <h1>{{ t.history_title }}</h1>
+  <p>{{ t.history_intro }}</p>
+
+  {% if voci %}
+  <div class="scheda">
+    <table>
+      <thead><tr>
+        <th>{{ t.history_when }}</th><th>{{ t.history_topic }}</th>
+        <th>{{ t.history_records }}</th><th>{{ t.history_sources }}</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for voce in voci %}
+      <tr>
+        <td class="anno">{{ voce.quando|replace('T', ' ') }}</td>
+        <td><a href="/cronologia/{{ voce.id }}">{{ voce.topic or '—' }}</a></td>
+        <td class="anno">{{ voce.totale }}</td>
+        <td class="fonti-cella">
+          {% for fonte in voce.fonti %}{{ fonte.etichetta }}{% if fonte.errore %} <span class="errore">({{ fonte.errore }})</span>{% else %} {{ fonte.trovati }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}
+        </td>
+        <td>
+          <form method="post" action="/cronologia/{{ voce.id }}/elimina">
+            <button type="submit" class="copia">{{ t.history_delete }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <form method="post" action="/cronologia/svuota" class="azioni">
+    <button type="submit">{{ t.history_clear }}</button>
+  </form>
+  {% else %}
+  <p class="nota">{{ t.history_empty }}</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -165,11 +165,23 @@ restano disattivate finché non viene inserita dalla pagina Impostazioni.
 Le chiavi non vengono mai rese nell'HTML: un campo vuoto conserva la chiave
 salvata, la spunta *rimuovi* la cancella.
 
+## Aggiunte dopo la fase 1
+
+- **Cronologia** (`ricerca/history.py`): ogni ricerca finisce in
+  `~/.ricerca/cronologia.json` con strategia, esito per fonte e record. Le
+  ultime 50 restano; da lì si riapre, si riesporta, si scaricano i PDF.
+  L'identificativo della voce sostituisce il vecchio token in memoria.
+- **PDF ad accesso aperto** (`ricerca/pdf.py`): solo i record con `oa_url`;
+  il file viene salvato in `~/.ricerca/pdf` dopo aver verificato che
+  cominci per `%PDF`, così una pagina di paywall non finisce su disco.
+- **Campi selezionabili**: la stessa scelta governa tabella, CSV e BibTeX.
+- **Riferimenti APA 7**: elenco ordinato con rientro sporgente ed export
+  `.txt`. Le iniziali si ricavano dal nome, quindi con metadati poveri la
+  voce resta parziale.
+
 ## Stato
 
-Fase 1 completa: 73 test, nessuno tocca la rete. Schermate in
-`docs/screenshot/`.
+97 test, nessuno tocca la rete. Schermate in `docs/screenshot/`.
 
-Fasi successive, ancora da progettare: libreria persistente con PDF (fase 2)
-e analisi LLM del testo degli articoli (fase 3). Ognuna avrà il proprio
-documento di progetto.
+Fasi successive, ancora da progettare: libreria persistente con annotazioni
+(fase 2) e analisi LLM del testo degli articoli (fase 3).

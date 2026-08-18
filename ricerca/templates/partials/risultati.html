@@ -8,26 +8,5 @@
     {% endfor %}
   </ul>
 
-  {% if works %}
-  <p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }} ·
-     <a href="/export/{{ token }}.bib">{{ t.download_bib }}</a> ·
-     <a href="/export/{{ token }}.csv">{{ t.download_csv }}</a></p>
-  <table>
-    <thead><tr><th>{{ t.th_year }}</th><th>{{ t.th_title }}</th><th>{{ t.th_authors }}</th><th>{{ t.th_venue }}</th><th>{{ t.th_sources }}</th></tr></thead>
-    <tbody>
-    {% for w in works %}
-    <tr>
-      <td class="anno">{{ w.year or '—' }}</td>
-      <td>{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}
-          {% if w.oa_url %}<a class="oa" href="{{ w.oa_url }}" target="_blank" rel="noreferrer">PDF</a>{% endif %}</td>
-      <td>{{ w.authors_short }}</td>
-      <td>{{ w.venue or '' }}</td>
-      <td class="fonti-cella">{{ w.sources|join(' · ') }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="nota">{{ t.empty_results }}</p>
-  {% endif %}
+  {% include "partials/elenco.html" %}
 </section>

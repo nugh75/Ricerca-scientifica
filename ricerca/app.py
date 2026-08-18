@@ -2,34 +2,29 @@
 
 from __future__ import annotations
 
-import secrets
 from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
-from . import i18n, keywords, search
+from . import history, i18n, keywords, pdf, search
 from . import sources as sources_registry
 from .config import PRESETS, Config
-from .export import to_bibtex, to_csv
+from .export import CAMPI, CAMPI_PREDEFINITI, apa, normalizza_campi, to_apa, to_bibtex, to_csv
 from .llm import LLMClient, LLMError
 from .models import Strategy, Work
 from .strategy import heuristic_strategy, strategy_from_form
 
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+templates.env.filters["apa_list"] = lambda works: [apa(w) for w in sorted(works, key=lambda w: apa(w).lower())]
 
 app = FastAPI(title="Ricerca")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-
-# Risultati dell'ultima ricerca, tenuti in memoria per l'export.
-# L'app e' locale e mono-utente: non serve un archivio persistente in fase 1.
-_EXPORTS: dict[str, list[Work]] = {}
-
 
 def current_config() -> Config:
     return config_module.load()
@@ -145,36 +140,170 @@ async def cerca(
     mesh: str = Form(default=""),
     fonte: list[str] = Form(default=[]),
     limite: int = Form(default=25),
+    topic: str = Form(default=""),
 ):
     config = current_config()
     strategy = strategy_from_form(label, terms, mesh)
     results, works = await search.run(strategy, fonte, max(1, min(limite, 100)), config)
+    id_ricerca = history.salva(topic, strategy, results, works)
 
-    token = secrets.token_urlsafe(8)
-    _EXPORTS.clear()
-    _EXPORTS[token] = works
     return templates.TemplateResponse(
         request,
         "partials/risultati.html",
-        base_context(config, results=results, works=works, token=token),
+        base_context(
+            config,
+            results=results,
+            works=works,
+            id_ricerca=id_ricerca,
+            campi=list(CAMPI_PREDEFINITI),
+            tutti_i_campi=CAMPI,
+            vista="tabella",
+            pdf_scaricati=_pdf_presenti(works),
+        ),
     )
 
 
-@app.get("/export/{token}.bib", response_class=PlainTextResponse)
-async def export_bib(token: str):
+def _pdf_presenti(works: list[Work]) -> dict[int, bool]:
+    return {i: pdf.gia_scaricato(w) is not None for i, w in enumerate(works)}
+
+
+@app.post("/risultati/{id_ricerca}", response_class=HTMLResponse)
+async def risultati(
+    request: Request,
+    id_ricerca: str,
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+):
+    """Ridisegna l'elenco con i campi scelti, come tabella o come lista APA."""
+
+    works = history.record(id_ricerca)
+    voce = history.voce(id_ricerca) or {}
+    return templates.TemplateResponse(
+        request,
+        "partials/elenco.html",
+        base_context(
+            current_config(),
+            works=works,
+            id_ricerca=id_ricerca,
+            campi=normalizza_campi(campo),
+            tutti_i_campi=CAMPI,
+            vista="apa" if vista == "apa" else "tabella",
+            pdf_scaricati=_pdf_presenti(works),
+            quando=voce.get("quando", ""),
+        ),
+    )
+
+
+def _campi_da_query(campi: str | None) -> list[str]:
+    return normalizza_campi([c for c in (campi or "").split(",") if c])
+
+
+@app.get("/export/{id_ricerca}.bib", response_class=PlainTextResponse)
+async def export_bib(id_ricerca: str, campi: str | None = None):
     return PlainTextResponse(
-        to_bibtex(_EXPORTS.get(token, [])),
+        to_bibtex(history.record(id_ricerca), _campi_da_query(campi)),
         headers={"Content-Disposition": 'attachment; filename="ricerca.bib"'},
     )
 
 
-@app.get("/export/{token}.csv", response_class=PlainTextResponse)
-async def export_csv(token: str):
+@app.get("/export/{id_ricerca}.csv", response_class=PlainTextResponse)
+async def export_csv(id_ricerca: str, campi: str | None = None):
     return PlainTextResponse(
-        to_csv(_EXPORTS.get(token, [])),
+        to_csv(history.record(id_ricerca), _campi_da_query(campi)),
         media_type="text/csv",
         headers={"Content-Disposition": 'attachment; filename="ricerca.csv"'},
     )
+
+
+@app.get("/export/{id_ricerca}.apa.txt", response_class=PlainTextResponse)
+async def export_apa(id_ricerca: str):
+    return PlainTextResponse(
+        to_apa(history.record(id_ricerca)),
+        headers={"Content-Disposition": 'attachment; filename="riferimenti-apa.txt"'},
+    )
+
+
+@app.post("/pdf/{id_ricerca}/{indice}", response_class=HTMLResponse)
+async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
+    """Scarica il PDF aperto di un record e restituisce la cella aggiornata."""
+
+    works = history.record(id_ricerca)
+    if indice >= len(works):
+        return HTMLResponse("")
+    work = works[indice]
+    errore = None
+    async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
+        try:
+            await pdf.scarica(work, client)
+        except (httpx.HTTPError, ValueError, OSError) as exc:
+            errore = str(exc)[:120]
+    return templates.TemplateResponse(
+        request,
+        "partials/pdf.html",
+        base_context(
+            current_config(),
+            work=work,
+            indice=indice,
+            id_ricerca=id_ricerca,
+            scaricato=pdf.gia_scaricato(work) is not None,
+            errore=errore,
+        ),
+    )
+
+
+@app.get("/pdf/{id_ricerca}/{indice}/file")
+async def apri_pdf(id_ricerca: str, indice: int):
+    works = history.record(id_ricerca)
+    if indice >= len(works):
+        return PlainTextResponse("record inesistente", status_code=404)
+    percorso = pdf.gia_scaricato(works[indice])
+    if percorso is None:
+        return PlainTextResponse("PDF non ancora scaricato", status_code=404)
+    return FileResponse(percorso, media_type="application/pdf", filename=percorso.name)
+
+
+@app.get("/cronologia", response_class=HTMLResponse)
+async def cronologia(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "cronologia.html",
+        base_context(current_config(), voci=history.elenco()),
+    )
+
+
+@app.get("/cronologia/{id_ricerca}", response_class=HTMLResponse)
+async def cronologia_voce(request: Request, id_ricerca: str):
+    voce = history.voce(id_ricerca)
+    if voce is None:
+        return RedirectResponse("/cronologia", status_code=303)
+    works = history.record(id_ricerca)
+    return templates.TemplateResponse(
+        request,
+        "ricerca_salvata.html",
+        base_context(
+            current_config(),
+            voce=voce,
+            works=works,
+            id_ricerca=id_ricerca,
+            campi=list(CAMPI_PREDEFINITI),
+            tutti_i_campi=CAMPI,
+            vista="tabella",
+            pdf_scaricati=_pdf_presenti(works),
+            quando=voce.get("quando", ""),
+        ),
+    )
+
+
+@app.post("/cronologia/{id_ricerca}/elimina")
+async def elimina_voce(id_ricerca: str):
+    history.elimina(id_ricerca)
+    return RedirectResponse("/cronologia", status_code=303)
+
+
+@app.post("/cronologia/svuota")
+async def svuota_cronologia():
+    history.svuota()
+    return RedirectResponse("/cronologia", status_code=303)
 
 
 @app.get("/impostazioni", response_class=HTMLResponse)

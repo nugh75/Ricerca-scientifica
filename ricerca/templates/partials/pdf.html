@@ -1,0 +1,7 @@
+{% if scaricato %}
+<a class="oa" href="/pdf/{{ id_ricerca }}/{{ indice }}/file" target="_blank" rel="noreferrer">{{ t.pdf_open }}</a>
+{% elif work.oa_url %}
+<button type="button" class="copia" hx-post="/pdf/{{ id_ricerca }}/{{ indice }}"
+        hx-target="this" hx-swap="outerHTML">{{ t.pdf_download }}</button>
+{% if errore %}<em class="errore">{{ t.pdf_error }}: {{ errore }}</em>{% endif %}
+{% else %}<span class="assente">{{ t.pdf_none }}</span>{% endif %}

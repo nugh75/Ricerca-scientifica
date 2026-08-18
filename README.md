@@ -16,7 +16,11 @@ banca dati, poi esegue le query ed esporta i risultati.
    blocchi booleani, modificabili a mano, e le stringhe per ogni motore.
    Nessuna ricerca parte finché non la avvii tu.
 3. **Risultati** — le fonti scelte vengono interrogate in parallelo, i
-   duplicati uniti per DOI o titolo, l'elenco esportato in `.bib` o `.csv`.
+   duplicati uniti per DOI o titolo. Scegli quali campi mostrare, guarda
+   l'elenco come tabella o come **riferimenti APA**, scarica i **PDF ad
+   accesso aperto** ed esporta in `.bib`, `.csv` o `.txt`.
+4. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
+   record: si riapre, si riesporta e se ne scaricano i PDF senza ripeterla.
 
 Motori interrogati: OpenAlex, PubMed, Europe PMC, arXiv, DOAJ, Semantic
 Scholar (meglio con chiave), CORE (chiave gratuita), OPAC SBN per i libri
@@ -68,6 +72,8 @@ Dalla pagina **Impostazioni**:
 
 Le chiavi restano in `~/.ricerca/config.toml` con permessi `600`, non
 vengono mai rimandate al browser e si cancellano con la spunta *rimuovi*.
+Nella stessa cartella stanno la cronologia (`cronologia.json`) e i PDF
+scaricati (`pdf/`).
 
 ## LLM (facoltativo)
 
@@ -85,7 +91,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 73 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 97 test, nessuno tocca la rete
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
 
@@ -96,6 +102,9 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 - `ricerca/strategy.py` — blocchi booleani e resa per motore
 - `ricerca/sources/` — un modulo per motore, interfaccia unica
 - `ricerca/search.py` — esecuzione parallela con isolamento degli errori
+- `ricerca/history.py` — cronologia delle ricerche in JSON
+- `ricerca/pdf.py` — scaricamento dei PDF ad accesso aperto
+- `ricerca/export.py` — BibTeX, CSV e riferimenti APA
 - `ricerca/i18n.py` — stringhe italiane e inglesi
 - `docs/specs/` — il documento di progetto
 
@@ -115,7 +124,11 @@ then runs the queries and exports the results.
    boolean blocks and one query string per engine. No search runs until you
    start it.
 3. **Results** — the selected sources are queried in parallel, duplicates
-   merged by DOI or title, the list exported as `.bib` or `.csv`.
+   merged by DOI or title. Pick which fields to show, read the list as a table
+   or as **APA references**, download **open-access PDFs**, and export to
+   `.bib`, `.csv` or `.txt`.
+4. **History** — every search is stored with its strategy and its records:
+   reopen it, export it again, fetch its PDFs without running it twice.
 
 Sources queried: OpenAlex, PubMed, Europe PMC, arXiv, DOAJ, Semantic Scholar
 (better with a key), CORE (free key), OPAC SBN for Italian books (through the

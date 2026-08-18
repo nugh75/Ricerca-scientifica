@@ -1,0 +1,49 @@
+{% if works %}
+<p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }} ·
+   <a href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib }}</a> ·
+   <a href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv }}</a> ·
+   <a href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa }}</a></p>
+
+{% if vista == 'apa' %}
+<p class="nota">{{ t.apa_note }}</p>
+<ol class="apa">
+  {% for riferimento in works|apa_list %}<li>{{ riferimento }}</li>{% endfor %}
+</ol>
+{% else %}
+<table>
+  <thead><tr>
+    {% for campo in campi %}<th>{{ t['field_' ~ campo] }}</th>{% endfor %}
+  </tr></thead>
+  <tbody>
+  {% for w in works %}
+  {% set riga = loop.index0 %}
+  <tr>
+    {% for campo in campi %}
+    {% if campo == 'titolo' %}
+      <td>{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}</td>
+    {% elif campo == 'anno' %}
+      <td class="anno">{{ w.year or '—' }}</td>
+    {% elif campo == 'autori' %}
+      <td>{{ w.authors_short }}</td>
+    {% elif campo == 'sede' %}
+      <td>{{ w.venue or '' }}</td>
+    {% elif campo == 'doi' %}
+      <td class="fonti-cella">{{ w.doi or '' }}</td>
+    {% elif campo == 'url' %}
+      <td class="fonti-cella">{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.url }}</a>{% endif %}</td>
+    {% elif campo == 'abstract' %}
+      <td class="abstract">{{ (w.abstract or '')[:400] }}{% if w.abstract and w.abstract|length > 400 %}…{% endif %}</td>
+    {% elif campo == 'fonti' %}
+      <td class="fonti-cella">{{ w.sources|join(' · ') }}</td>
+    {% elif campo == 'pdf' %}
+      <td>{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
+    {% endif %}
+    {% endfor %}
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% else %}
+<p class="nota">{{ t.empty_results }}</p>
+{% endif %}

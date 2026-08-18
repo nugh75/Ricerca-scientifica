@@ -243,3 +243,14 @@ td a:hover { text-decoration-color: var(--evidenziatore); }
 .chiave { display: flex; align-items: center; gap: .7rem; }
 .rimuovi { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; margin: 0; font: .72rem/1 var(--mono); color: var(--inchiostro-tenue); text-transform: none; letter-spacing: 0; }
 .rimuovi input { width: auto; accent-color: var(--timbro); }
+
+/* ── elenco APA: rientro sporgente, come vuole lo stile ───── */
+ol.apa { list-style: none; padding: 0; margin: .8rem 0 0; max-width: 52rem; }
+ol.apa li {
+  padding-left: 2rem; text-indent: -2rem; margin-bottom: .8rem;
+  font-size: .95rem; line-height: 1.55;
+}
+td.abstract { max-width: 26rem; font-size: .85rem; color: var(--inchiostro-tenue); }
+.viste { display: inline-flex; gap: .2rem; margin-left: auto; }
+.assente { font: .74rem/1 var(--mono); color: var(--inchiostro-tenue); }
+.riga-query form { display: inline; }

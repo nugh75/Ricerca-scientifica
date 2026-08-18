@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ t.saved_search }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo" data-passo="⏱">
+  <p class="occhiello">{{ t.saved_search }} · {{ quando|replace('T', ' ') }}</p>
+  <h1>{{ voce.topic or t.history_title }}</h1>
+
+  <div class="scheda">
+    <h3>{{ t.card_queries }}</h3>
+    <div class="query">
+      {% for fonte in voce.fonti %}
+      <div class="riga-query">
+        <span>{{ fonte.etichetta }}</span>
+        <code>{{ fonte.query }}</code>
+        <button type="button" class="copia" data-copia="{{ fonte.query }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% include "partials/elenco.html" %}
+</section>
+{% endblock %}
