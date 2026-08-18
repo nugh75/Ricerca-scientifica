@@ -10,7 +10,7 @@ import webbrowser
 
 import uvicorn
 
-from . import watchdog
+from . import diagnostica, watchdog
 
 
 def free_port(start: int = 8000, attempts: int = 20) -> int:
@@ -30,6 +30,7 @@ def main(argv: list[str] | None = None) -> int:
     serve = sub.add_parser("serve", help="avvia l'app e apre il browser")
     serve.add_argument("--port", type=int, default=8000, help="porta di partenza (default 8000)")
     serve.add_argument("--no-browser", action="store_true", help="non aprire il browser")
+    sub.add_parser("versione", help="stampa versione e percorsi (utile per capire quale copia gira)")
     serve.add_argument(
         "--resta-aperto",
         action="store_true",
@@ -39,6 +40,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.comando is None:
         parser.print_help()
+        return 0
+
+    if args.comando == "versione":
+        for chiave, valore in diagnostica.dati().items():
+            print(f"{chiave:16} {valore}")
         return 0
 
     if not args.resta_aperto:

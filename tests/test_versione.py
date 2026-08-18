@@ -57,3 +57,42 @@ def test_anche_windows_confronta_la_versione():
     testo = (RADICE / "avvia.bat").read_text()
     assert "INSTALLATA" in testo
     assert '.versione' in testo
+
+
+def test_la_diagnosi_dice_da_dove_arriva_il_codice():
+    from ricerca import diagnostica
+
+    dati = diagnostica.dati()
+    assert dati["versione"] == __version__
+    assert dati["pacchetto"].endswith("ricerca")
+    assert dati["configurazione"].endswith("config.toml")
+
+
+def test_la_diagnosi_riconosce_un_ambiente_disallineato(isolated_config):
+    from ricerca import diagnostica
+
+    venv = isolated_config / "venv"
+    venv.mkdir()
+    (venv / ".versione").write_text("0.0.1")
+    assert diagnostica.dati()["allineata"] is False
+    assert diagnostica.dati()["venv_versione"] == "0.0.1"
+
+
+def test_la_pagina_impostazioni_mostra_la_diagnosi():
+    pagina = client.get("/impostazioni").text
+    assert "Which copy is running" in pagina
+    assert __version__ in pagina
+
+
+def test_il_comando_versione_stampa_i_percorsi(capsys):
+    from ricerca.cli import main
+
+    assert main(["versione"]) == 0
+    stampato = capsys.readouterr().out
+    assert __version__ in stampato
+    assert "configurazione" in stampato
+
+
+def test_il_bundle_registra_quale_copia_parte():
+    testo = (RADICE / "packaging/macos/avvio").read_text()
+    assert 'echo "bundle: $BUNDLE"' in testo

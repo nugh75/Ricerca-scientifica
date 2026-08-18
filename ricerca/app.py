@@ -20,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, history, i18n, keywords, pdf, search, watchdog
+from . import biblioteca, cache, diagnostica, history, i18n, keywords, pdf, search, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -619,6 +619,7 @@ async def impostazioni(request: Request, salvato: int = 0):
             current_config(),
             presets=PRESETS,
             salvato=bool(salvato),
+            diagnosi=diagnostica.dati(),
             percorso=config_module.CONFIG_FILE,
             sources=sources_registry.ALL,
         ),

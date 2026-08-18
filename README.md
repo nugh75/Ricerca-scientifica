@@ -76,9 +76,15 @@ Se la cartella non è scrivibile (per esempio `/Applications` o
 dell'app resta intatta.
 
 **Aggiornare**: scarica il nuovo archivio e avvialo. Il lanciatore confronta
-la versione con quella già installata e rifà l'ambiente se serve. La versione
-in esecuzione è scritta in fondo a ogni pagina: se non cambia, cancella
-`~/.ricerca/venv` e riavvia.
+la versione con quella già installata e rifà l'ambiente se serve.
+
+La versione in esecuzione è scritta in fondo a ogni pagina, e in
+**Impostazioni** c'è *Quale copia sta girando*: versione, cartella dell'app,
+ambiente installato. Se la versione non cambia dopo un aggiornamento, quella
+riga dice perché — quasi sempre si sta aprendo una copia vecchia dell'app.
+Su macOS conviene cancellare la vecchia `Ricerca.app` prima di copiare la
+nuova, e svuotare il Cestino. Il registro del primo avvio è in
+`~/.ricerca/avvio.log`.
 
 Poi si apre il browser su `http://127.0.0.1:8000` (o la prima porta libera).
 Il server ascolta solo su `127.0.0.1`: non è raggiungibile da altre macchine.
@@ -135,7 +141,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 200 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 205 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -234,8 +240,13 @@ untouched.
 
 **Upgrading**: download the new archive and start it. The launcher compares
 the version with the installed one and rebuilds the environment when needed.
-The running version is printed at the bottom of every page: if it does not
-change, delete `~/.ricerca/venv` and start again.
+
+The running version is printed at the bottom of every page, and **Settings**
+has *Which copy is running*: version, app folder, installed environment. If
+the version does not change after an update, that panel says why — almost
+always an old copy of the app is being opened. On macOS, delete the old
+`Ricerca.app` before copying the new one, and empty the Trash. The first-run
+log is at `~/.ricerca/avvio.log`.
 
 The browser then opens at `http://127.0.0.1:8000` (or the first free port).
 The server listens on `127.0.0.1` only.
@@ -282,7 +293,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 200 tests, none touches the network
+.venv/bin/pytest -q                       # 205 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

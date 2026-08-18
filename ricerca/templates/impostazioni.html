@@ -69,6 +69,19 @@
   </form>
 
   <div class="scheda">
+    <h3>{{ t.diag_title }}</h3>
+    <table class="diagnosi">
+      <tr><th>{{ t.diag_version }}</th><td><b>{{ diagnosi.versione }}</b></td></tr>
+      <tr><th>{{ t.diag_app }}</th><td><code>{{ diagnosi.app }}</code></td></tr>
+      <tr><th>{{ t.diag_venv }}</th><td><code>{{ diagnosi.venv_versione or '—' }}</code></td></tr>
+      <tr><th>{{ t.diag_config }}</th><td><code>{{ diagnosi.configurazione }}</code></td></tr>
+      <tr><th>{{ t.diag_system }}</th><td>{{ diagnosi.sistema }}</td></tr>
+    </table>
+    {% if not diagnosi.allineata %}<p class="nota errore">{{ t.diag_stale }}</p>{% endif %}
+    <p class="aiuto">{{ t.diag_hint }}</p>
+  </div>
+
+  <div class="scheda">
     <h3>{{ t.settings_status }}</h3>
     <ul class="stato">
     {% for source in sources %}

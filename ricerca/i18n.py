@@ -206,6 +206,14 @@ STRINGS: dict[str, dict[str, str]] = {
             "Le chiavi restano sul tuo computer e non vengono mai rimandate al browser: "
             "un campo vuoto lascia invariata la chiave già salvata."
         ),
+        "diag_title": "Quale copia sta girando",
+        "diag_version": "Versione",
+        "diag_app": "Cartella dell'app",
+        "diag_venv": "Ambiente installato",
+        "diag_config": "Configurazione",
+        "diag_system": "Sistema",
+        "diag_stale": "L'ambiente installato non corrisponde a questa versione: chiudi l'app, cancella la cartella dell'ambiente e riavvia.",
+        "diag_hint": "Se dopo un aggiornamento la versione non cambia, stai aprendo una copia vecchia dell'app: controlla il percorso qui sopra.",
         "settings_status": "Stato delle fonti",
         "status_ready": "pronta",
         "status_limited": "pronta, con un limite",
@@ -425,6 +433,14 @@ STRINGS: dict[str, dict[str, str]] = {
             "Keys stay on your computer and are never sent back to the browser: "
             "an empty field leaves the stored key untouched."
         ),
+        "diag_title": "Which copy is running",
+        "diag_version": "Version",
+        "diag_app": "App folder",
+        "diag_venv": "Installed environment",
+        "diag_config": "Configuration",
+        "diag_system": "System",
+        "diag_stale": "The installed environment does not match this version: quit the app, delete the environment folder and start again.",
+        "diag_hint": "If the version does not change after an update, you are opening an old copy of the app: check the path above.",
         "settings_status": "Source status",
         "status_ready": "ready",
         "status_limited": "ready, with a caveat",

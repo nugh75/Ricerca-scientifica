@@ -11,7 +11,9 @@ mkdir -p "$CASA"
 
 {
   echo "--- $(date) ---"
+  echo "bundle: $BUNDLE"
   cd "$APP" || exit 1
+  echo "versione nell'archivio: $(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
 
   TOOLS="$CASA/strumenti"
   mkdir -p "$TOOLS"
