@@ -112,3 +112,59 @@ def test_il_pannello_dei_campi_non_si_duplica():
     frammento = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
     assert frammento.count("FIELDS TO SHOW AND EXPORT") <= 1
     assert frammento.count('id="campi-') == 1
+
+
+def test_annulla_le_decisioni_sui_selezionati():
+    id_ricerca = ricerca_salvata()
+    history.decide(id_ricerca, 0, "incluso", "utile")
+    history.decide(id_ricerca, 1, "escluso")
+
+    client.post(f"/screening-massa/{id_ricerca}", data={"stato": "annulla", "selezione": [0]})
+
+    record = history.record(id_ricerca)
+    assert record[0].decisione == ""
+    assert record[1].decisione == "escluso"   # non toccato
+
+
+def test_annullare_un_record_senza_decisione_non_cambia_nulla():
+    id_ricerca = ricerca_salvata()
+    client.post(f"/screening-massa/{id_ricerca}", data={"stato": "annulla", "selezione": [0, 1]})
+    assert all(w.decisione == "" for w in history.record(id_ricerca))
+
+
+def test_i_tasti_di_scaricamento_ci_sono_tutti():
+    id_ricerca = ricerca_salvata()
+    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+    for pezzo in (".bib", ".csv", ".apa.txt", ".protocollo.md", ".protocollo.txt"):
+        assert f"/export/{id_ricerca}{pezzo}" in pagina
+    assert 'class="tasto"' in pagina
+
+
+def test_il_protocollo_in_testo_semplice():
+    id_ricerca = ricerca_salvata()
+    history.decide(id_ricerca, 0, "incluso")
+    testo = client.get(f"/export/{id_ricerca}.protocollo.txt").text
+
+    assert testo.startswith("PROTOCOLLO DI RICERCA — AI literacy")
+    assert "query esatta" in testo
+    assert "inclusi:                1" in testo
+    assert "|" not in testo          # niente tabelle Markdown
+    assert "#" not in testo
+
+
+@respx.mock
+def test_zotero_in_blocco_manda_i_selezionati():
+    from ricerca import config as config_module
+    from ricerca.config import Config
+
+    config_module.save(Config(zotero_api_key="k", zotero_library_id="123"))
+    id_ricerca = ricerca_salvata(quanti=3)
+    rotta = respx.post("https://api.zotero.org/users/123/items").mock(
+        return_value=httpx.Response(200, json={"successful": {"0": {}}, "failed": {}})
+    )
+
+    pagina = client.post(f"/zotero-massa/{id_ricerca}", data={"selezione": [2]})
+
+    inviati = rotta.calls[0].request.content
+    assert b"Studio 2" in inviati and b"Studio 0" not in inviati
+    assert "Sent to Zotero" in pagina.text

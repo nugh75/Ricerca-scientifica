@@ -23,6 +23,7 @@ from .export import (
     apa,
     normalizza_campi,
     protocollo,
+    protocollo_testo,
     to_apa,
     to_bibtex,
     to_csv,
@@ -388,9 +389,47 @@ async def screening_massa(
 
     for indice in selezione:
         decisione = history.decisioni(id_ricerca).get(str(indice), {})
-        if decisione.get("stato") != stato:
+        gia_deciso = decisione.get("stato", "")
+        if stato == "annulla":
+            if gia_deciso:
+                history.decide(id_ricerca, indice, gia_deciso, decisione.get("motivo", ""))
+        elif gia_deciso != stato:
             history.decide(id_ricerca, indice, stato, decisione.get("motivo", ""))
     return _elenco(request, id_ricerca, campo, vista)
+
+
+@app.get("/export/{id_ricerca}.protocollo.txt", response_class=PlainTextResponse)
+async def export_protocollo_testo(id_ricerca: str):
+    voce = history.voce(id_ricerca) or {}
+    return PlainTextResponse(
+        protocollo_testo(voce, history.conteggi(id_ricerca)),
+        headers={"Content-Disposition": 'attachment; filename="protocollo-di-ricerca.txt"'},
+    )
+
+
+@app.post("/zotero-massa/{id_ricerca}", response_class=HTMLResponse)
+async def zotero_massa(
+    request: Request,
+    id_ricerca: str,
+    selezione: list[int] = Form(default=[]),
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+):
+    """Manda a Zotero i record spuntati; senza spunte, quelli inclusi."""
+
+    config = current_config()
+    works = history.record(id_ricerca)
+    scelti = [works[i] for i in selezione if i < len(works)]
+    da_inviare = scelti or [w for w in works if w.decisione == "incluso"] or works
+
+    try:
+        async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
+            esito = await zotero_client.invia(da_inviare, config, client)
+        messaggio = i18n.strings(config.lang)["zotero_done"].format(**esito)
+    except (zotero_client.ZoteroError, httpx.HTTPError, OSError) as exc:
+        messaggio = i18n.strings(config.lang)["zotero_error"].format(errore=str(exc)[:160])
+
+    return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
 
 
 @app.post("/pdf-massa/{id_ricerca}", response_class=HTMLResponse)

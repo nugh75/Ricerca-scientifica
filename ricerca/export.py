@@ -201,3 +201,39 @@ def protocollo(voce: dict, conteggi: dict) -> str:
         "",
     ]
     return "\n".join(righe)
+
+
+def protocollo_testo(voce: dict, conteggi: dict) -> str:
+    """Lo stesso protocollo senza marcatura: si incolla ovunque."""
+
+    righe = [
+        f"PROTOCOLLO DI RICERCA — {voce.get('topic') or 's.t.'}",
+        "",
+        f"Data della ricerca: {str(voce.get('quando', '')).replace('T', ' ')}",
+        "",
+        "BLOCCHI CONCETTUALI",
+    ]
+    for blocco in voce.get("blocchi", []):
+        righe.append(f"  {blocco.get('label', '')}: " + ", ".join(blocco.get("terms", [])))
+    if voce.get("mesh"):
+        righe.append("  MeSH: " + ", ".join(voce["mesh"]))
+
+    righe += ["", "INTERROGAZIONI"]
+    for fonte in voce.get("fonti", []):
+        esito = fonte.get("errore") or f"{fonte.get('trovati', 0)} risultati"
+        righe.append(f"  {fonte.get('etichetta', '')} — {esito}")
+        righe.append(f"    {fonte.get('query', '')}")
+
+    righe += [
+        "",
+        "SELEZIONE",
+        f"  record recuperati:      {conteggi.get('grezzi', 0)}",
+        f"  duplicati rimossi:      {conteggi.get('duplicati', 0)}",
+        f"  record esaminati:       {conteggi.get('dopo_deduplica', 0)}",
+        f"  inclusi:                {conteggi.get('incluso', 0)}",
+        f"  da valutare:            {conteggi.get('forse', 0)}",
+        f"  esclusi:                {conteggi.get('escluso', 0)}",
+        f"  non ancora valutati:    {conteggi.get('da_valutare', 0)}",
+        "",
+    ]
+    return "\n".join(righe)

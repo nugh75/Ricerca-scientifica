@@ -33,12 +33,17 @@
   <div class="azioni">
     <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', true)">{{ t.bulk_select_all }}</button>
     <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', false)">{{ t.bulk_clear }}</button>
-    {% for stato, etichetta in (('incluso', t.bulk_include), ('forse', t.bulk_maybe), ('escluso', t.bulk_exclude)) %}
+    {% for stato, etichetta in (('incluso', t.bulk_include), ('forse', t.bulk_maybe), ('escluso', t.bulk_exclude), ('annulla', t.bulk_clear_decisions)) %}
     <button type="button" hx-post="/screening-massa/{{ id_ricerca }}"
             hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
             hx-vals='{"stato": "{{ stato }}"}'
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ etichetta }}</button>
     {% endfor %}
+    {% if config.zotero_api_key and config.zotero_library_id %}
+    <button type="button" hx-post="/zotero-massa/{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.bulk_zotero }}</button>
+    {% endif %}
     <button type="button" class="primario" hx-post="/pdf-massa/{{ id_ricerca }}"
             hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"

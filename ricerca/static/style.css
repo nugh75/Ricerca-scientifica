@@ -295,3 +295,13 @@ table.fonti-statistiche td { vertical-align: top; }
 .comandi .azioni { margin-top: .2rem; }
 th.spunta, td.spunta { width: 1.6rem; padding-right: .3rem; }
 td.spunta input { width: auto; accent-color: var(--verde); }
+
+/* ── barra degli scaricamenti ──────────────────────────────── */
+.scarica { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .3rem 0 1rem; }
+.etichetta-scarica { font: .72rem/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--inchiostro-tenue); margin-right: .3rem; }
+a.tasto {
+  font: 500 .85rem/1 var(--testo); text-decoration: none; color: var(--inchiostro);
+  background: var(--scheda); border: 1.5px solid var(--inchiostro); border-radius: 3px;
+  padding: .45rem .7rem;
+}
+a.tasto:hover { background: var(--evidenziatore-tenue); }

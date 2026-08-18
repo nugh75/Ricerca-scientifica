@@ -24,10 +24,10 @@ banca dati, poi esegue le query ed esporta i risultati.
    inviata, quanti record ha portato, quanti ne sono rimasti dopo la deduplica,
    quanti li ha trovati **solo lei** e in quanto tempo.
 5. **Selezione** — ogni record si marca *incluso*, *forse* o *escluso* con un
-   motivo, uno per volta o **in blocco** sui record spuntati; i PDF aperti si
-   scaricano tutti insieme. I conteggi seguono il diagramma di flusso PRISMA e
-   il **protocollo** in Markdown raccoglie stringhe, numeri e decisioni per la
-   sezione «Metodo».
+   motivo, uno per volta o **in blocco** sui record spuntati — includi, forse,
+   escludi, annulla le decisioni, manda a Zotero, scarica i PDF aperti. I conteggi seguono il diagramma di flusso PRISMA e
+   il **protocollo** raccoglie stringhe, numeri e decisioni per la sezione
+   «Metodo», in Markdown o in testo semplice.
 6. **Cronologia** — ogni ricerca resta salvata con la sua strategia e i suoi
    record: si riapre, si riesporta e se ne scaricano i PDF senza ripeterla.
 7. **Biblioteca** — i PDF scaricati sono cercabili a testo pieno.
@@ -128,7 +128,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 182 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 187 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -173,10 +173,10 @@ then runs the queries and exports the results.
    records it returned, how many survived deduplication, how many **only it**
    found, and how long it took.
 5. **Screening** — mark each record *include*, *maybe* or *exclude* with a
-   reason, one at a time or **in bulk** on the ticked records; open-access PDFs
-   download all at once. The counters follow the PRISMA flow diagram and the
-   **protocol** in Markdown gathers strings, numbers and decisions for your
-   Methods section.
+   reason, one at a time or **in bulk** on the ticked records — include, maybe,
+   exclude, clear decisions, send to Zotero, download the open PDFs. The counters follow the PRISMA flow diagram and the
+   **protocol** gathers strings, numbers and decisions for your Methods
+   section, as Markdown or plain text.
 6. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
 7. **Library** — the downloaded PDFs are searchable in full text.
@@ -268,7 +268,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 182 tests, none touches the network
+.venv/bin/pytest -q                       # 187 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

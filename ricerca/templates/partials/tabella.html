@@ -1,9 +1,13 @@
 {% if works %}
-<p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }} ·
-   <a href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib }}</a> ·
-   <a href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv }}</a> ·
-   <a href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa }}</a> ·
-   <a href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol }}</a></p>
+<p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }}</p>
+<div class="scarica">
+  <span class="etichetta-scarica">{{ t.downloads_title }}</span>
+  <a class="tasto" href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib_btn }}</a>
+  <a class="tasto" href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv_btn }}</a>
+  <a class="tasto" href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa_btn }}</a>
+  <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol_md }}</a>
+  <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.txt">{{ t.download_protocol_txt }}</a>
+</div>
 <p><span id="conteggi" class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span></p>
 {% if config.zotero_api_key and config.zotero_library_id %}
 <div class="azioni">
