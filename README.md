@@ -240,7 +240,55 @@ CORE and NCBI keys, and an optional LLM endpoint and model.
 Keys are stored in `~/.ricerca/config.toml` with `600` permissions, are never
 sent back to the browser, and can be deleted with the *remove* checkbox.
 
+## LLM (optional)
+
+Any endpoint compatible with the OpenAI API — Ollama
+(`http://localhost:11434/v1`), DeepSeek, OpenAI. It only reorganises the terms
+into conceptual blocks and translates an Italian topic before querying PubMed
+(which finds no MeSH terms in Italian). Without it, blocks are built from the
+data alone and everything else works the same.
+
+## Configuration
+
+Everything lives in `~/.ricerca/config.toml`, created by the app with `600`
+permissions: courtesy email, LLM endpoint and model, Semantic Scholar, CORE,
+NCBI and Zotero keys. No keyring, no system paths, no `sudo`. The same folder
+holds the history (`cronologia.json`), the response cache (`cache.sqlite`) and
+the downloaded PDFs (`pdf/`).
+
 ## Language
 
 The interface starts in English; the `IT` / `EN` buttons in the header switch
 it to Italian. The choice is remembered.
+
+## Development
+
+```bash
+uv venv && uv pip install -e ".[dev]"
+.venv/bin/pytest -q                       # 172 tests, none touches the network
+.venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
+.venv/bin/uvicorn ricerca.app:app --reload --port 8000
+```
+
+One Python package: FastAPI renders HTML with Jinja2, htmx updates the
+fragments. No Node, no build step, no binaries to sign.
+
+- `ricerca/keywords.py` — pulls the terms out of the databases
+- `ricerca/strategy.py` — boolean blocks and per-engine rendering
+- `ricerca/sources/` — one module per engine, one interface
+- `ricerca/search.py` — parallel execution, per-source error isolation
+- `ricerca/history.py` — search history and screening decisions
+- `ricerca/pdf.py`, `ricerca/biblioteca.py` — open-access PDFs and their text
+- `ricerca/cache.py` — SQLite response cache, as an httpx transport
+- `ricerca/zotero.py` — sends the included records to Zotero
+- `ricerca/watchdog.py` — quits when the page is closed
+- `ricerca/i18n.py` — Italian and English strings
+- `docs/specs/` — the design document (Italian)
+
+## Building the archives
+
+```bash
+./scripts/crea-release.sh      # they end up in dist/
+```
+
+In CI they are produced by `.github/workflows/release.yml` on every `v*` tag.

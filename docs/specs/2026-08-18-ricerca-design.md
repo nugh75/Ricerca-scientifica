@@ -1,5 +1,10 @@
 # Ricerca — assistente di strategia di ricerca bibliografica
 
+> Documento di progetto, in italiano. Le istruzioni per chi usa l'app
+> stanno nel README, in italiano e in inglese.
+> Design document, in Italian. User-facing instructions are in the
+> README, in both Italian and English.
+
 Data: 2026-08-18 · Stato: fase 1 implementata
 
 Il documento descrive quello che è stato costruito: dove il codice si è

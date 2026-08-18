@@ -30,19 +30,38 @@ jobs:
           gh release create "${{ github.ref_name }}" dist/* \
             --title "Ricerca ${{ github.ref_name }}" \
             --notes "$(cat <<'NOTE'
-          Scarica l'archivio del tuo sistema, estrailo e avvia. / Download the
-          archive for your system, extract it and start it.
+          ## Italiano
+
+          Scarica l'archivio del tuo sistema, estrailo e avvia.
 
           | Sistema | File | Come si avvia |
           |---|---|---|
-          | Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat` |
-          | macOS | `ricerca-*-macos.tar.gz` | doppio clic su `avvia.command` (la prima volta: clic destro → Apri) |
-          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh` |
+          | macOS | `ricerca-*-macos.tar.gz` | trascina `Ricerca.app` in Applicazioni; la prima volta clic destro → Apri |
+          | Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat`; `crea-scorciatoia-windows.bat` mette l'icona sul Desktop |
+          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` la mette nel menu |
 
           Non serve installare Python: al primo avvio il lanciatore scarica
-          `uv` dentro la cartella dell'app, senza toccare il sistema e senza
+          `uv` nella cartella dell'app, senza toccare il sistema e senza
           permessi di amministratore. Serve solo una connessione a internet.
 
-          Email di cortesia e chiavi API si inseriscono dall'interfaccia.
+          Email di cortesia e chiavi API si inseriscono dall'interfaccia, in
+          Impostazioni. Chiudendo la pagina del browser l'app si chiude da sola.
+
+          ## English
+
+          Download the archive for your system, extract it and start it.
+
+          | System | File | How to start |
+          |---|---|---|
+          | macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → Open |
+          | Windows | `ricerca-*-windows.zip` | double-click `avvia.bat`; `crea-scorciatoia-windows.bat` puts an icon on the Desktop |
+          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` adds it to the menu |
+
+          Python is not required: on first run the launcher downloads `uv` into
+          the app folder, with no system changes and no admin rights. Only an
+          internet connection is needed.
+
+          The courtesy email and the API keys are entered from the interface,
+          under Settings. Closing the browser page quits the app.
           NOTE
           )"
