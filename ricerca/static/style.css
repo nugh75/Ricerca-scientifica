@@ -17,8 +17,9 @@
   --testo: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
+/* Scuro quando lo chiede il sistema e la scelta è «auto»… */
 @media (prefers-color-scheme: dark) {
-  :root {
+  html[data-tema="auto"] {
     --carta: #12181a;
     --scheda: #1a2225;
     --inchiostro: #e6ebe4;
@@ -30,6 +31,19 @@
     --verde: #8fc4b0;
     --ombra: 0 1px 0 rgba(0, 0, 0, .3), 0 14px 30px -24px #000;
   }
+}
+/* …e sempre quando lo si chiede esplicitamente. */
+html[data-tema="scuro"] {
+    --carta: #12181a;
+    --scheda: #1a2225;
+    --inchiostro: #e6ebe4;
+    --inchiostro-tenue: #94a3a0;
+    --riga: #2b3639;
+    --evidenziatore: #b9d452;
+    --evidenziatore-tenue: #2a3520;
+    --timbro: #e08b7c;
+    --verde: #8fc4b0;
+    --ombra: 0 1px 0 rgba(0, 0, 0, .3), 0 14px 30px -24px #000;
 }
 
 * { box-sizing: border-box; }

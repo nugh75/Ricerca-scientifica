@@ -69,9 +69,24 @@ def current_config() -> Config:
 def base_context(config: Config, **extra) -> dict:
     """Ogni pagina riceve le stringhe nella lingua scelta."""
 
-    context = {"config": config, "lang": config.lang, "t": i18n.strings(config.lang)}
+    context = {
+        "config": config,
+        "lang": config.lang,
+        "tema": config.tema if config.tema in ("chiaro", "scuro") else "auto",
+        "t": i18n.strings(config.lang),
+    }
     context.update(extra)
     return context
+
+
+@app.post("/tema/{tema}")
+async def cambia_tema(request: Request, tema: str):
+    """Chiaro, scuro o come il sistema. La scelta resta."""
+
+    config = current_config()
+    config.tema = tema if tema in ("chiaro", "scuro", "auto") else "auto"
+    config_module.save(config)
+    return templates.TemplateResponse(request, "partials/tema.html", base_context(config))
 
 
 @app.post("/lingua/{lang}")

@@ -233,9 +233,20 @@ con l'intestazione `content-encoding` intatta, per cui PubMed falliva con
   scoperto che OpenAlex misura le richieste a consumo — `/works` costa
   $0.001, `/text/*` $0.01 — con un budget giornaliero gratuito.
 
+## OpenAlex a consumo
+
+Gli endpoint `/text/concepts` e `/text/topics` costano $0.01 a chiamata (una
+ricerca ne costa $0.001) e in certi casi rispondono `400` senza spiegazioni.
+Sono stati abbandonati: temi e parole chiave si contano nei primi cinquanta
+risultati di `/works`, che serve comunque per le co-occorrenze. Da tre
+chiamate per suggerimento (~$0.021) a una ($0.001).
+
+Il messaggio d'errore delle API viene mostrato anche quando non è JSON, così
+un `400` spiega da sé che cosa non va invece di restare un codice muto.
+
 ## Stato
 
-172 test, nessuno tocca la rete; altri 8 a contratto, che la interrogano
+182 test, nessuno tocca la rete; altri 8 a contratto, che la interrogano
 apposta. Schermate in `docs/screenshot/`.
 
 Fasi successive, ancora da progettare: libreria persistente con annotazioni

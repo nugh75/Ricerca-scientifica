@@ -87,10 +87,11 @@ In CI li produce `.github/workflows/release.yml` a ogni tag `v*`.
 
 ## Chiavi ed email: tutto dall'interfaccia
 
-Dal 2026 OpenAlex misura le richieste a consumo: c'è un budget giornaliero
-gratuito, oltre il quale risponde `429` spiegando che il credito è finito.
-L'app mostra il messaggio così com'è e continua a lavorare con le altre
-fonti. L'email di cortesia resta utile e viene spedita solo se è un
+Dal 2026 OpenAlex misura le richieste a consumo. L'app ne fa **una sola** per
+suggerimento: temi e parole chiave si leggono nei primi cinquanta risultati
+invece di chiamare gli endpoint `/text/*`, che costano dieci volte tanto.
+Quando il budget giornaliero finisce, OpenAlex risponde `429`: l'app mostra il
+messaggio così com'è e continua con le altre fonti. L'email di cortesia resta utile e viene spedita solo se è un
 indirizzo valido: un `mailto` malformato fa rispondere `400`.
 
 Nessuna chiave è obbligatoria e nessuna va scritta in un file a mano.
@@ -117,16 +118,17 @@ Un endpoint compatibile con l'API OpenAI — Ollama
 riorganizzare i termini in blocchi concettuali: senza, l'app costruisce i
 blocchi dai soli dati e funziona lo stesso.
 
-## Lingua
+## Lingua e tema
 
 L'interfaccia parte in inglese e si porta in italiano con i pulsanti
-`IT` / `EN` in alto a destra: la scelta resta memorizzata.
+`IT` / `EN` in alto a destra. Accanto ci sono `chiaro`, `auto` e `scuro`:
+`auto` segue il sistema. Entrambe le scelte restano memorizzate.
 
 ## Sviluppo
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 172 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 182 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -256,16 +258,17 @@ NCBI and Zotero keys. No keyring, no system paths, no `sudo`. The same folder
 holds the history (`cronologia.json`), the response cache (`cache.sqlite`) and
 the downloaded PDFs (`pdf/`).
 
-## Language
+## Language and theme
 
 The interface starts in English; the `IT` / `EN` buttons in the header switch
-it to Italian. The choice is remembered.
+it to Italian. Next to them, `light`, `auto` and `dark`: `auto` follows the
+system. Both choices are remembered.
 
 ## Development
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 172 tests, none touches the network
+.venv/bin/pytest -q                       # 182 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

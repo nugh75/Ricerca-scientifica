@@ -14,3 +14,5 @@ Generated with Playwright from the app running locally.
 | `7-italiano.png` | interfaccia in italiano |
 | `8-biblioteca.png` | ricerca a testo pieno nei PDF scaricati |
 | `9-comandi.png` | comandi in blocco: selezione, inclusione, esclusione, PDF |
+| `10-tema-scuro.png` | tema scuro |
+| `11-tema-chiaro.png` | tema chiaro |

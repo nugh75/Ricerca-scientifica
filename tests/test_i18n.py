@@ -53,8 +53,6 @@ async def test_i_motivi_delle_fonti_seguono_la_lingua():
 async def test_le_note_dei_suggerimenti_seguono_la_lingua():
     from ricerca import keywords
 
-    respx.get(url__startswith=f"{keywords.OPENALEX}/text/concepts").mock(return_value=httpx.Response(200, json={"concepts": []}))
-    respx.get(url__startswith=f"{keywords.OPENALEX}/text/topics").mock(return_value=httpx.Response(200, json={"topics": []}))
     respx.get(url__startswith=f"{keywords.OPENALEX}/works").mock(return_value=httpx.Response(200, json={"results": []}))
     respx.get(url__startswith=f"{keywords.EUTILS}/esearch.fcgi").mock(return_value=httpx.Response(200, json={"esearchresult": {}}))
 

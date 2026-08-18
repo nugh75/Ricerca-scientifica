@@ -8,10 +8,11 @@ from ricerca.config import Config
 
 client = TestClient(app)
 
-CONCEPTS = {"concepts": [{"display_name": "Literacy", "score": 0.6}]}
-TOPICS = {"topics": [{"display_name": "Online Learning"}]}
 MESH = {"esearchresult": {"translationset": [{"from": "l", "to": '"literacy"[MeSH Terms]'}]}}
-WORKS_TITLES = {"results": [{"title": "AI literacy in higher education"}, {"title": "higher education AI"}]}
+WORKS_TITLES = {"results": [
+    {"title": "AI literacy in higher education", "keywords": [{"display_name": "Literacy"}]},
+    {"title": "higher education AI", "keywords": []},
+]}
 WORKS_FULL = {"results": [{"id": "https://openalex.org/W1", "title": "Uno", "publication_year": 2024,
                            "doi": "https://doi.org/10.1/x", "authorships": [{"author": {"display_name": "A. Rossi"}}],
                            "primary_location": {"source": {"display_name": "Rivista"}}}]}
@@ -26,8 +27,6 @@ def test_home_mostra_il_form():
 
 @respx.mock
 def test_suggerimenti_costruisce_i_blocchi_senza_llm():
-    respx.get(url__startswith="https://api.openalex.org/text/concepts").mock(return_value=httpx.Response(200, json=CONCEPTS))
-    respx.get(url__startswith="https://api.openalex.org/text/topics").mock(return_value=httpx.Response(200, json=TOPICS))
     respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS_TITLES))
     respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json=MESH))
 
@@ -230,8 +229,6 @@ def test_eliminazione_e_svuotamento_dalla_cronologia():
 
 @respx.mock
 def test_l_argomento_arriva_in_cronologia_dal_modulo_della_strategia():
-    respx.get(url__startswith="https://api.openalex.org/text/concepts").mock(return_value=httpx.Response(200, json=CONCEPTS))
-    respx.get(url__startswith="https://api.openalex.org/text/topics").mock(return_value=httpx.Response(200, json=TOPICS))
     respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS_TITLES))
     respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json=MESH))
 

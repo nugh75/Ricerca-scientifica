@@ -56,11 +56,16 @@ def messaggio_api(response: httpx.Response) -> str:
     try:
         dati = response.json()
     except ValueError:
-        return ""
-    if not isinstance(dati, dict):
-        return ""
-    testo = dati.get("message") or dati.get("error") or ""
-    return " ".join(str(testo).split())[:200]
+        dati = None
+    if isinstance(dati, dict):
+        testo = dati.get("message") or dati.get("error") or ""
+    elif isinstance(dati, str):
+        testo = dati
+    else:
+        testo = response.text
+    testo = " ".join(str(testo).split())
+    # Una pagina di errore non spiega nulla a chi legge la nota.
+    return "" if testo.startswith("<") else testo[:200]
 
 
 async def gather(
@@ -77,26 +82,28 @@ async def gather(
 
     suggestions = Suggestions(topic=topic.strip())
     per_pubmed = topic_inglese.strip() or topic
-    concepts, topics, mesh, cooccurring = await asyncio.gather(
-        _retry(_openalex_concepts, topic, client, config),
-        _retry(_openalex_topics, topic, client, config),
+    da_openalex, mesh = await asyncio.gather(
+        _retry(_openalex, topic, client, config),
         _retry(_pubmed_mesh, per_pubmed, client, config),
-        _retry(_cooccurring_terms, topic, client, config),
         return_exceptions=True,
     )
+    if isinstance(da_openalex, Exception):
+        concepts = topics = cooccurring = da_openalex
+    else:
+        concepts, topics, cooccurring = da_openalex
     t = strings(config.lang)
     mesh_failed = False
     for key, value, target in (
-        ("label_concepts", concepts, "concepts"),
-        ("label_topics", topics, "topics"),
+        ("label_openalex", concepts, "concepts"),
+        ("label_openalex", topics, "topics"),
         ("label_mesh", mesh, "mesh"),
-        ("label_cooccurring", cooccurring, "cooccurring"),
+        ("label_openalex", cooccurring, "cooccurring"),
     ):
         if isinstance(value, Exception):
             mesh_failed = mesh_failed or target == "mesh"
-            suggestions.notes.append(
-                t["note_unavailable"].format(label=t[key], error=_short(value, t))
-            )
+            nota = t["note_unavailable"].format(label=t[key], error=_short(value, t))
+            if nota not in suggestions.notes:  # una sola chiamata, una sola nota
+                suggestions.notes.append(nota)
         else:
             setattr(suggestions, target, value)
     if topic_inglese.strip():
@@ -121,30 +128,38 @@ async def _retry(fetch, topic: str, client: httpx.AsyncClient, config: Config, a
             await asyncio.sleep(attempt)
 
 
-async def _openalex_concepts(
-    topic: str, client: httpx.AsyncClient, config: Config
-) -> list[tuple[str, float]]:
-    params = {"title": topic}
+async def _openalex(topic: str, client: httpx.AsyncClient, config: Config):
+    """Concetti, aree tematiche e co-occorrenze da una sola chiamata.
+
+    Gli endpoint `/text/*` di OpenAlex costano dieci volte una ricerca e a
+    volte rispondono `400`: i temi e le parole chiave si leggono invece nei
+    primi cinquanta risultati, che vanno recuperati comunque.
+    """
+
+    params = {"search": topic, "per_page": "50", "select": "title,topics,keywords"}
     if config.mailto_valido:
         params["mailto"] = config.mailto_valido
-    response = await client.get(f"{OPENALEX}/text/concepts", params=params, timeout=20)
+    response = await client.get(f"{OPENALEX}/works", params=params, timeout=25)
     response.raise_for_status()
-    data = response.json()
-    return [
-        (c["display_name"], float(c.get("score", 0)))
-        for c in data.get("concepts", [])
-        if c.get("display_name")
-    ]
+    risultati = response.json().get("results", [])
+
+    titoli = [w.get("title") or "" for w in risultati]
+    concetti = _conta_etichette(risultati, "keywords", len(risultati))
+    aree = [nome for nome, _ in _conta_etichette(risultati, "topics", len(risultati))][:5]
+    return concetti, aree, count_terms(titoli, exclude=topic)
 
 
-async def _openalex_topics(topic: str, client: httpx.AsyncClient, config: Config) -> list[str]:
-    params = {"title": topic}
-    if config.mailto_valido:
-        params["mailto"] = config.mailto_valido
-    response = await client.get(f"{OPENALEX}/text/topics", params=params, timeout=20)
-    response.raise_for_status()
-    data = response.json()
-    return [t["display_name"] for t in data.get("topics", []) if t.get("display_name")][:5]
+def _conta_etichette(risultati: list[dict], campo: str, quanti: int) -> list[tuple[str, float]]:
+    """Quanto spesso un tema o una parola chiave ricorre fra i risultati."""
+
+    conteggio: Counter[str] = Counter()
+    for lavoro in risultati:
+        for voce in lavoro.get(campo) or []:
+            nome = voce.get("display_name") or voce.get("keyword")
+            if nome:
+                conteggio[str(nome)] += 1
+    divisore = max(quanti, 1)
+    return [(nome, round(n / divisore, 2)) for nome, n in conteggio.most_common(12)]
 
 
 async def _pubmed_mesh(topic: str, client: httpx.AsyncClient, config: Config) -> list[str]:
@@ -165,20 +180,6 @@ async def _pubmed_mesh(topic: str, client: httpx.AsyncClient, config: Config) ->
         if match not in terms:
             terms.append(match)
     return terms[:12]
-
-
-async def _cooccurring_terms(
-    topic: str, client: httpx.AsyncClient, config: Config
-) -> list[tuple[str, int]]:
-    """Unigrammi e bigrammi ricorrenti nei titoli dei primi risultati."""
-
-    params = {"search": topic, "per_page": "50", "select": "title"}
-    if config.mailto_valido:
-        params["mailto"] = config.mailto_valido
-    response = await client.get(f"{OPENALEX}/works", params=params, timeout=25)
-    response.raise_for_status()
-    titles = [w.get("title") or "" for w in response.json().get("results", [])]
-    return count_terms(titles, exclude=topic)
 
 
 def words_of(text: str) -> list[str]:

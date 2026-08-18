@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}" data-tema="{{ tema }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +19,7 @@
     <a href="/cronologia">{{ t.nav_history }}</a>
     <a href="/biblioteca">{{ t.nav_library }}</a>
     <a href="/impostazioni">{{ t.nav_settings }}</a>
+    {% include "partials/tema.html" %}
     <span class="lingue">
       <button type="button" class="lingua {% if lang == 'it' %}attiva{% endif %}" hx-post="/lingua/it" hx-target="body" hx-swap="outerHTML" lang="it">IT</button>
       <button type="button" class="lingua {% if lang == 'en' %}attiva{% endif %}" hx-post="/lingua/en" hx-target="body" hx-swap="outerHTML" lang="en">EN</button>

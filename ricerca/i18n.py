@@ -78,6 +78,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "paste_suffix": "da incollare",
         "btn_copy": "copia",
         "copied": "copiata",
+        "theme_light": "chiaro",
+        "theme_dark": "scuro",
+        "theme_auto": "auto",
         "nav_history": "Cronologia",
         "history_title": "Cronologia delle ricerche",
         "history_eyebrow": "Archivio locale",
@@ -199,10 +202,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "endpoint_unreachable": "Endpoint non raggiungibile:",
         "no_models": "L'endpoint non elenca modelli.",
         "note_unavailable": "{label}: non disponibili ({error})",
-        "label_concepts": "concetti OpenAlex",
-        "label_topics": "topic OpenAlex",
+        "label_openalex": "termini da OpenAlex",
         "label_mesh": "termini MeSH",
-        "label_cooccurring": "termini co-occorrenti",
         "mesh_missing": (
             "nessun termine MeSH: PubMed non traduce i topic in italiano, "
             "prova a riscrivere il topic in inglese"
@@ -284,6 +285,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "paste_suffix": "paste it there",
         "btn_copy": "copy",
         "copied": "copied",
+        "theme_light": "light",
+        "theme_dark": "dark",
+        "theme_auto": "auto",
         "nav_history": "History",
         "history_title": "Search history",
         "history_eyebrow": "Local archive",
@@ -405,10 +409,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "endpoint_unreachable": "Endpoint unreachable:",
         "no_models": "The endpoint lists no models.",
         "note_unavailable": "{label}: unavailable ({error})",
-        "label_concepts": "OpenAlex concepts",
-        "label_topics": "OpenAlex topics",
+        "label_openalex": "terms from OpenAlex",
         "label_mesh": "MeSH terms",
-        "label_cooccurring": "co-occurring terms",
         "mesh_missing": (
             "no MeSH terms: PubMed does not translate Italian topics, "
             "try writing the topic in English"

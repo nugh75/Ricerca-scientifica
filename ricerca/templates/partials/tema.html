@@ -1,0 +1,8 @@
+<span class="temi" id="temi">
+  {% for nome, etichetta in (('chiaro', t.theme_light), ('auto', t.theme_auto), ('scuro', t.theme_dark)) %}
+  <button type="button" class="lingua {% if tema == nome %}attiva{% endif %}"
+          hx-post="/tema/{{ nome }}" hx-target="#temi" hx-swap="outerHTML"
+          title="{{ etichetta }}"
+          onclick="document.documentElement.setAttribute('data-tema', '{{ nome }}')">{{ etichetta }}</button>
+  {% endfor %}
+</span>

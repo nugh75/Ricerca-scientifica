@@ -9,8 +9,6 @@ from ricerca.llm import LLMClient
 
 client = TestClient(app)
 
-CONCEPTS = {"concepts": []}
-TOPICS = {"topics": []}
 WORKS = {"results": []}
 MESH = {"esearchresult": {"translationset": [{"from": "l", "to": '"literacy"[MeSH Terms]'}]}}
 
@@ -38,8 +36,6 @@ def test_il_topic_italiano_viene_tradotto_prima_di_interrogare_pubmed():
     respx.post("http://x/v1/chat/completions").mock(
         return_value=httpx.Response(200, json={"choices": [{"message": {"content": "AI literacy in teachers"}}]})
     )
-    respx.get(url__startswith="https://api.openalex.org/text/concepts").mock(return_value=httpx.Response(200, json=CONCEPTS))
-    respx.get(url__startswith="https://api.openalex.org/text/topics").mock(return_value=httpx.Response(200, json=TOPICS))
     respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS))
     pubmed = respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json=MESH))
 
@@ -52,8 +48,6 @@ def test_il_topic_italiano_viene_tradotto_prima_di_interrogare_pubmed():
 @respx.mock
 def test_senza_llm_il_topic_resta_com_e():
     config_module.save(Config(lang="it"))
-    respx.get(url__startswith="https://api.openalex.org/text/concepts").mock(return_value=httpx.Response(200, json=CONCEPTS))
-    respx.get(url__startswith="https://api.openalex.org/text/topics").mock(return_value=httpx.Response(200, json=TOPICS))
     respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS))
     pubmed = respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json={"esearchresult": {}}))
 

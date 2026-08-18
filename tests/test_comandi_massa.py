@@ -105,3 +105,10 @@ def test_i_record_senza_pdf_aperto_non_contano():
     id_ricerca = ricerca_salvata(quanti=2, oa=False)
     pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
     assert "PDFs downloaded: 0 · failed: 0" in pagina.text
+
+
+def test_il_pannello_dei_campi_non_si_duplica():
+    id_ricerca = ricerca_salvata()
+    frammento = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+    assert frammento.count("FIELDS TO SHOW AND EXPORT") <= 1
+    assert frammento.count('id="campi-') == 1
