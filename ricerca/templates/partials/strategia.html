@@ -1,0 +1,87 @@
+<section class="passo entra" data-passo="2">
+  <p class="occhiello">Passo due · nessuna ricerca è ancora partita</p>
+  <h2>Ricerche suggerite per «{{ topic }}»</h2>
+  <p>
+    {% if suggestions.llm_used %}<span class="marchio">blocchi riorganizzati dall'LLM</span>
+    {% else %}<span class="marchio grigio">blocchi costruiti dai soli dati</span>{% endif %}
+  </p>
+
+  <div class="scheda">
+    <h3>Termini trovati</h3>
+    {% if suggestions.concepts %}
+    <div class="gruppo-chip"><h3>Concetti OpenAlex</h3>
+      {% for name, score in suggestions.concepts %}<span class="chip">{{ name }} <em>{{ '%.2f'|format(score) }}</em></span>{% endfor %}
+    </div>{% endif %}
+    {% if suggestions.mesh %}
+    <div class="gruppo-chip"><h3>Termini controllati MeSH</h3>
+      {% for term in suggestions.mesh %}<span class="chip mesh">{{ term }}</span>{% endfor %}
+    </div>{% endif %}
+    {% if suggestions.cooccurring %}
+    <div class="gruppo-chip"><h3>Ricorrono nei titoli</h3>
+      {% for term, n in suggestions.cooccurring %}<span class="chip">{{ term }} <em>{{ n }}</em></span>{% endfor %}
+    </div>{% endif %}
+    {% if suggestions.topics %}
+    <div class="gruppo-chip"><h3>Aree tematiche</h3>
+      {% for t in suggestions.topics %}<span class="chip">{{ t }}</span>{% endfor %}
+    </div>{% endif %}
+    {% if not (suggestions.concepts or suggestions.mesh or suggestions.cooccurring or suggestions.topics) %}
+    <p class="aiuto">Nessun termine dalle banche dati questa volta: i blocchi qui sotto partono
+       dalle parole del topic. Puoi scriverli a mano e aggiornare le stringhe.</p>
+    {% endif %}
+    {% for nota in suggestions.notes %}<p class="nota">{{ nota }}</p>{% endfor %}
+  </div>
+
+  <form class="scheda" id="form-strategia">
+    <h3>Blocchi della ricerca</h3>
+    <p class="aiuto">Termini separati da virgola: dentro un blocco vanno in OR, i blocchi fra loro in AND.
+       Modificali e aggiorna le stringhe.</p>
+    <div class="blocchi">
+      {% for block in strategy.blocks %}
+      <div class="blocco">
+        <label>Blocco {{ loop.index }}</label>
+        <input name="label" value="{{ block.label }}" aria-label="nome del blocco {{ loop.index }}">
+        <textarea name="terms" rows="2" aria-label="termini del blocco {{ loop.index }}">{{ block.terms|join(', ') }}</textarea>
+      </div>
+      {% endfor %}
+      <div class="blocco">
+        <label>Blocco {{ strategy.blocks|length + 1 }} — facoltativo</label>
+        <input name="label" value="Blocco aggiuntivo" aria-label="nome del blocco aggiuntivo">
+        <textarea name="terms" rows="2" placeholder="es. scuola secondaria, secondary school" aria-label="termini del blocco aggiuntivo"></textarea>
+      </div>
+    </div>
+
+    <label for="mesh" class="aiuto">Termini MeSH usati solo da PubMed, in AND con gli altri blocchi</label>
+    <textarea id="mesh" name="mesh" rows="2">{{ strategy.mesh|join(', ') }}</textarea>
+
+    <div class="azioni">
+      <button type="button" hx-post="/query" hx-include="#form-strategia" hx-target="#query-box">Aggiorna le stringhe</button>
+    </div>
+
+    <fieldset>
+      <legend>Dove cercare</legend>
+      <div class="fonti">
+        {% for source in sources %}
+        {% set motivo = source.unavailable_reason(config) %}
+        <label class="fonte {% if motivo %}spenta{% endif %}">
+          <input type="checkbox" name="fonte" value="{{ source.id }}"
+                 {% if source.id in selected and not motivo %}checked{% endif %}
+                 {% if motivo %}disabled{% endif %}>
+          {{ source.label }}{% if motivo %} <em>— {{ motivo }}</em>{% endif %}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="azioni">
+        <label class="limite">Massimo per fonte <input type="number" name="limite" value="25" min="1" max="100"></label>
+        <button type="button" class="primario" hx-post="/cerca" hx-include="#form-strategia"
+                hx-target="#passo-tre" hx-indicator="#attesa-ricerca">Avvia la ricerca</button>
+        <span id="attesa-ricerca" class="htmx-indicator">interrogazione delle fonti…</span>
+      </div>
+    </fieldset>
+  </form>
+
+  <div id="query-box">
+    {% include "partials/query.html" %}
+  </div>
+</section>
+
+<div id="passo-tre"></div>

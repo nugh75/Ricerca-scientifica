@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Impostazioni · Ricerca{% endblock %}
+{% block content %}
+<section class="passo" data-passo="⚙">
+  <p class="occhiello">Configurazione</p>
+  <h1>Impostazioni</h1>
+  {% if salvato %}<p><span class="marchio">salvato in {{ percorso }}, permessi 600</span></p>{% endif %}
+
+  <form method="post" class="scheda impostazioni">
+    <h3>LLM · facoltativo</h3>
+    <p class="aiuto">Qualsiasi endpoint compatibile con l'API OpenAI. Preset:
+      {% for nome, url in presets.items() %}
+      <button type="button" class="chip" onclick="document.getElementById('llm_base_url').value='{{ url }}'">{{ nome }}</button>
+      {% endfor %}
+    </p>
+    <label for="llm_base_url">URL di base</label>
+    <input id="llm_base_url" name="llm_base_url" value="{{ config.llm_base_url }}" placeholder="http://localhost:11434/v1">
+    <label for="llm_model">Modello</label>
+    <input id="llm_model" name="llm_model" value="{{ config.llm_model }}" placeholder="qwen3:8b">
+    <label for="llm_api_key">Chiave API — vuota per i modelli locali</label>
+    <input id="llm_api_key" name="llm_api_key" type="password" value="{{ config.llm_api_key }}">
+    <div class="azioni">
+      <button type="button" hx-post="/impostazioni/modelli" hx-include="#llm_base_url,#llm_api_key" hx-target="#modelli">Elenca i modelli</button>
+    </div>
+    <div id="modelli"></div>
+
+    <h3>Fonti</h3>
+    <label for="mailto">Email di cortesia — OpenAlex alza i limiti di richiesta</label>
+    <input id="mailto" name="mailto" value="{{ config.mailto }}" placeholder="nome@esempio.it">
+    <label for="s2_api_key">Chiave Semantic Scholar — senza, il servizio risponde spesso 429</label>
+    <input id="s2_api_key" name="s2_api_key" type="password" value="{{ config.s2_api_key }}">
+    <label for="core_api_key">Chiave CORE — gratuita su core.ac.uk</label>
+    <input id="core_api_key" name="core_api_key" type="password" value="{{ config.core_api_key }}">
+    <label for="ncbi_api_key">Chiave NCBI per PubMed — facoltativa</label>
+    <input id="ncbi_api_key" name="ncbi_api_key" type="password" value="{{ config.ncbi_api_key }}">
+
+    <div class="azioni"><button type="submit" class="primario">Salva</button></div>
+  </form>
+
+  <div class="scheda">
+    <h3>Stato delle fonti</h3>
+    <ul class="stato">
+    {% for source in sources %}
+      {% set motivo = source.unavailable_reason(config) %}
+      <li>{{ source.label }} —
+        {% if not source.executable %}solo stringa
+        {% elif motivo %}<span class="errore">{{ motivo }}</span>
+        {% else %}<b>pronta</b>{% endif %}</li>
+    {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endblock %}

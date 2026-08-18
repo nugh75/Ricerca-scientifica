@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="passo" data-passo="1">
+  <p class="occhiello">Passo uno</p>
+  <h1>Descrivi l'argomento</h1>
+  <p>Scrivilo in italiano o in inglese. Ricerca interroga OpenAlex per i concetti,
+     PubMed per i termini controllati MeSH e legge i titoli dei primi risultati per
+     trovare i termini che ricorrono davvero nella letteratura.</p>
+
+  <form hx-post="/suggerimenti" hx-target="#passo-due" hx-indicator="#attesa" class="topic-form">
+    <input id="topic" name="topic" required autofocus
+           placeholder="es. competenze di intelligenza artificiale negli insegnanti"
+           aria-label="argomento della ricerca">
+    <button type="submit" class="primario">Suggerisci le parole chiave</button>
+  </form>
+  <p id="attesa" class="htmx-indicator">lettura delle banche dati…</p>
+
+  <div id="cortesia">{% include "partials/mailto.html" %}</div>
+
+  {% if not llm_enabled %}
+  <p class="nota">Nessun LLM configurato: i blocchi vengono costruiti dai soli dati.
+     Per farli riorganizzare da un modello, imposta un endpoint in
+     <a href="/impostazioni">Impostazioni</a> — Ollama, llama-swap, DeepSeek o OpenAI.</p>
+  {% endif %}
+</section>
+
+<div id="passo-due"></div>
+{% endblock %}

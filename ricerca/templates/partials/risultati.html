@@ -1,0 +1,33 @@
+<section class="passo entra" data-passo="3">
+  <p class="occhiello">Passo tre</p>
+  <h2>Risultati</h2>
+
+  <ul class="stato">
+    {% for r in results %}
+    <li>{{ r.label }} — {% if r.error %}<span class="errore">{{ r.error }}</span>{% else %}<b>{{ r.works|length }}</b>{% endif %}</li>
+    {% endfor %}
+  </ul>
+
+  {% if works %}
+  <p class="riepilogo"><b>{{ works|length }}</b> record dopo la deduplica ·
+     <a href="/export/{{ token }}.bib">scarica .bib</a> ·
+     <a href="/export/{{ token }}.csv">scarica .csv</a></p>
+  <table>
+    <thead><tr><th>Anno</th><th>Titolo</th><th>Autori</th><th>Sede</th><th>Fonti</th></tr></thead>
+    <tbody>
+    {% for w in works %}
+    <tr>
+      <td class="anno">{{ w.year or '—' }}</td>
+      <td>{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}
+          {% if w.oa_url %}<a class="oa" href="{{ w.oa_url }}" target="_blank" rel="noreferrer">PDF</a>{% endif %}</td>
+      <td>{{ w.authors_short }}</td>
+      <td>{{ w.venue or '' }}</td>
+      <td class="fonti-cella">{{ w.sources|join(' · ') }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="nota">Nessun record. Allarga i blocchi, togli un vincolo o aggiungi una fonte.</p>
+  {% endif %}
+</section>
