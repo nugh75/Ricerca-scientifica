@@ -150,20 +150,39 @@ def gia_scaricato(work: Work):
 
 
 async def scarica(work: Work, client: httpx.AsyncClient):
-    """Scarica il PDF aperto del record. Solleva se il file non è un PDF."""
+    """Prova i collegamenti del record finché uno restituisce davvero un PDF.
 
-    if not work.oa_url:
+    Le fonti ne dichiarano più d'uno e il primo è spesso una pagina di
+    destinazione: fermarsi lì significava rinunciare a copie che erano lì
+    accanto.
+    """
+
+    candidati = work.candidati_pdf()
+    if not candidati:
         raise ValueError("nessun link ad accesso aperto")
 
     esistente = gia_scaricato(work)
     if esistente:
         return esistente
 
-    response = await client.get(work.oa_url, timeout=60, follow_redirects=True)
-    response.raise_for_status()
-    contenuto = response.content
-    if not contenuto.startswith(b"%PDF"):
-        raise ValueError("la risposta non è un PDF")
+    contenuto = None
+    motivi = []
+    for indirizzo in candidati:
+        try:
+            risposta = await client.get(indirizzo, timeout=60, follow_redirects=True)
+            risposta.raise_for_status()
+        except httpx.HTTPError as exc:
+            motivi.append(f"{type(exc).__name__}")
+            continue
+        if risposta.content.startswith(b"%PDF"):
+            contenuto = risposta.content
+            break
+        motivi.append("non è un PDF")
+
+    if contenuto is None:
+        raise ValueError(
+            f"nessuno dei {len(candidati)} collegamenti dà un PDF ({', '.join(motivi[:3])})"
+        )
     if len(contenuto) > MAX_BYTE:
         raise ValueError("file troppo grande")
 

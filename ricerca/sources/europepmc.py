@@ -56,6 +56,22 @@ def _venue(item: dict) -> str | None:
     return clean(details)
 
 
+def _pdf_candidati(item: dict) -> list[str]:
+    """I collegamenti al testo pieno dichiarati da Europe PMC, più la copia
+    in PubMed Central quando c'è: senza questi la fonte non dava mai un PDF."""
+
+    candidati = []
+    voci = (item.get("fullTextUrlList") or {}).get("fullTextUrl") or []
+    for voce in voci:
+        aperto = "open" in str(voce.get("availability", "")).lower()
+        if voce.get("documentStyle") == "pdf" and aperto and voce.get("url"):
+            candidati.append(voce["url"])
+    pmcid = item.get("pmcid")
+    if pmcid:
+        candidati.append(f"https://europepmc.org/articles/{pmcid}?pdf=render")
+    return candidati
+
+
 def _work(item: dict) -> Work:
     authors = [a.strip() for a in str(item.get("authorString", "")).split(",") if a.strip()]
     year = item.get("pubYear")
@@ -68,5 +84,7 @@ def _work(item: dict) -> Work:
         venue=_venue(item),
         url=f"https://europepmc.org/article/{item.get('source', 'MED')}/{item.get('id', '')}",
         abstract=testo(item.get("abstractText")),
+        oa_url=(_pdf_candidati(item) or [None])[0],
+        oa_urls=_pdf_candidati(item)[1:],
         sources=["europepmc"],
     )

@@ -207,3 +207,76 @@ async def test_europepmc_ripulisce_l_abstract():
         works = await sources.BY_ID["europepmc"].search(client, "q", 5, Config())
     assert works[0].abstract == "Introduction Questo studio…"
     assert "<" not in works[0].abstract
+
+
+@respx.mock
+async def test_openalex_raccoglie_i_pdf_da_tutti_i_posti_dove_stanno():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json={"results": [{
+            "id": "https://openalex.org/W1", "title": "Uno", "publication_year": 2024,
+            "authorships": [], "primary_location": {},
+            "best_oa_location": {"pdf_url": "https://editore/uno.pdf"},
+            "locations": [{"pdf_url": "https://editore/uno.pdf"},
+                          {"pdf_url": "https://deposito/copia.pdf"}],
+            "open_access": {"is_oa": True, "oa_url": "https://doi.org/10.1/uno"},
+        }]})
+    )
+    async with httpx.AsyncClient() as client:
+        works = await sources.BY_ID["openalex"].search(client, "q", 5, Config())
+
+    assert works[0].candidati_pdf() == [
+        "https://editore/uno.pdf",
+        "https://deposito/copia.pdf",
+        "https://doi.org/10.1/uno",
+    ]
+
+
+@respx.mock
+async def test_europepmc_usa_il_testo_pieno_che_dichiara():
+    respx.get(url__startswith="https://www.ebi.ac.uk/europepmc").mock(
+        return_value=httpx.Response(200, json={"resultList": {"result": [{
+            "id": "1", "source": "MED", "title": "Uno", "pubYear": "2026", "pmcid": "PMC123",
+            "fullTextUrlList": {"fullTextUrl": [
+                {"documentStyle": "pdf", "availability": "Subscription required", "url": "https://chiuso/x.pdf"},
+                {"documentStyle": "html", "availability": "Open access", "url": "https://aperto/x.html"},
+                {"documentStyle": "pdf", "availability": "Open access", "url": "https://aperto/x.pdf"},
+            ]},
+        }]}})
+    )
+    async with httpx.AsyncClient() as client:
+        works = await sources.BY_ID["europepmc"].search(client, "q", 5, Config())
+
+    candidati = works[0].candidati_pdf()
+    assert candidati[0] == "https://aperto/x.pdf"        # solo PDF, solo aperti
+    assert "https://chiuso/x.pdf" not in candidati
+    assert any("PMC123" in c for c in candidati)         # e la copia in PMC
+
+
+@respx.mock
+async def test_pubmed_costruisce_il_collegamento_a_pubmed_central():
+    respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi").mock(
+        return_value=httpx.Response(200, json={"esearchresult": {"idlist": ["1"]}}))
+    respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi").mock(
+        return_value=httpx.Response(200, json={"result": {"uids": ["1"], "1": {
+            "uid": "1", "title": "Uno", "pubdate": "2026", "source": "Rivista",
+            "articleids": [{"idtype": "doi", "value": "10.1/x"},
+                           {"idtype": "pmc", "value": "PMC456"}],
+        }}}))
+    async with httpx.AsyncClient() as client:
+        works = await sources.BY_ID["pubmed"].search(client, "q", 5, Config())
+    assert works[0].oa_url == "https://pmc.ncbi.nlm.nih.gov/articles/PMC456/pdf/"
+
+
+@respx.mock
+async def test_crossref_prende_i_collegamenti_al_pdf_dichiarati_dall_editore():
+    respx.get(url__startswith="https://api.crossref.org/works").mock(
+        return_value=httpx.Response(200, json={"message": {"items": [{
+            "title": ["Uno"], "DOI": "10.1/x", "issued": {"date-parts": [[2024]]},
+            "link": [
+                {"URL": "https://editore/uno.xml", "content-type": "application/xml"},
+                {"URL": "https://editore/uno.pdf", "content-type": "application/pdf"},
+            ],
+        }]}}))
+    async with httpx.AsyncClient() as client:
+        works = await sources.BY_ID["crossref"].search(client, "q", 5, Config())
+    assert works[0].oa_url == "https://editore/uno.pdf"

@@ -73,3 +73,39 @@ async def test_due_lavori_omonimi_non_si_sovrascrivono():
     assert secondo.name == "2020_rossi_stesso-titolo-2.pdf"
     assert pdf.gia_scaricato(uno) == primo
     assert pdf.gia_scaricato(due) == secondo
+
+
+@respx.mock
+async def test_si_provano_tutti_i_collegamenti_finche_uno_da_un_pdf():
+    """La prima strada è spesso una pagina di destinazione, non il file."""
+
+    respx.get("https://esempio.org/pagina").mock(
+        return_value=httpx.Response(200, content=b"<html>landing page</html>"))
+    respx.get("https://esempio.org/rotto").mock(return_value=httpx.Response(403))
+    respx.get("https://esempio.org/vero.pdf").mock(return_value=httpx.Response(200, content=PDF_FINTO))
+
+    lavoro = Work(title="Studio", doi="10.1/x", year=2024, authors=["Rossi M"],
+                  oa_url="https://esempio.org/pagina",
+                  oa_urls=["https://esempio.org/rotto", "https://esempio.org/vero.pdf"])
+
+    async with httpx.AsyncClient() as client:
+        percorso = await pdf.scarica(lavoro, client)
+
+    assert percorso.read_bytes() == PDF_FINTO
+
+
+@respx.mock
+async def test_se_nessun_collegamento_da_un_pdf_lo_dice_con_quanti_ne_ha_provati():
+    respx.get(url__startswith="https://esempio.org/").mock(
+        return_value=httpx.Response(200, content=b"<html>no</html>"))
+    lavoro = Work(title="Studio", oa_url="https://esempio.org/a",
+                  oa_urls=["https://esempio.org/b"])
+
+    async with httpx.AsyncClient() as client:
+        with pytest.raises(ValueError, match="2 collegamenti"):
+            await pdf.scarica(lavoro, client)
+
+
+def test_i_candidati_non_si_ripetono():
+    lavoro = Work(title="x", oa_url="https://a", oa_urls=["https://a", "https://b", ""])
+    assert lavoro.candidati_pdf() == ["https://a", "https://b"]

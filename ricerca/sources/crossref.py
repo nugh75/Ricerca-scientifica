@@ -49,6 +49,11 @@ def _work(item: dict) -> Work:
         if nome:
             autori.append(nome)
     abstract = item.get("abstract")
+    pdf = [
+        collegamento.get("URL")
+        for collegamento in item.get("link") or []
+        if "pdf" in str(collegamento.get("content-type", "")).lower() and collegamento.get("URL")
+    ]
     return Work(
         title=clean(titoli[0] if titoli else None) or "(senza titolo)",
         authors=autori,
@@ -57,5 +62,7 @@ def _work(item: dict) -> Work:
         venue=clean(sede[0] if sede else None),
         url=clean(item.get("URL")),
         abstract=testo(abstract),
+        oa_url=pdf[0] if pdf else None,
+        oa_urls=pdf[1:],
         sources=["crossref"],
     )

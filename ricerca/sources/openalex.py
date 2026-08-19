@@ -30,7 +30,7 @@ class OpenAlex(Source):
         params = {
             "filter": ",".join(pezzi),
             "per_page": str(min(limit, 50)),
-            "select": "id,doi,title,publication_year,authorships,primary_location,best_oa_location",
+            "select": "id,doi,title,publication_year,authorships,primary_location,best_oa_location,open_access,locations",
         }
         if config.mailto_valido:
             params["mailto"] = config.mailto_valido
@@ -41,10 +41,25 @@ class OpenAlex(Source):
         return [_work(item) for item in response.json().get("results", [])]
 
 
+def _pdf_candidati(item: dict) -> list[str]:
+    """Il PDF migliore prima, poi le altre copie, infine il collegamento di
+    accesso aperto — che a volte è già il file, a volte una pagina."""
+
+    candidati = []
+    for luogo in [item.get("best_oa_location"), *(item.get("locations") or [])]:
+        indirizzo = (luogo or {}).get("pdf_url")
+        if indirizzo:
+            candidati.append(indirizzo)
+    aperto = (item.get("open_access") or {}).get("oa_url")
+    if aperto:
+        candidati.append(aperto)
+    return candidati
+
+
 def _work(item: dict) -> Work:
     location = item.get("primary_location") or {}
     venue = (location.get("source") or {}).get("display_name")
-    oa = item.get("best_oa_location") or {}
+    candidati = _pdf_candidati(item)
     return Work(
         title=clean(item.get("title")) or "(senza titolo)",
         authors=[
@@ -56,6 +71,7 @@ def _work(item: dict) -> Work:
         doi=clean(item.get("doi")),
         venue=clean(venue),
         url=clean(item.get("id")),
-        oa_url=clean(oa.get("pdf_url")),
+        oa_url=candidati[0] if candidati else None,
+        oa_urls=candidati[1:],
         sources=["openalex"],
     )

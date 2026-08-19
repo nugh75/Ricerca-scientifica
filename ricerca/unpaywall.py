@@ -68,7 +68,7 @@ def da_completare(work: Work) -> list[str]:
     """I campi che a questo record mancano e che Unpaywall può dare."""
 
     mancanti = []
-    if not work.oa_url:
+    if not work.candidati_pdf():
         mancanti.append("oa_url")
     if not work.venue:
         mancanti.append("venue")

@@ -55,6 +55,9 @@ class Work:
     url: str | None = None
     abstract: str | None = None
     oa_url: str | None = None
+    # Altre strade verso lo stesso PDF: le fonti ne dichiarano più d'una e
+    # spesso la prima è una pagina di destinazione, non il file.
+    oa_urls: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     # Pertinenza: somma dei contributi delle fonti in cui il record compare
     # in alto (reciprocal rank fusion). Non viene mostrata, ordina l'elenco.
@@ -66,6 +69,16 @@ class Work:
     corretto: list[str] = field(default_factory=list)
     # Campi completati da Unpaywall: mancavano, non erano sbagliati.
     completato: list[str] = field(default_factory=list)
+
+    def candidati_pdf(self) -> list[str]:
+        """Tutti i collegamenti da provare, in ordine, senza ripetizioni."""
+
+        visti, ordinati = set(), []
+        for indirizzo in [self.oa_url, *self.oa_urls]:
+            if indirizzo and indirizzo not in visti:
+                visti.add(indirizzo)
+                ordinati.append(indirizzo)
+        return ordinati
 
     @property
     def authors_short(self) -> str:

@@ -55,10 +55,12 @@ class PubMed(Source):
 
 
 def _work(item: dict) -> Work:
-    doi = None
+    doi = pmcid = None
     for identifier in item.get("articleids", []):
         if identifier.get("idtype") == "doi":
             doi = identifier.get("value")
+        elif identifier.get("idtype") == "pmc":
+            pmcid = identifier.get("value")
     pmid = item.get("uid", "")
     year = None
     pubdate = str(item.get("pubdate", ""))[:4]
@@ -71,5 +73,7 @@ def _work(item: dict) -> Work:
         doi=clean(doi),
         venue=clean(item.get("source")),
         url=f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else None,
+        # La copia in PubMed Central è aperta per definizione.
+        oa_url=f"https://pmc.ncbi.nlm.nih.gov/articles/{pmcid}/pdf/" if pmcid else None,
         sources=["pubmed"],
     )
