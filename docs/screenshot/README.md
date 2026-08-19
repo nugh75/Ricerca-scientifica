@@ -12,6 +12,7 @@ Generati con Playwright dalla app in esecuzione in locale.
 | `9-comandi.png` | bulk commands and downloads / comandi in blocco e scaricamenti |
 | `6-apa.png` | APA references / riferimenti APA |
 | `20-scheda.png` | record card / scheda del record |
+| `21-riassunto.png` | four-part summary in the card / riassunto nella scheda |
 | `13-lettore-pdf.png` | PDF reader inside the app / lettore dentro l'app |
 | `14-in-corso.png` | search running in background / ricerca in corso |
 | `15-registro.png` | activity log / registro delle attività |

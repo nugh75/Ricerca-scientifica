@@ -796,7 +796,13 @@ def _testo_da_riassumere(work: Work) -> str:
 
 
 @app.post("/scheda/{id_ricerca}/{indice}/sintesi", response_class=HTMLResponse)
-async def chiedi_sintesi(request: Request, id_ricerca: str, indice: int, lingua: str = Form(default="")):
+async def chiedi_sintesi(
+    request: Request,
+    id_ricerca: str,
+    indice: int,
+    lingua: str = Form(default=""),
+    rifai: str = Form(default=""),
+):
     """Avvia il riassunto e torna subito: un modello locale può metterci un minuto."""
 
     config = current_config()
@@ -807,6 +813,10 @@ async def chiedi_sintesi(request: Request, id_ricerca: str, indice: int, lingua:
     work = works[indice]
     testo = _testo_da_riassumere(work)
     if not testo.strip():
+        return _scheda(request, id_ricerca, indice)
+
+    # Un riassunto già scritto non si rifà da solo: solo se lo si chiede.
+    if history.sintesi(id_ricerca, indice) and not rifai:
         return _scheda(request, id_ricerca, indice)
 
     scelta = "it" if lingua == "it" else "en"

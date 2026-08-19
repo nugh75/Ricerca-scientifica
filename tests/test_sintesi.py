@@ -119,3 +119,70 @@ def test_due_richieste_di_fila_non_avviano_due_lavori():
             break
         client.get(f"/scheda/{id_ricerca}/0")
     assert rotta.call_count == 1
+
+
+@respx.mock
+def test_l_attesa_interroga_e_non_riavvia_il_riassunto():
+    """Il difetto era qui: l'attesa rifaceva la richiesta che avvia il lavoro,
+    così appena il primo riassunto finiva ne partiva un altro, all'infinito."""
+
+    con_modello()
+    rotta = respx.post("http://x/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=RISPOSTA))
+    id_ricerca = ricerca_con_abstract()
+
+    avvio = client.post(f"/scheda/{id_ricerca}/0/sintesi", data={"lingua": "it"}).text
+    assert 'hx-get="/scheda/' in avvio          # interroga
+    assert "hx-post" not in avvio.split("scheda-riquadro sintesi")[1][:400]
+
+    for _ in range(200):
+        if history.sintesi(id_ricerca, 0):
+            break
+        client.get(f"/scheda/{id_ricerca}/0")
+
+    # dieci giri dopo la fine: nessun altro riassunto avviato
+    for _ in range(10):
+        client.get(f"/scheda/{id_ricerca}/0")
+    assert rotta.call_count == 1
+
+
+@respx.mock
+def test_chiedere_di_rifarlo_lo_rifa_una_volta_sola():
+    con_modello()
+    rotta = respx.post("http://x/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=RISPOSTA))
+    id_ricerca = ricerca_con_abstract()
+
+    client.post(f"/scheda/{id_ricerca}/0/sintesi", data={"lingua": "it"})
+    for _ in range(200):
+        if history.sintesi(id_ricerca, 0):
+            break
+        client.get(f"/scheda/{id_ricerca}/0")
+
+    # senza chiederlo non si rifà
+    client.post(f"/scheda/{id_ricerca}/0/sintesi", data={"lingua": "en"})
+    assert rotta.call_count == 1
+
+    # chiedendolo, sì
+    client.post(f"/scheda/{id_ricerca}/0/sintesi", data={"lingua": "en", "rifai": "1"})
+    for _ in range(200):
+        client.get(f"/scheda/{id_ricerca}/0")
+        if rotta.call_count > 1:
+            break
+    assert rotta.call_count == 2
+
+
+@respx.mock
+def test_a_riassunto_fatto_la_scheda_offre_di_rifarlo():
+    con_modello()
+    respx.post("http://x/v1/chat/completions").mock(return_value=httpx.Response(200, json=RISPOSTA))
+    id_ricerca = ricerca_con_abstract()
+    client.post(f"/scheda/{id_ricerca}/0/sintesi", data={"lingua": "it"})
+    for _ in range(200):
+        if history.sintesi(id_ricerca, 0):
+            break
+        client.get(f"/scheda/{id_ricerca}/0")
+
+    scheda = client.get(f"/scheda/{id_ricerca}/0").text
+    assert "summarise again" in scheda
+    assert '"rifai": "1"' in scheda

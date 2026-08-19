@@ -31,8 +31,8 @@
   </div>
 
   <div class="scheda-riquadro sintesi"
-       {% if sintesi_in_corso %}hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/sintesi"
-       hx-trigger="load delay:3s" hx-target="#scheda-corpo"{% endif %}>
+       {% if sintesi_in_corso %}hx-get="/scheda/{{ id_ricerca }}/{{ indice }}"
+       hx-trigger="load delay:2s" hx-target="#scheda-corpo"{% endif %}>
     <h3>{{ t.summary_title }}</h3>
 
     {% if sintesi %}
@@ -49,6 +49,13 @@
 
     {% if sintesi_in_corso %}
     <p class="attesa"><span class="barra"></span> {{ t.summary_running }}</p>
+    {% elif sintesi %}
+    <div class="azioni">
+      <button type="button" class="copia" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/sintesi"
+              hx-vals='{"lingua": "it", "rifai": "1"}' hx-target="#scheda-corpo">{{ t.summary_again }} ({{ t.summary_ask_it }})</button>
+      <button type="button" class="copia" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/sintesi"
+              hx-vals='{"lingua": "en", "rifai": "1"}' hx-target="#scheda-corpo">{{ t.summary_again }} ({{ t.summary_ask_en }})</button>
+    </div>
     {% elif not config.llm_enabled %}
     <p class="aiuto">{{ t.summary_no_llm }}</p>
     {% elif not ha_testo %}
