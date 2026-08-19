@@ -76,36 +76,36 @@ RILEVA = object()
 def consiglio(memoria=RILEVA, silicio_apple=RILEVA) -> list[Modello]:
     """Modelli Ollama sensati per questa macchina, dal più prudente in su.
 
-    La regola pratica: un modello quantizzato occupa all'incirca un gigabyte
-    ogni miliardo di parametri, e sotto va lasciata memoria al sistema.
+    Pesi verificati nel registro di Ollama il 2026-08-19. La regola pratica:
+    al modello va lasciata memoria libera almeno pari al suo peso, e al
+    sistema il resto. I tagli `-qat` di Gemma sono quantizzati dagli autori:
+    stessa famiglia, molta meno memoria.
     """
 
     memoria = memoria_gb() if memoria is RILEVA else memoria
     silicio_apple = apple_silicon() if silicio_apple is RILEVA else silicio_apple
 
     if memoria is None:
-        return [
-            Modello("qwen3:4b", "~3 GB", "reason_unknown"),
-        ]
+        return [Modello("gemma4:e2b-it-qat", "4,3 GB", "reason_unknown")]
     if memoria < 8:
         return [
-            Modello("qwen3:1.7b", "~1,4 GB", "reason_low_memory"),
-            Modello("llama3.2:3b", "~2 GB", "reason_step_up"),
+            Modello("qwen3:1.7b", "1,4 GB", "reason_low_memory"),
+            Modello("gemma4:e2b-it-qat", "4,3 GB", "reason_step_up"),
         ]
     if memoria < 16:
         return [
-            Modello("qwen3:4b", "~3 GB", "reason_fast"),
-            Modello("llama3.1:8b", "~5 GB", "reason_better"),
+            Modello("gemma4:e2b-it-qat", "4,3 GB", "reason_fast"),
+            Modello("gemma4:e4b-it-qat", "6,1 GB", "reason_better"),
         ]
     if memoria < 32:
         return [
-            Modello("qwen3:8b", "~5 GB", "reason_balanced"),
-            Modello("gemma3:12b", "~8 GB", "reason_precise"),
+            Modello("gemma4:12b-it-qat", "7,2 GB", "reason_balanced"),
+            Modello("gemma4:12b", "7,6 GB", "reason_precise"),
         ]
-    prima = Modello("qwen3:14b", "~9 GB", "reason_comfortable")
-    seconda = (
-        Modello("qwen3:30b-a3b", "~18 GB", "reason_big_mac")
+    # Da qui in su regge qwen3.8, che è il più capace della lista.
+    prima = (
+        Modello("qwen3.8:27b-mlx", "18 GB", "reason_big_mac")
         if silicio_apple
-        else Modello("gpt-oss:20b", "~13 GB", "reason_big_gpu")
+        else Modello("qwen3.8:27b", "18 GB", "reason_big_gpu")
     )
-    return [prima, seconda]
+    return [prima, Modello("gemma4:26b-a4b-it-qat", "16 GB", "reason_comfortable")]

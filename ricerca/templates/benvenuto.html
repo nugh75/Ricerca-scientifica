@@ -65,7 +65,7 @@
     <label for="llm_base_url">{{ t.settings_url }}</label>
     <input id="llm_base_url" name="llm_base_url" value="{{ config.llm_base_url }}" placeholder="http://localhost:11434/v1">
     <label for="llm_model">{{ t.settings_model }}</label>
-    <input id="llm_model" name="llm_model" value="{{ config.llm_model }}" placeholder="qwen3:8b">
+    <input id="llm_model" name="llm_model" value="{{ config.llm_model }}" placeholder="gemma4:12b-it-qat">
     <label for="llm_api_key">{{ t.settings_llm_key }}</label>
     <input id="llm_api_key" name="llm_api_key" type="password" autocomplete="off"
            placeholder="{% if config.llm_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">

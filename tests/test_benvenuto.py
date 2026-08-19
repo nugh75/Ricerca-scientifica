@@ -66,16 +66,29 @@ def test_la_guida_si_puo_rivedere_dalle_impostazioni():
 def test_i_consigli_seguono_la_memoria_disponibile():
     poca = [m.nome for m in macchina.consiglio(memoria=6, silicio_apple=False)]
     media = [m.nome for m in macchina.consiglio(memoria=24, silicio_apple=False)]
+    tanta = [m.nome for m in macchina.consiglio(memoria=64, silicio_apple=False)]
     tanta_mac = [m.nome for m in macchina.consiglio(memoria=64, silicio_apple=True)]
 
-    assert poca == ["qwen3:1.7b", "llama3.2:3b"]
-    assert media[0] == "qwen3:8b"
-    assert "qwen3:30b-a3b" in tanta_mac          # sui Mac Apple Silicon
-    assert "gpt-oss:20b" in [m.nome for m in macchina.consiglio(memoria=64, silicio_apple=False)]
+    assert poca[0] == "qwen3:1.7b"                    # ci sta anche in 8 GB
+    assert media[0].startswith("gemma4:12b")
+    assert tanta[0] == "qwen3.8:27b"                  # il più capace, dove ci sta
+    assert tanta_mac[0] == "qwen3.8:27b-mlx"          # versione per Apple Silicon
+    assert "gemma4" in tanta[1]
+
+
+def test_nessun_consiglio_supera_la_memoria_della_macchina():
+    """Un modello più pesante della memoria non si carica: mai proporlo."""
+
+    for memoria in (6, 8, 12, 16, 24, 32, 64, 128):
+        for modello in macchina.consiglio(memoria=memoria, silicio_apple=False):
+            peso = float(modello.peso.split()[0].replace(",", "."))
+            assert peso < memoria, f"{modello.nome} ({modello.peso}) su {memoria} GB"
 
 
 def test_senza_dati_sulla_memoria_si_resta_prudenti():
-    assert [m.nome for m in macchina.consiglio(memoria=None, silicio_apple=False)] == ["qwen3:4b"]
+    prudente = macchina.consiglio(memoria=None, silicio_apple=False)
+    assert [m.nome for m in prudente] == ["gemma4:e2b-it-qat"]
+    assert float(prudente[0].peso.split()[0].replace(",", ".")) < 5
 
 
 def test_una_chiave_lasciata_vuota_non_cancella_quella_salvata():

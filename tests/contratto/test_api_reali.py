@@ -93,3 +93,22 @@ async def test_pubmed_traduce_ancora_in_mesh(client):
     except httpx.HTTPStatusError as errore:
         _salta_se_limitata(errore, "pubmed")
     assert termini, "PubMed non restituisce piu' i termini MeSH"
+
+
+@pytest.mark.parametrize("etichetta", sorted({
+    modello.nome
+    for memoria in (4, 12, 24, 64, None)
+    for silicio in (True, False)
+    for modello in __import__("ricerca.macchina", fromlist=["macchina"]).consiglio(
+        memoria=memoria, silicio_apple=silicio
+    )
+}))
+async def test_i_modelli_consigliati_esistono_ancora(client, etichetta):
+    """I nomi cambiano: un `ollama pull` che fallisce è un consiglio sbagliato."""
+
+    nome, _, versione = etichetta.partition(":")
+    risposta = await client.get(
+        f"https://registry.ollama.ai/v2/library/{nome}/manifests/{versione or 'latest'}",
+        headers={"Accept": "application/vnd.docker.distribution.manifest.v2+json"},
+    )
+    assert risposta.status_code == 200, f"{etichetta} non è più nel registro di Ollama"

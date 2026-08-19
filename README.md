@@ -13,9 +13,10 @@ banca dati, poi esegue le query ed esporta i risultati.
 Al primo avvio si apre una **configurazione guidata**: spiega a che serve
 ogni impostazione e che cosa cambia se la lasci vuota. C'è come installare
 **Ollama**, quali modelli reggono *questa* macchina (li sceglie guardando
-memoria e processore) e i comandi già pronti da copiare, oltre alle
-alternative in rete — **DeepSeek** e **OpenAI**, con indirizzi, modelli e
-dove si prende la chiave. Si può saltare e configurare dopo; si rivede quando
+memoria e processore) e i comandi già pronti da copiare — dai tagli piccoli
+di **Gemma 4** per le macchine modeste fino a **qwen3.8** dove c'è memoria a
+sufficienza — oltre alle alternative in rete: **DeepSeek** e **OpenAI**, con
+indirizzi, modelli e dove si prende la chiave. Si può saltare e configurare dopo; si rivede quando
 si vuole da Impostazioni.
 
 ## Come funziona
@@ -161,7 +162,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 229 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 230 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -198,8 +199,10 @@ then runs the queries and exports the results.
 The first time it opens, a **guided setup** explains what each setting is for
 and what changes if you leave it empty. It covers installing **Ollama**, which
 models fit *this* machine (chosen by looking at memory and processor) with the
-commands ready to copy, and the networked alternatives — **DeepSeek** and
-**OpenAI**, with addresses, models and where to get a key. You can skip it and
+commands ready to copy — from the small **Gemma 4** builds for modest
+machines up to **qwen3.8** where there is memory to spare — and the networked
+alternatives: **DeepSeek** and **OpenAI**, with addresses, models and where to
+get a key. You can skip it and
 configure later; it can be reopened any time from Settings.
 
 ## How it works
@@ -332,7 +335,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 229 tests, none touches the network
+.venv/bin/pytest -q                       # 230 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
