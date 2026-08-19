@@ -22,6 +22,7 @@ def test_normalize_ricade_sull_inglese():
 
 
 def test_il_cambio_lingua_persiste_nella_configurazione():
+    config_module.save(Config(configurato="1"))
     pagina = client.post("/lingua/it", follow_redirects=True)
     assert "Suggerisci le parole chiave" in pagina.text
     assert config_module.load().lang == "it"

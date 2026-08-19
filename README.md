@@ -8,6 +8,16 @@ banca dati, poi esegue le query ed esporta i risultati.
 
 ![Ricerche suggerite](docs/screenshot/2-ricerche-suggerite.png)
 
+## Prima apertura
+
+Al primo avvio si apre una **configurazione guidata**: spiega a che serve
+ogni impostazione e che cosa cambia se la lasci vuota. C'è come installare
+**Ollama**, quali modelli reggono *questa* macchina (li sceglie guardando
+memoria e processore) e i comandi già pronti da copiare, oltre alle
+alternative in rete — **DeepSeek** e **OpenAI**, con indirizzi, modelli e
+dove si prende la chiave. Si può saltare e configurare dopo; si rivede quando
+si vuole da Impostazioni.
+
 ## Come funziona
 
 1. **Argomento** — lo scrivi in italiano o in inglese.
@@ -151,7 +161,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 217 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 229 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -167,6 +177,7 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 - `ricerca/pdf.py` — scaricamento dei PDF ad accesso aperto
 - `ricerca/export.py` — BibTeX, CSV e riferimenti APA
 - `ricerca/finestra.py` — apertura in finestra propria
+- `ricerca/macchina.py` — che cosa regge il computer, quale modello consigliare
 - `ricerca/watchdog.py` — chiusura automatica quando la pagina si chiude
 - `ricerca/cache.py` — cache SQLite delle risposte, come trasporto httpx
 - `ricerca/zotero.py` — invio dei record inclusi a Zotero
@@ -181,6 +192,15 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 A literature search strategy assistant. From a topic it derives keywords,
 controlled vocabulary terms and ready-made query strings for each database,
 then runs the queries and exports the results.
+
+## First launch
+
+The first time it opens, a **guided setup** explains what each setting is for
+and what changes if you leave it empty. It covers installing **Ollama**, which
+models fit *this* machine (chosen by looking at memory and processor) with the
+commands ready to copy, and the networked alternatives — **DeepSeek** and
+**OpenAI**, with addresses, models and where to get a key. You can skip it and
+configure later; it can be reopened any time from Settings.
 
 ## How it works
 
@@ -312,7 +332,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 217 tests, none touches the network
+.venv/bin/pytest -q                       # 229 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

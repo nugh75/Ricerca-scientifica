@@ -19,6 +19,7 @@ WORKS_FULL = {"results": [{"id": "https://openalex.org/W1", "title": "Uno", "pub
 
 
 def test_home_mostra_il_form():
+    config_module.save(Config(configurato="1"))
     page = client.get("/")
     assert page.status_code == 200
     assert "Suggest keywords" in page.text

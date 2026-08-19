@@ -20,7 +20,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, diagnostica, history, i18n, keywords, pdf, search, watchdog
+from . import biblioteca, cache, diagnostica, history, i18n, keywords, macchina, pdf, search, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -106,9 +106,74 @@ async def cambia_lingua(lang: str):
     return RedirectResponse("/", status_code=303)
 
 
+@app.get("/benvenuto", response_class=HTMLResponse)
+async def benvenuto(request: Request):
+    """La configurazione guidata: ogni voce spiega che cosa cambia."""
+
+    config = current_config()
+    return templates.TemplateResponse(
+        request,
+        "benvenuto.html",
+        base_context(
+            config,
+            presets=PRESETS,
+            macchina=macchina.descrizione(),
+            modelli=macchina.consiglio(),
+            sources=sources_registry.ALL,
+        ),
+    )
+
+
+@app.post("/benvenuto")
+async def salva_benvenuto(
+    mailto: str = Form(default=""),
+    llm_base_url: str = Form(default=""),
+    llm_model: str = Form(default=""),
+    llm_api_key: str = Form(default=""),
+    core_api_key: str = Form(default=""),
+    s2_api_key: str = Form(default=""),
+    ncbi_api_key: str = Form(default=""),
+    zotero_api_key: str = Form(default=""),
+    zotero_library_id: str = Form(default=""),
+    lingua: str = Form(default="en"),
+    tema: str = Form(default="auto"),
+):
+    config = current_config()
+    config.mailto = mailto.strip()
+    config.llm_base_url = llm_base_url.strip()
+    config.llm_model = llm_model.strip()
+    config.zotero_library_id = zotero_library_id.strip()
+    config.lang = i18n.normalize(lingua)
+    config.tema = tema if tema in ("chiaro", "scuro", "auto") else "auto"
+    for campo, valore in (
+        ("llm_api_key", llm_api_key),
+        ("core_api_key", core_api_key),
+        ("s2_api_key", s2_api_key),
+        ("ncbi_api_key", ncbi_api_key),
+        ("zotero_api_key", zotero_api_key),
+    ):
+        if valore.strip():
+            setattr(config, campo, valore.strip())
+    config.configurato = "1"
+    config_module.save(config)
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/salta-benvenuto")
+async def salta_benvenuto():
+    """Chi vuole partire subito non deve compilare nulla."""
+
+    config = current_config()
+    config.configurato = "1"
+    config_module.save(config)
+    return RedirectResponse("/", status_code=303)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     config = current_config()
+    if not config.configurato:
+        return RedirectResponse("/benvenuto", status_code=303)
     return templates.TemplateResponse(
         request,
         "index.html",

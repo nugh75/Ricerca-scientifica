@@ -314,3 +314,12 @@ a.tasto em { font-style: normal; font: .72rem/1 var(--mono); color: var(--inchio
 table.diagnosi th { text-align: left; font: .72rem/1.8 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--inchiostro-tenue); padding-right: 1rem; white-space: nowrap; border: 0; }
 table.diagnosi td { padding: .15rem 0; border: 0; }
 table.diagnosi code { font: .82rem/1.6 var(--mono); word-break: break-all; }
+
+/* ── configurazione guidata ────────────────────────────────── */
+.benvenuto .scheda p { max-width: 46rem; }
+.benvenuto label { display: block; margin-top: .9rem; font: .72rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--inchiostro-tenue); margin-bottom: .3rem; }
+.benvenuto .fonte { margin-top: 0; }
+.modelli { display: grid; gap: .7rem; margin: .4rem 0 .8rem; }
+.modello code { font: .9rem/1.6 var(--mono); background: var(--evidenziatore-tenue); padding: .35rem .5rem; border-radius: 3px; }
+.modello p { margin: .3rem 0 0; }
+.conclusione { gap: 1rem; margin: 1.2rem 0 3rem; }

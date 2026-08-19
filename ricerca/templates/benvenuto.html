@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ t.welcome_title }} · Ricerca{% endblock %}
+{% block content %}
+<form method="post" action="/benvenuto" class="benvenuto">
+
+<section class="passo" data-passo="1">
+  <p class="occhiello">{{ t.welcome_eyebrow }}</p>
+  <h1>{{ t.welcome_title }}</h1>
+  <p>{{ t.welcome_intro }}</p>
+
+  <div class="scheda">
+    <h3>{{ t.welcome_mail_title }}</h3>
+    <p>{{ t.welcome_mail_body }}</p>
+    <label for="mailto">{{ t.settings_mailto }}</label>
+    <input id="mailto" name="mailto" type="email" value="{{ config.mailto }}"
+           placeholder="{{ t.mailto_placeholder }}">
+  </div>
+</section>
+
+<section class="passo" data-passo="2">
+  <p class="occhiello">{{ t.welcome_optional }}</p>
+  <h2>{{ t.welcome_llm_title }}</h2>
+  <p>{{ t.welcome_llm_body }}</p>
+
+  <div class="scheda">
+    <h3>{{ t.welcome_ollama_title }}</h3>
+    <p>{{ t.welcome_ollama_body }}</p>
+
+    <h3>{{ t.welcome_ollama_machine }}</h3>
+    <p class="aiuto">
+      {{ macchina.sistema }}{% if macchina.apple_silicon %} · Apple Silicon{% endif %}
+      {% if macchina.memoria_gb %} · {{ macchina.memoria_gb }} GB{% endif %}
+      {% if macchina.processori %} · {{ macchina.processori }} core{% endif %}
+    </p>
+
+    <h3>{{ t.welcome_ollama_advice }}</h3>
+    <div class="modelli">
+      {% for modello in modelli %}
+      <div class="modello">
+        <code>ollama pull {{ modello.nome }}</code>
+        <button type="button" class="copia" data-copia="ollama pull {{ modello.nome }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button>
+        <p class="aiuto">{{ modello.peso }} — {{ t[modello.motivo] }}
+          <button type="button" class="chip"
+                  onclick="document.getElementById('llm_base_url').value='http://localhost:11434/v1';document.getElementById('llm_model').value='{{ modello.nome }}'">
+            {{ modello.nome }}</button>
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="aiuto">{{ t.welcome_ollama_after }} <code>http://localhost:11434/v1</code></p>
+  </div>
+
+  <div class="scheda">
+    <h3>{{ t.welcome_cloud_title }}</h3>
+    <p>{{ t.welcome_deepseek_body }}</p>
+    <p><button type="button" class="chip"
+            onclick="document.getElementById('llm_base_url').value='https://api.deepseek.com/v1';document.getElementById('llm_model').value='deepseek-chat'">DeepSeek</button></p>
+    <p>{{ t.welcome_openai_body }}</p>
+    <p><button type="button" class="chip"
+            onclick="document.getElementById('llm_base_url').value='https://api.openai.com/v1';document.getElementById('llm_model').value='gpt-4o-mini'">OpenAI</button></p>
+    <p class="nota">{{ t.welcome_privacy }}</p>
+  </div>
+
+  <div class="scheda">
+    <label for="llm_base_url">{{ t.settings_url }}</label>
+    <input id="llm_base_url" name="llm_base_url" value="{{ config.llm_base_url }}" placeholder="http://localhost:11434/v1">
+    <label for="llm_model">{{ t.settings_model }}</label>
+    <input id="llm_model" name="llm_model" value="{{ config.llm_model }}" placeholder="qwen3:8b">
+    <label for="llm_api_key">{{ t.settings_llm_key }}</label>
+    <input id="llm_api_key" name="llm_api_key" type="password" autocomplete="off"
+           placeholder="{% if config.llm_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+  </div>
+</section>
+
+<section class="passo" data-passo="3">
+  <p class="occhiello">{{ t.welcome_optional }}</p>
+  <h2>{{ t.welcome_keys_title }}</h2>
+  <p>{{ t.welcome_keys_body }}</p>
+
+  <div class="scheda">
+    <p>{{ t.welcome_key_s2 }}</p>
+    <label for="s2_api_key">{{ t.settings_s2 }}</label>
+    <input id="s2_api_key" name="s2_api_key" type="password" autocomplete="off"
+           placeholder="{% if config.s2_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+
+    <p>{{ t.welcome_key_core }}</p>
+    <label for="core_api_key">{{ t.settings_core }}</label>
+    <input id="core_api_key" name="core_api_key" type="password" autocomplete="off"
+           placeholder="{% if config.core_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+
+    <p>{{ t.welcome_key_ncbi }}</p>
+    <label for="ncbi_api_key">{{ t.settings_ncbi }}</label>
+    <input id="ncbi_api_key" name="ncbi_api_key" type="password" autocomplete="off"
+           placeholder="{% if config.ncbi_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+
+    <p>{{ t.welcome_key_zotero }}</p>
+    <label for="zotero_api_key">{{ t.settings_zotero }}</label>
+    <input id="zotero_api_key" name="zotero_api_key" type="password" autocomplete="off"
+           placeholder="{% if config.zotero_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+    <label for="zotero_library_id">{{ t.settings_zotero_id }}</label>
+    <input id="zotero_library_id" name="zotero_library_id" value="{{ config.zotero_library_id }}" placeholder="123456">
+  </div>
+</section>
+
+<section class="passo" data-passo="4">
+  <h2>{{ t.welcome_look_title }}</h2>
+  <p>{{ t.welcome_look_body }}</p>
+  <div class="scheda">
+    <fieldset>
+      <div class="fonti">
+        <label class="fonte"><input type="radio" name="lingua" value="en" {% if lang == 'en' %}checked{% endif %}> English</label>
+        <label class="fonte"><input type="radio" name="lingua" value="it" {% if lang == 'it' %}checked{% endif %}> Italiano</label>
+      </div>
+      <div class="fonti">
+        {% for valore, etichetta in (('auto', t.theme_auto), ('chiaro', t.theme_light), ('scuro', t.theme_dark)) %}
+        <label class="fonte"><input type="radio" name="tema" value="{{ valore }}" {% if tema == valore %}checked{% endif %}> {{ etichetta }}</label>
+        {% endfor %}
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="azioni conclusione">
+    <button type="submit" class="primario">{{ t.welcome_save }}</button>
+    <button type="submit" form="salta" class="copia">{{ t.welcome_skip }}</button>
+  </div>
+</section>
+</form>
+
+<form method="post" action="/salta-benvenuto" id="salta"></form>
+{% endblock %}
