@@ -1,5 +1,6 @@
 {% if scaricato %}
-<a class="oa" href="/pdf/{{ id_ricerca }}/{{ indice }}/file" target="_blank" rel="noreferrer">{{ t.pdf_open }}</a>
+<button type="button" class="copia" data-pdf="/pdf/{{ id_ricerca }}/{{ indice }}/file"
+        data-titolo="{{ work.title }}">{{ t.pdf_open }}</button>
 {% elif work.oa_url %}
 <button type="button" class="copia" hx-post="/pdf/{{ id_ricerca }}/{{ indice }}"
         hx-target="this" hx-swap="outerHTML">{{ t.pdf_download }}</button>

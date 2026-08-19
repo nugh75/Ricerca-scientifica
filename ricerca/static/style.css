@@ -323,3 +323,19 @@ a.tasto em { font-style: normal; font-family: var(--mono); font-size: .75rem; co
 .riga-mailto input { flex: 1; }
 .viste { display: inline-flex; gap: 2px; margin-left: auto; }
 .comandi .azioni { margin-top: var(--u1); }
+
+/* ── lettore dei PDF, dentro l'app ─────────────────────────── */
+#lettore {
+  width: min(96vw, 1100px); height: min(92dvh, 900px);
+  padding: 0; border: 1px solid var(--bordo); border-radius: var(--raggio);
+  background: var(--scheda); color: var(--testo); box-shadow: var(--ombra-rilievo);
+  overflow: hidden;
+}
+#lettore::backdrop { background: rgba(26, 29, 33, .55); }
+.lettore-testa {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--u2);
+  padding: var(--u2) var(--u3); border-bottom: 1px solid var(--riga);
+}
+.lettore-testa strong { font-size: .9375rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lettore-azioni { display: inline-flex; gap: var(--u1); flex-shrink: 0; }
+#lettore-telaio { width: 100%; height: calc(100% - 3.75rem); border: 0; background: var(--sfondo); }

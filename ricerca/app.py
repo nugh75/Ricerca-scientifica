@@ -438,7 +438,13 @@ async def apri_pdf(id_ricerca: str, indice: int):
     percorso = pdf.gia_scaricato(works[indice])
     if percorso is None:
         return PlainTextResponse("PDF non ancora scaricato", status_code=404)
-    return FileResponse(percorso, media_type="application/pdf", filename=percorso.name)
+    # `inline`: il file si apre dentro il lettore dell'app, non parte un
+    # altro scaricamento né si apre una finestra del browser di sistema.
+    return FileResponse(
+        percorso,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{percorso.name}"'},
+    )
 
 
 @app.post("/screening/{id_ricerca}/{indice}", response_class=HTMLResponse)

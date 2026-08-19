@@ -17,3 +17,4 @@ Generated with Playwright from the app running locally.
 | `10-tema-scuro.png` | tema scuro |
 | `11-tema-chiaro.png` | tema chiaro |
 | `12-benvenuto.png` | configurazione guidata al primo avvio |
+| `13-lettore-pdf.png` | lettore dei PDF dentro l'app |

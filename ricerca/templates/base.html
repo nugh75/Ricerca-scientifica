@@ -35,6 +35,17 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+<dialog id="lettore" aria-label="{{ t.pdf_viewer_title }}">
+  <div class="lettore-testa">
+    <strong id="lettore-titolo"></strong>
+    <span class="lettore-azioni">
+      <a id="lettore-fuori" class="copia" href="#" target="_blank" rel="noreferrer">{{ t.pdf_viewer_external }}</a>
+      <button type="button" class="copia" id="lettore-chiudi">{{ t.pdf_viewer_close }}</button>
+    </span>
+  </div>
+  <iframe id="lettore-telaio" title="{{ t.pdf_viewer_title }}"></iframe>
+</dialog>
+
 <footer>{{ t.footer }} · <span class="versione">Ricerca {{ versione }}</span></footer>
 <script>
 // Battito: finché una pagina è aperta il server resta vivo. Quando l'ultima
@@ -51,6 +62,25 @@ function spunta(id, valore) {
   document.querySelectorAll('input[form="massa-' + id + '"][name="selezione"]')
     .forEach(function (casella) { casella.checked = valore; });
 }
+
+// Il PDF si legge dentro l'app: una finestra del browser di sistema
+// porterebbe fuori dall'applicazione.
+const lettore = document.getElementById("lettore");
+document.addEventListener("click", function (event) {
+  const apri = event.target.closest("[data-pdf]");
+  if (apri) {
+    const indirizzo = apri.getAttribute("data-pdf");
+    document.getElementById("lettore-titolo").textContent = apri.getAttribute("data-titolo") || "";
+    document.getElementById("lettore-fuori").href = indirizzo;
+    document.getElementById("lettore-telaio").src = indirizzo;
+    lettore.showModal();
+    return;
+  }
+  if (event.target.id === "lettore-chiudi") lettore.close();
+});
+lettore.addEventListener("close", function () {
+  document.getElementById("lettore-telaio").src = "";  // ferma il caricamento
+});
 
 document.addEventListener("click", function (event) {
   const bottone = event.target.closest("[data-copia]");

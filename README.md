@@ -166,7 +166,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 238 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 242 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -225,8 +225,9 @@ configure later; it can be reopened any time from Settings.
    found, and how long it took.
 5. **Screening** — mark each record *include*, *maybe* or *exclude* with a
    reason, one at a time or **in bulk** on the ticked records — include, maybe,
-   exclude, clear decisions, send to Zotero, download the open PDFs. Every row
-   has its own **PDF** button; the downloaded ones come out together as a
+   exclude, clear decisions, send to Zotero, download the open PDFs. Every row has
+   its own **PDF** button: the article opens in a reader inside the app, with
+   no trip to the system browser. The downloaded ones come out together as a
    **zip**, named after the citation key. The counters follow the PRISMA flow diagram and the
    **protocol** gathers strings, numbers and decisions for your Methods
    section, as Markdown or plain text.
@@ -339,7 +340,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 238 tests, none touches the network
+.venv/bin/pytest -q                       # 242 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
