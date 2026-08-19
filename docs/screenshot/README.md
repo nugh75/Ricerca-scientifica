@@ -1,22 +1,22 @@
 # Screenshot
 
-Generati con Playwright dalla app in esecuzione in locale.
 Generated with Playwright from the app running locally.
+Generati con Playwright dalla app in esecuzione in locale.
 
-| File | Schermata / Screen |
+| File | Screen / Schermata |
 |---|---|
-| `1-topic.png` | passo 1: argomento · step 1: topic |
-| `2-ricerche-suggerite.png` | passo 2: termini, blocchi booleani, stringhe per motore |
-| `3-risultati.png` | passo 3: che cosa ha fatto ogni banca dati, con query e tempi |
-| `4-impostazioni.png` | impostazioni: LLM, email di cortesia, chiavi API |
-| `5-cronologia.png` | cronologia delle ricerche |
-| `6-apa.png` | elenco dei riferimenti in stile APA |
-| `7-italiano.png` | interfaccia in italiano |
-| `8-biblioteca.png` | ricerca a testo pieno nei PDF scaricati |
-| `9-comandi.png` | comandi in blocco: selezione, inclusione, esclusione, PDF |
-| `10-tema-scuro.png` | tema scuro |
-| `11-tema-chiaro.png` | tema chiaro |
-| `12-benvenuto.png` | configurazione guidata al primo avvio |
-| `13-lettore-pdf.png` | lettore dei PDF dentro l'app |
-| `14-in-corso.png` | ricerca avviata, che prosegue in background |
-| `15-registro.png` | registro delle attività in fondo alla pagina |
+| `12-benvenuto.png` | guided setup / configurazione guidata |
+| `1-topic.png` | step 1: topic / passo 1: argomento |
+| `2-ricerche-suggerite.png` | step 2: terms, blocks, queries / termini, blocchi, stringhe |
+| `3-risultati.png` | what each database did / che cosa ha fatto ogni banca dati |
+| `9-comandi.png` | bulk commands and downloads / comandi in blocco e scaricamenti |
+| `6-apa.png` | APA references / riferimenti APA |
+| `13-lettore-pdf.png` | PDF reader inside the app / lettore dentro l'app |
+| `14-in-corso.png` | search running in background / ricerca in corso |
+| `15-registro.png` | activity log / registro delle attività |
+| `5-cronologia.png` | search history / cronologia |
+| `8-biblioteca.png` | full-text search in the PDFs / testo pieno nei PDF |
+| `4-impostazioni.png` | settings / impostazioni |
+| `10-tema-scuro.png`, `11-tema-chiaro.png`, `16-link-scuro.png` | dark and light theme / tema scuro e chiaro |
+| `7-italiano.png` | Italian interface / interfaccia in italiano |
+| `17-risultati-puliti.png` | results, no nesting / risultati senza annidamenti |

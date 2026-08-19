@@ -30,6 +30,26 @@ jobs:
           gh release create "${{ github.ref_name }}" dist/* \
             --title "Ricerca ${{ github.ref_name }}" \
             --notes "$(cat <<'NOTE'
+          ## English
+
+          Download the archive for your system, extract it and start it.
+
+          | System | File | How to start |
+          |---|---|---|
+          | macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → Open |
+          | Windows | `ricerca-*-windows.zip` | double-click `avvia.bat`; `crea-scorciatoia-windows.bat` puts an icon on the Desktop |
+          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` adds it to the menu |
+
+          Python is not required: on first run the launcher downloads `uv` into
+          the app folder, with no system changes and no admin rights. Only an
+          internet connection is needed.
+
+          The app opens in its own window, with no browser chrome. On Safari:
+          Share → Add to Dock; on Chrome or Edge: Install app.
+
+          The courtesy email and the API keys are entered from the interface,
+          under Settings. Closing the window quits the app.
+
           ## Italiano
 
           Scarica l'archivio del tuo sistema, estrailo e avvia.
@@ -50,25 +70,5 @@ jobs:
 
           Email di cortesia e chiavi API si inseriscono dall'interfaccia, in
           Impostazioni. Chiudendo la finestra l'app si chiude da sola.
-
-          ## English
-
-          Download the archive for your system, extract it and start it.
-
-          | System | File | How to start |
-          |---|---|---|
-          | macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → Open |
-          | Windows | `ricerca-*-windows.zip` | double-click `avvia.bat`; `crea-scorciatoia-windows.bat` puts an icon on the Desktop |
-          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` adds it to the menu |
-
-          Python is not required: on first run the launcher downloads `uv` into
-          the app folder, with no system changes and no admin rights. Only an
-          internet connection is needed.
-
-          The app opens in its own window, with no browser chrome. On Safari:
-          Share → Add to Dock; on Chrome or Edge: Install app.
-
-          The courtesy email and the API keys are entered from the interface,
-          under Settings. Closing the window quits the app.
           NOTE
           )"
