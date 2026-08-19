@@ -39,9 +39,18 @@ def test_i_lanciatori_reinstallano_quando_la_versione_cambia():
         assert re.search(r'echo "\$VERSIONE" >', testo), nome
 
 
-def test_il_bundle_dichiara_la_stessa_versione():
+def test_il_bundle_prende_la_versione_dalla_costruzione():
+    """Il plist portava il numero scritto a mano e la sostituzione cercava una
+    versione ferma a 1.3.0: il bundle rischiava di dichiararsi vecchio a ogni
+    rilascio. Ora il segnaposto viene riempito da chi costruisce."""
+
     plist = (RADICE / "packaging/macos/Info.plist").read_text()
-    assert f"<string>{versione_dichiarata()}</string>" in plist
+    for chiave in ("CFBundleVersion", "CFBundleShortVersionString"):
+        assert f"<key>{chiave}</key><string>__VERSIONE__</string>" in plist, chiave
+    costruzione = (RADICE / "scripts/crea-release.sh").read_text()
+    assert 's/__VERSIONE__/$VERSIONE/g' in costruzione
+    riempito = plist.replace("__VERSIONE__", versione_dichiarata())
+    assert f"<string>{versione_dichiarata()}</string>" in riempito
 
 
 def test_i_lanciatori_ricreano_l_ambiente_senza_inciampare():
@@ -204,3 +213,18 @@ def test_i_file_vecchi_vengono_traslocati_non_persi(isolated_config):
     assert (isolated_config / "history.json").exists()
     assert not (isolated_config / "cronologia.json").exists()
     assert "riga di ieri" in (isolated_config / "activity.log").read_text()
+
+
+def test_il_programma_e_libero_e_lo_dice():
+    """La GPL vuole che il testo viaggi con il programma: chi scarica
+    l'archivio deve trovarlo dentro, non solo sul sito."""
+
+    licenza = (RADICE / "LICENSE").read_text()
+    assert "GNU GENERAL PUBLIC LICENSE" in licenza
+    assert "Version 3" in licenza
+
+    with (RADICE / "pyproject.toml").open("rb") as fh:
+        assert tomllib.load(fh)["project"]["license"] == "GPL-3.0-or-later"
+
+    costruzione = (RADICE / "scripts/crea-release.sh").read_text()
+    assert "README.md LICENSE" in costruzione

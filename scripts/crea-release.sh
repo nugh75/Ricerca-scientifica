@@ -20,7 +20,7 @@ sorgente_in() {
   mkdir -p "$destinazione"
   # Le schermate pesano più dell'app: restano nel repository, dove si
   # guardano, e non nell'archivio che ognuno scarica.
-  cp -r ricerca pyproject.toml README.md "$destinazione/"
+  cp -r ricerca pyproject.toml README.md LICENSE "$destinazione/"
   find "$destinazione" -name '__pycache__' -type d -prune -exec rm -rf {} +
 }
 
@@ -39,7 +39,7 @@ sorgente_in "$BUNDLE/Resources/app"
 cp packaging/macos/launch "$BUNDLE/MacOS/Ricerca"
 chmod +x "$BUNDLE/MacOS/Ricerca"
 cp packaging/Ricerca.icns "$BUNDLE/Resources/Ricerca.icns"
-sed "s/1\.3\.0/$VERSIONE/g" packaging/macos/Info.plist > "$BUNDLE/Info.plist"
+sed "s/__VERSIONE__/$VERSIONE/g" packaging/macos/Info.plist > "$BUNDLE/Info.plist"
 # Copia dell'unico lanciatore: un secondo file resterebbe indietro.
 cp start.sh "$MAC/start-from-terminal.command"
 chmod +x "$MAC/start-from-terminal.command"

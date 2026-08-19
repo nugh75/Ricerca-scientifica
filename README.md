@@ -187,6 +187,13 @@ fragments. No Node, no build step, no binaries to sign.
 | `ricerca/i18n.py` | Italian and English strings |
 | `docs/specs/` | the design document (Italian) |
 
+## Licence
+
+GNU General Public License, version 3 or later — the full text is in
+[`LICENSE`](LICENSE). You may use, study, change and redistribute it; a
+modified copy you pass on must stay free under the same licence and carry its
+source.
+
 Building the archives: `./scripts/crea-release.sh` (they end up in `dist/`); in
 CI, `.github/workflows/release.yml` on every `v*` tag. The archives carry the
 source and the launcher only — around 200 KB; the screenshots stay here, where
@@ -364,3 +371,10 @@ Un solo pacchetto Python: FastAPI rende HTML con Jinja2, htmx aggiorna i
 frammenti. Niente Node, niente build, niente binari da firmare. La mappa dei
 file è nella tabella della sezione inglese; il documento di progetto sta in
 `docs/specs/`.
+
+## Licenza
+
+GNU General Public License, versione 3 o successiva — il testo completo è in
+[`LICENSE`](LICENSE). Si può usare, studiare, modificare e ridistribuire; una
+copia modificata che si passa ad altri resta libera alla stessa licenza e va
+accompagnata dal sorgente.

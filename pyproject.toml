@@ -1,6 +1,8 @@
 [project]
 name = "ricerca"
 version = "1.0.0b1"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 description = "Assistente di strategia di ricerca bibliografica: suggerisce parole chiave e interroga i motori accademici"
 requires-python = ">=3.11"
 dependencies = [
