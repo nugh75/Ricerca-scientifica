@@ -44,8 +44,12 @@ jobs:
           `uv` nella cartella dell'app, senza toccare il sistema e senza
           permessi di amministratore. Serve solo una connessione a internet.
 
+          L'app si apre in una finestra propria, senza barre. Con Safari:
+          Condividi → Aggiungi al Dock; con Chrome o Edge: Installa
+          applicazione.
+
           Email di cortesia e chiavi API si inseriscono dall'interfaccia, in
-          Impostazioni. Chiudendo la pagina del browser l'app si chiude da sola.
+          Impostazioni. Chiudendo la finestra l'app si chiude da sola.
 
           ## English
 
@@ -61,7 +65,10 @@ jobs:
           the app folder, with no system changes and no admin rights. Only an
           internet connection is needed.
 
+          The app opens in its own window, with no browser chrome. On Safari:
+          Share → Add to Dock; on Chrome or Edge: Install app.
+
           The courtesy email and the API keys are entered from the interface,
-          under Settings. Closing the browser page quits the app.
+          under Settings. Closing the window quits the app.
           NOTE
           )"

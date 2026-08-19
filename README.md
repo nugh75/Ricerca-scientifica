@@ -86,7 +86,17 @@ Su macOS conviene cancellare la vecchia `Ricerca.app` prima di copiare la
 nuova, e svuotare il Cestino. Il registro del primo avvio è in
 `~/.ricerca/avvio.log`.
 
-Poi si apre il browser su `http://127.0.0.1:8000` (o la prima porta libera).
+Ricerca si apre in una **finestra propria**, senza barra degli indirizzi né
+schede: il lanciatore cerca un browser della famiglia Chromium (Chrome, Edge,
+Brave, Chromium, Vivaldi) e lo avvia in modo applicazione. Se non ne trova
+nessuno, apre il browser predefinito; con `ricerca serve --scheda` si chiede
+apposta una scheda normale.
+
+Con Safari, che non ha quel modo, la finestra si ottiene una volta sola:
+**Condividi → Aggiungi al Dock**. Su Chrome ed Edge lo stesso risultato si ha
+da **Installa applicazione** nella barra degli indirizzi. Da lì Ricerca compare
+fra le applicazioni con la sua icona.
+
 Il server ascolta solo su `127.0.0.1`: non è raggiungibile da altre macchine.
 
 Da terminale, se preferisci:
@@ -141,7 +151,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 205 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 217 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -156,6 +166,7 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 - `ricerca/history.py` — cronologia delle ricerche in JSON
 - `ricerca/pdf.py` — scaricamento dei PDF ad accesso aperto
 - `ricerca/export.py` — BibTeX, CSV e riferimenti APA
+- `ricerca/finestra.py` — apertura in finestra propria
 - `ricerca/watchdog.py` — chiusura automatica quando la pagina si chiude
 - `ricerca/cache.py` — cache SQLite delle risposte, come trasporto httpx
 - `ricerca/zotero.py` — invio dei record inclusi a Zotero
@@ -248,7 +259,15 @@ always an old copy of the app is being opened. On macOS, delete the old
 `Ricerca.app` before copying the new one, and empty the Trash. The first-run
 log is at `~/.ricerca/avvio.log`.
 
-The browser then opens at `http://127.0.0.1:8000` (or the first free port).
+Ricerca opens in **its own window**, with no address bar and no tabs: the
+launcher looks for a Chromium-family browser (Chrome, Edge, Brave, Chromium,
+Vivaldi) and starts it in app mode. If it finds none, it opens the default
+browser; `ricerca serve --scheda` asks for a plain tab on purpose.
+
+Safari has no such mode, but the window is one gesture away:
+**Share → Add to Dock**. On Chrome and Edge, **Install app** in the address bar
+does the same. Ricerca then sits among your applications, with its icon.
+
 The server listens on `127.0.0.1` only.
 
 From a terminal instead:
@@ -293,7 +312,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 205 tests, none touches the network
+.venv/bin/pytest -q                       # 217 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

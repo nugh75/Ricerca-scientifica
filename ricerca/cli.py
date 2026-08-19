@@ -6,11 +6,10 @@ import argparse
 import os
 import socket
 import threading
-import webbrowser
 
 import uvicorn
 
-from . import diagnostica, watchdog
+from . import diagnostica, finestra, watchdog
 
 
 def free_port(start: int = 8000, attempts: int = 20) -> int:
@@ -29,7 +28,12 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="comando")
     serve = sub.add_parser("serve", help="avvia l'app e apre il browser")
     serve.add_argument("--port", type=int, default=8000, help="porta di partenza (default 8000)")
-    serve.add_argument("--no-browser", action="store_true", help="non aprire il browser")
+    serve.add_argument("--no-browser", action="store_true", help="non aprire nulla")
+    serve.add_argument(
+        "--scheda",
+        action="store_true",
+        help="apri in una scheda del browser invece che in una finestra propria",
+    )
     sub.add_parser("versione", help="stampa versione e percorsi (utile per capire quale copia gira)")
     serve.add_argument(
         "--resta-aperto",
@@ -54,6 +58,6 @@ def main(argv: list[str] | None = None) -> int:
     url = f"http://127.0.0.1:{port}"
     print(f"Ricerca in ascolto su {url}  (Ctrl-C per fermare)")
     if not args.no_browser:
-        threading.Timer(1.0, webbrowser.open, args=(url,)).start()
+        threading.Timer(1.0, finestra.apri, args=(url, not args.scheda)).start()
     uvicorn.run("ricerca.app:app", host="127.0.0.1", port=port, log_level="info")
     return 0

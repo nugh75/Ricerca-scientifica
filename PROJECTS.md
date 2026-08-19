@@ -1,4 +1,4 @@
-<!-- Generato da ai4educ-console · 18/08/2026, 03:57:49 · NON modificare a mano -->
+<!-- Generato da ai4educ-console · 19/08/2026, 03:50:51 · NON modificare a mano -->
 # Progetti in /home/nugh75
 
 Mappa sintetica di tutti i progetti monitorati. Aggiornata automaticamente; dettagli completi in `PROJECT-INFO.md` di ciascuna cartella o nella console (pagina Sintesi).
@@ -42,9 +42,9 @@ Mappa sintetica di tutti i progetti monitorati. Aggiornata automaticamente; dett
 | Qtimes-call-wellbeen | Gestione e revisione di articoli per la rivista QTimes, con supporto a norme editoriali, bibliografia struttur | Markdown, Zotero, Python (.venv), Git | Prototipo | 24/07/2026 |
 | review-studio | Review Studio è un'interfaccia unificata per gestire percorsi di revisione sistematica AI4Educ, mantenendo i c | Python (FastAPI), React, Docker, Ollama | attivo | 22/07/2026 |
 | revisione_articolo_grafos | Supporto alla revisione di un articolo scientifico sul tema della grafologia utilizzando l'intelligenza artifi | Python 3, Ollama | prototipo | 01/07/2026 |
-| Ricerca-scientifica | Assistente desktop per la revisione della letteratura che esegue ricerche su fonti accademiche, analizza PDF c | Python, FastAPI, Tauri, SQLite, DeepSeek | attivo | 18/08/2026 |
+| Ricerca-scientifica | Assistente di strategia di ricerca bibliografica che genera parole chiave, interroga motori accademici (PubMed | Python, FastAPI, HTMX, Jinja2, pypdf | attivo | 19/08/2026 |
 | risorse-digitali | Piattaforma Node.js per consultare e gestire risorse digitali educative con un pannello amministrativo dedicat | Node.js, Express, Multer | Attivo | 01/07/2026 |
 | scontrini | Piattaforma web per la gestione e l'analisi di scontrini tramite riconoscimento ottico dei caratteri (OCR) su | Python FastAPI, React, Flutter, Tesseract OCR | attivo | 01/07/2026 |
-| TD_daniele | Gestione della revisione di articoli per una rivista generica in lingua italiana con supporto a norme editoria | Python, Markdown, Zotero | prototipo | 18/08/2026 |
+| TD_daniele | Gestione di una rivista accademica generica per articoli e libri in lingua italiana, con funzionalità di revis | Python, Markdown, Zotero, Makefile | Prototipo | 19/08/2026 |
 
-_Generato il 18/08/2026, 03:57:49 · 41 progetti · modello qwen3.5:9b._
+_Generato il 19/08/2026, 03:50:51 · 41 progetti · modello qwen3.5:9b._

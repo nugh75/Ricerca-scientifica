@@ -107,11 +107,14 @@ def scrivi_ico(immagini: dict[int, bytes], destinazione: Path) -> None:
 
 
 def main() -> int:
-    misure = sorted(set(MISURE_ICNS.values()) | {512, 64, 32})
+    misure = sorted(set(MISURE_ICNS.values()) | {512, 192, 180, 64, 32})
     immagini = rendi(misure)
 
     png = RADICE / "ricerca/static/icona.png"
     png.write_bytes(immagini[512])
+    # Misure che chiedono il manifesto web e iOS.
+    (RADICE / "ricerca/static/icona-192.png").write_bytes(immagini[192])
+    (RADICE / "ricerca/static/icona-180.png").write_bytes(immagini[180])
 
     icns = RADICE / "packaging/Ricerca.icns"
     icns.parent.mkdir(parents=True, exist_ok=True)
