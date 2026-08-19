@@ -61,37 +61,40 @@ configure later, and reopen it any time from Settings.
    become editable boolean blocks and one query string per engine. Year limits
    and “journal articles only” apply to every source, each in its own syntax.
    No search runs until you start it.
-3. **Results** — clicking a title opens the **record card**: all the authors,
-   the whole abstract, which databases found it, the file on disk, the APA and
-   BibTeX citation ready to copy, and the link to the publisher. Metadata that
-   arrived wrong can be **corrected by hand** there — the original stays in the
-   history, the exports use the corrected version. Sources are queried in parallel, duplicates merged by DOI or
+3. **Results** — sources are queried in parallel, duplicates merged by DOI or
    title (even when one title is truncated or punctuated differently), the list
    ranked by relevance. A panel shows **what each database did**: the query as
    it was sent, records found, how many survived deduplication, how many only
    it found, and how long it took.
+   Clicking a title opens the **record card**: all the authors, the whole
+   abstract, which databases found it, the file on disk, the APA and BibTeX
+   citation ready to copy, and the link to the publisher. Metadata that arrived
+   wrong can be **corrected by hand** there — the original stays in the history,
+   the exports use the corrected version. From the card you can also ask the
+   model for a **five-part summary** — aims, method, results, discussion,
+   conclusion, in English or Italian — built on the text of the PDF when there
+   is one, otherwise on the abstract; it stays saved with the record.
 4. **Screening** — mark each record *include*, *maybe* or *exclude* with a
    reason, one at a time or in bulk on the ticked records. Counters follow the
    PRISMA flow; the protocol export gathers strings, numbers and decisions for
    your Methods section, as Markdown or plain text.
-5. **PDFs** — Each record carries **every link the sources declare** — OpenAlex keeps them in
-   three different fields, Europe PMC in its full-text list, PubMed as a
-   PubMed Central copy, Crossref as publisher links — and the download tries
-   them in turn until one returns a real PDF, because the first is often a
-   landing page. **Unpaywall** then fills in what the databases left out, and steps in
-   automatically when every link fails: it knows the repository copies that
-   publishers do not declare. Where even it has nothing, the article is
-   genuinely closed — and that is where the manual upload comes in. It fills
-   in: venue, year,
-   authors, and above all the open copies deposited in repositories when the
-   publisher charges. On a real search of twenty records the sources offered no
-   readable PDF at all; Unpaywall found four. Open-access articles then download
-   with one button, per row or all at once, and open in a reader **inside the
-   app**. When a publisher blocks automated downloads — common, and it does not
-   block people — the card lets you **upload the PDF you fetched with your
-   institutional credentials**: it joins the others, the full-text search and
-   the summary. Files are named
-   `year_authors_title.pdf`; the whole set comes out as a zip.
+5. **PDFs** — each record carries **every link the sources declare** — OpenAlex
+   keeps them in three different fields, Europe PMC in its full-text list,
+   PubMed as a PubMed Central copy, Crossref as publisher links — and the
+   download tries them in turn until one returns a real PDF, because the first
+   is often a landing page. **Unpaywall** fills in what the databases left out
+   (venue, year, authors) and steps in automatically when every link fails: it
+   knows the repository copies publishers do not declare. Measured on real
+   searches: trying every link took one search from no PDF at all to eleven;
+   on a sample of twenty-seven records where every link had failed, Unpaywall
+   opened two more, and on another of six it found nothing — those were closed
+   for good. That is where manual upload comes in: when a publisher blocks
+   automated downloads — common, and it does not block people — the card lets
+   you **upload the PDF you fetched with your institutional credentials**, and
+   it joins the others in the full-text search and the summary. Open articles
+   download with one button, per row or all at once, and open in a reader
+   **inside the app**. Files are named `year_authors_title.pdf`; the whole set
+   comes out as a zip.
 6. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
 7. **Library** — the downloaded PDFs are searchable in full text.
@@ -177,7 +180,7 @@ fragments. No Node, no build step, no binaries to sign.
 | `ricerca/pdf.py`, `biblioteca.py` | open-access PDFs and their text |
 | `ricerca/cache.py` | SQLite response cache, as an httpx transport |
 | `ricerca/unpaywall.py` | missing metadata and open copies, from the DOI |
-| `ricerca/llm.py` | blocks, translation, four-part summary |
+| `ricerca/llm.py` | blocks, translation, five-part summary |
 | `ricerca/zotero.py` | sends the included records to Zotero |
 | `ricerca/macchina.py` | what the computer can run, which model to suggest |
 | `ricerca/finestra.py`, `watchdog.py` | its own window; quits when closed |
@@ -249,40 +252,42 @@ vuole da Impostazioni.
    nascono i blocchi booleani, modificabili, e le stringhe per ogni motore.
    Limiti di anno e «solo articoli di rivista» valgono per tutte le fonti,
    ognuna con la sua sintassi. Nessuna ricerca parte finché non la avvii tu.
-3. **Risultati** — un clic sul titolo apre la **scheda del record**: tutti gli
-   autori, l'abstract intero, da quali banche dati arriva, il file su disco, la
+3. **Risultati** — fonti interrogate in parallelo, duplicati uniti per DOI o
+   titolo (anche quando un titolo è troncato o punteggiato diversamente),
+   elenco ordinato per pertinenza. Un pannello mostra **che cosa ha fatto ogni
+   banca dati**: la stringa come è stata inviata, i record trovati, quanti ne
+   restano dopo la deduplica, quanti li ha trovati solo lei, in quanto tempo.
+   Un clic sul titolo apre la **scheda del record**: tutti gli autori,
+   l'abstract intero, da quali banche dati arriva, il file su disco, la
    citazione APA e BibTeX pronte da copiare, il collegamento all'editore. I
    metadati arrivati storti si **correggono a mano** lì: l'originale resta nella
    cronologia, negli export va la versione corretta. Dalla scheda si chiede
    anche al modello un **riassunto in cinque parti** — obiettivi, metodo,
    risultati, discussione, conclusione, in italiano o in inglese — costruito sul
-   testo del PDF quando c'è, altrimenti sull'abstract; resta salvato col record. Fonti interrogate in parallelo, duplicati uniti per DOI o
-   titolo (anche quando un titolo è troncato o punteggiato diversamente),
-   elenco ordinato per pertinenza. Un pannello mostra **che cosa ha fatto ogni
-   banca dati**: la stringa come è stata inviata, i record trovati, quanti ne
-   restano dopo la deduplica, quanti li ha trovati solo lei, in quanto tempo.
+   testo del PDF quando c'è, altrimenti sull'abstract; resta salvato col record.
 4. **Selezione** — ogni record si marca *incluso*, *forse* o *escluso* con un
    motivo, uno per volta o in blocco sui record spuntati. I conteggi seguono il
    diagramma PRISMA; il protocollo raccoglie stringhe, numeri e decisioni per
    la sezione «Metodo», in Markdown o in testo semplice.
-5. **PDF** — Ogni record porta con sé **tutti i collegamenti che le fonti dichiarano** —
-   OpenAlex li tiene in tre campi diversi, Europe PMC nel suo elenco di testi
-   pieni, PubMed come copia in PubMed Central, Crossref come collegamenti
-   dell'editore — e lo scaricamento li prova a turno finché uno restituisce un
-   PDF vero, perché il primo è spesso una pagina di destinazione. **Unpaywall**
-   interviene poi da solo quando tutti i collegamenti falliscono: conosce le
-   copie nei depositi che gli editori non dichiarano. Dove non ha nulla
-   nemmeno lui, l'articolo è chiuso davvero, ed è lì che serve il caricamento a
-   mano. Completa inoltre: sede,
-   anno, autori e soprattutto le copie aperte depositate nei repository quando
-   l'editore fa pagare. Su una ricerca vera di venti record le fonti non
-   offrivano nessun PDF leggibile; Unpaywall ne ha trovati quattro. Gli articoli
-   aperti si scaricano poi con un tasto, per riga o tutti insieme, e si leggono
-   in un lettore **dentro l'app**. Quando un editore blocca gli scaricamenti
-   automatici — capita spesso, e non blocca le persone — dalla scheda si
-   **carica il PDF preso con le credenziali del proprio ateneo**: entra con gli
-   altri, nella ricerca a testo pieno e nel riassunto. I file si
-   chiamano `anno_autori_titolo.pdf`; l'insieme esce in uno zip.
+5. **PDF** — ogni record porta con sé **tutti i collegamenti che le fonti
+   dichiarano** — OpenAlex li tiene in tre campi diversi, Europe PMC nel suo
+   elenco di testi pieni, PubMed come copia in PubMed Central, Crossref come
+   collegamenti dell'editore — e lo scaricamento li prova a turno finché uno
+   restituisce un PDF vero, perché il primo è spesso una pagina di
+   destinazione. **Unpaywall** completa quello che le banche dati hanno
+   lasciato fuori (sede, anno, autori) e interviene da solo quando tutti i
+   collegamenti falliscono: conosce le copie nei depositi che gli editori non
+   dichiarano. Misurato su ricerche vere: provare tutti i collegamenti ha
+   portato una ricerca da nessun PDF a undici; su un campione di ventisette
+   record in cui ogni collegamento era fallito Unpaywall ne ha aperti altri
+   due, e su un altro di sei non ha trovato nulla — quelli erano chiusi
+   davvero. È lì che serve il caricamento a mano: quando un editore blocca gli
+   scaricamenti automatici — capita spesso, e non blocca le persone — dalla
+   scheda si **carica il PDF preso con le credenziali del proprio ateneo**, ed
+   entra con gli altri nella ricerca a testo pieno e nel riassunto. Gli
+   articoli aperti si scaricano con un tasto, per riga o tutti insieme, e si
+   leggono in un lettore **dentro l'app**. I file si chiamano
+   `anno_autori_titolo.pdf`; l'insieme esce in uno zip.
 6. **Cronologia** — ogni ricerca resta con la sua strategia e i suoi record: si
    riapre, si riesporta, se ne scaricano i PDF senza ripeterla.
 7. **Biblioteca** — i PDF scaricati sono cercabili a testo pieno.
