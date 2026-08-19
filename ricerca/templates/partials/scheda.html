@@ -38,7 +38,7 @@
     {% if sintesi %}
     <p class="aiuto">{{ t.summary_made_with.format(modello=sintesi.modello, quando=sintesi.quando,
         fonte=(t.summary_from_pdf if sintesi.fonte == 'pdf' else t.summary_from_abstract)) }}</p>
-    {% for chiave, etichetta in (('metodo', t.summary_method), ('risultati', t.summary_results),
+    {% for chiave, etichetta in (('obiettivi', t.summary_aims), ('metodo', t.summary_method), ('risultati', t.summary_results),
                                  ('discussione', t.summary_discussion), ('conclusione', t.summary_conclusion)) %}
       {% if sintesi[chiave] %}
       <p class="sintesi-parte"><b>{{ etichetta }}.</b> {{ sintesi[chiave] }}</p>
@@ -93,6 +93,16 @@
       <button type="button" class="copia" hx-post="/pdf/{{ id_ricerca }}/{{ indice }}"
               hx-target="this" hx-swap="outerHTML">{{ t.pdf_download }}</button>
       {% else %}<p class="aiuto">{{ t.pdf_none }}</p>{% endif %}
+
+      {% if not scaricato %}
+      <p class="aiuto">{{ t.pdf_upload_hint }}</p>
+      <form hx-post="/pdf/{{ id_ricerca }}/{{ indice }}/carica" hx-encoding="multipart/form-data"
+            hx-target="#scheda-corpo" class="carica-pdf">
+        <input type="file" name="file" accept="application/pdf,.pdf" required>
+        <button type="submit" class="copia">{{ t.pdf_upload }}</button>
+      </form>
+      {% endif %}
+
       {% if work.doi %}
       <p class="aiuto">{{ t.unpaywall_hint }}</p>
       <button type="button" class="copia" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/unpaywall"

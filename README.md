@@ -75,7 +75,10 @@ configure later, and reopen it any time from Settings.
    publisher charges. On a real search of twenty records the sources offered no
    readable PDF at all; Unpaywall found four. Open-access articles then download
    with one button, per row or all at once, and open in a reader **inside the
-   app**. Files are named
+   app**. When a publisher blocks automated downloads — common, and it does not
+   block people — the card lets you **upload the PDF you fetched with your
+   institutional credentials**: it joins the others, the full-text search and
+   the summary. Files are named
    `year_authors_title.pdf`; the whole set comes out as a zip.
 6. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
@@ -125,7 +128,7 @@ Any endpoint compatible with the OpenAI API — Ollama
 (`http://localhost:11434/v1`), DeepSeek, OpenAI. It does three things: reorganise the
 terms into conceptual blocks, translate an Italian topic into English before
 querying PubMed (which finds no MeSH terms in Italian), and summarise an
-article in four parts from the record card. Without it, blocks
+article in five parts from the record card. Without it, blocks
 are built from the data alone and everything else works the same. With Ollama
 nothing leaves your computer; with a networked service, the topic and the terms
 are sent to it.
@@ -140,7 +143,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 323 tests, none touches the network
+.venv/bin/pytest -q                       # 331 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -233,9 +236,9 @@ vuole da Impostazioni.
    citazione APA e BibTeX pronte da copiare, il collegamento all'editore. I
    metadati arrivati storti si **correggono a mano** lì: l'originale resta nella
    cronologia, negli export va la versione corretta. Dalla scheda si chiede
-   anche al modello un **riassunto in quattro parti** — metodo, risultati,
-   discussione, conclusione, in italiano o in inglese — costruito sul testo del
-   PDF quando c'è, altrimenti sull'abstract; resta salvato col record. Fonti interrogate in parallelo, duplicati uniti per DOI o
+   anche al modello un **riassunto in cinque parti** — obiettivi, metodo,
+   risultati, discussione, conclusione, in italiano o in inglese — costruito sul
+   testo del PDF quando c'è, altrimenti sull'abstract; resta salvato col record. Fonti interrogate in parallelo, duplicati uniti per DOI o
    titolo (anche quando un titolo è troncato o punteggiato diversamente),
    elenco ordinato per pertinenza. Un pannello mostra **che cosa ha fatto ogni
    banca dati**: la stringa come è stata inviata, i record trovati, quanti ne
@@ -249,7 +252,10 @@ vuole da Impostazioni.
    l'editore fa pagare. Su una ricerca vera di venti record le fonti non
    offrivano nessun PDF leggibile; Unpaywall ne ha trovati quattro. Gli articoli
    aperti si scaricano poi con un tasto, per riga o tutti insieme, e si leggono
-   in un lettore **dentro l'app**. I file si
+   in un lettore **dentro l'app**. Quando un editore blocca gli scaricamenti
+   automatici — capita spesso, e non blocca le persone — dalla scheda si
+   **carica il PDF preso con le credenziali del proprio ateneo**: entra con gli
+   altri, nella ricerca a testo pieno e nel riassunto. I file si
    chiamano `anno_autori_titolo.pdf`; l'insieme esce in uno zip.
 6. **Cronologia** — ogni ricerca resta con la sua strategia e i suoi record: si
    riapre, si riesporta, se ne scaricano i PDF senza ripeterla.
@@ -301,7 +307,7 @@ Qualsiasi endpoint compatibile con l'API OpenAI — Ollama
 (`http://localhost:11434/v1`), DeepSeek, OpenAI. Fa tre cose: riorganizza i termini
 in blocchi concettuali, traduce in inglese un argomento italiano prima di
 interrogare PubMed (che in italiano non trova i MeSH) e riassume un articolo in
-quattro parti dalla scheda del record. Senza, i blocchi si
+cinque parti dalla scheda del record. Senza, i blocchi si
 costruiscono dai soli dati e tutto il resto funziona identico. Con Ollama non
 esce nulla dal computer; con un servizio in rete, argomento e termini vengono
 inviati a quel servizio.
@@ -316,7 +322,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 323 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 331 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

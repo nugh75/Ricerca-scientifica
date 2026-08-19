@@ -517,3 +517,6 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .sintesi .attesa { display: flex; align-items: center; gap: var(--u2); font-size: .9375rem; color: var(--testo-tenue); margin: var(--u1) 0 0; }
 .sintesi-parte { max-width: 72ch; margin: var(--u1) 0; }
 .sintesi-parte b { color: var(--accento); }
+
+.carica-pdf { display: flex; flex-wrap: wrap; align-items: center; gap: var(--u1); margin-top: var(--u1); }
+.carica-pdf input[type="file"] { flex: 1 1 12rem; font-size: .8125rem; padding: .25rem; border: 1px dashed var(--bordo); background: none; }

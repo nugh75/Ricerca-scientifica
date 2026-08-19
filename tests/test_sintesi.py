@@ -31,9 +31,13 @@ def con_modello():
                               configurato="1"))
 
 
-def test_le_quattro_parti_si_leggono_anche_da_una_risposta_sporca():
-    parti = _parse_sintesi('```json\n{"metodo": "m", "risultati": "r", "discussione": "d", "conclusione": "c"}\n```')
-    assert parti == {"metodo": "m", "risultati": "r", "discussione": "d", "conclusione": "c"}
+def test_le_parti_si_leggono_anche_da_una_risposta_sporca():
+    parti = _parse_sintesi(
+        '```json\n{"obiettivi": "o", "metodo": "m", "risultati": "r",'
+        ' "discussione": "d", "conclusione": "c"}\n```'
+    )
+    assert parti == {"obiettivi": "o", "metodo": "m", "risultati": "r",
+                     "discussione": "d", "conclusione": "c"}
 
 
 def test_una_risposta_senza_riassunto_e_un_errore():
@@ -186,3 +190,31 @@ def test_a_riassunto_fatto_la_scheda_offre_di_rifarlo():
     scheda = client.get(f"/scheda/{id_ricerca}/0").text
     assert "summarise again" in scheda
     assert '"rifai": "1"' in scheda
+
+
+def test_il_riassunto_comincia_dagli_obiettivi():
+    parti = _parse_sintesi('{"obiettivi": "o", "metodo": "m", "risultati": "r", "discussione": "d", "conclusione": "c"}')
+    assert list(parti) == ["obiettivi", "metodo", "risultati", "discussione", "conclusione"]
+
+
+@respx.mock
+async def test_la_richiesta_chiede_anche_gli_obiettivi():
+    rotta = respx.post("http://x/v1/chat/completions").mock(return_value=httpx.Response(200, json=RISPOSTA))
+    await LLMClient(Config(llm_base_url="http://x/v1", llm_model="m")).sintesi("T", "testo", "it")
+    inviato = rotta.calls[0].request.content.decode()
+    assert "obiettivi" in inviato
+    assert "domanda di ricerca" in inviato
+
+
+def test_un_riassunto_vecchio_senza_obiettivi_si_mostra_lo_stesso():
+    """Chi ha già dei riassunti non deve vederli sparire."""
+
+    con_modello()
+    id_ricerca = ricerca_con_abstract()
+    history.salva_sintesi(id_ricerca, 0, {
+        "metodo": "vecchio metodo", "risultati": "r", "discussione": "d", "conclusione": "c",
+        "modello": "m", "quando": "2026-08-19 10:00", "fonte": "abstract",
+    })
+    scheda = client.get(f"/scheda/{id_ricerca}/0").text
+    assert "vecchio metodo" in scheda
+    assert "Aims." not in scheda

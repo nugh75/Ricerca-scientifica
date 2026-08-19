@@ -50,14 +50,15 @@ Riassumilo {lingua}, in modo asciutto e verificabile: nessun aggettivo di
 lode, nessuna frase di circostanza, nessuna informazione che non sia nel testo.
 Se il testo non dice qualcosa, scrivi che non è riportato.
 
-Quattro parti, ognuna di due o tre frasi:
+Cinque parti, ognuna di due o tre frasi:
+- obiettivi: che cosa lo studio si proponeva di scoprire, e la domanda di ricerca;
 - metodo: come è stato condotto lo studio, su chi o su che cosa, con quali strumenti;
 - risultati: che cosa è stato trovato, con i numeri quando ci sono;
 - discussione: come gli autori leggono quei risultati, e quali limiti dichiarano;
 - conclusione: che cosa se ne ricava, in una frase.
 
 Rispondi SOLO con JSON in questa forma:
-{{"metodo": "…", "risultati": "…", "discussione": "…", "conclusione": "…"}}
+{{"obiettivi": "…", "metodo": "…", "risultati": "…", "discussione": "…", "conclusione": "…"}}
 
 Titolo: {titolo}
 
@@ -205,7 +206,7 @@ def _parse_sintesi(contenuto: str) -> dict:
         raise LLMError(f"JSON non valido dal modello: {exc}") from exc
 
     parti = {}
-    for chiave in ("metodo", "risultati", "discussione", "conclusione"):
+    for chiave in ("obiettivi", "metodo", "risultati", "discussione", "conclusione"):
         valore = dati.get(chiave)
         parti[chiave] = " ".join(str(valore).split()) if valore else ""
     if not any(parti.values()):

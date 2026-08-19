@@ -4,5 +4,6 @@
 {% elif work.oa_url %}
 <button type="button" class="copia" hx-post="/pdf/{{ id_ricerca }}/{{ indice }}"
         hx-target="this" hx-swap="outerHTML">{{ t.pdf_download }}</button>
-{% if errore %}<em class="errore">{{ t.pdf_error }}: {{ errore }}</em>{% endif %}
+{% if errore %}<em class="errore">{{ t.pdf_error }}: {{ errore }}</em>
+<span class="assente">{{ t.pdf_upload }}: {{ t.card_open }}</span>{% endif %}
 {% else %}<span class="assente">{{ t.pdf_none }}</span>{% endif %}

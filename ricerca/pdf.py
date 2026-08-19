@@ -195,3 +195,26 @@ def archivio(works: list[Work]) -> tuple[bytes, int]:
 
 def quanti_scaricati(works: list[Work]) -> int:
     return sum(1 for work in works if gia_scaricato(work))
+
+
+def salva_caricato(work: Work, contenuto: bytes):
+    """Un PDF portato a mano: stessi nomi e stesso indice di quelli scaricati.
+
+    Serve quando l'editore blocca i programmi ma non le persone: chi ha le
+    credenziali dell'ateneo scarica l'articolo dal browser e lo consegna qui.
+    """
+
+    if not contenuto.startswith(b"%PDF"):
+        raise ValueError("il file non è un PDF")
+    if len(contenuto) > MAX_BYTE:
+        raise ValueError("file troppo grande")
+
+    percorso = cartella() / nome_libero(work)
+    percorso.write_bytes(contenuto)
+    _annota(work, percorso.name)
+    biblioteca.estrai(percorso)
+    annota(
+        strings(config_module.load().lang)["log_pdf_uploaded"],
+        f"{percorso.name} · {len(contenuto) // 1024} KB",
+    )
+    return percorso

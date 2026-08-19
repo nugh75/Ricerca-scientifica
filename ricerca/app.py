@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -522,6 +522,20 @@ async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
             errore=errore,
         ),
     )
+
+
+@app.post("/pdf/{id_ricerca}/{indice}/carica", response_class=HTMLResponse)
+async def carica_pdf(request: Request, id_ricerca: str, indice: int, file: UploadFile = File(...)):
+    """Riceve un PDF scaricato a mano e lo mette dove stanno gli altri."""
+
+    works = history.record(id_ricerca)
+    if indice >= len(works):
+        return HTMLResponse("")
+    try:
+        pdf.salva_caricato(works[indice], await file.read())
+    except (ValueError, OSError) as exc:
+        registro.errore("PDF caricato", str(exc)[:160])
+    return _scheda(request, id_ricerca, indice)
 
 
 @app.get("/pdf/{id_ricerca}.zip")
