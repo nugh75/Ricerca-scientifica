@@ -33,6 +33,8 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+<div id="avvisi" class="avvisi" role="status" aria-live="polite"></div>
+
 <dialog id="scheda" aria-label="{{ t.card_title }}">
   <div id="scheda-corpo"></div>
 </dialog>
@@ -113,6 +115,27 @@ document.body.addEventListener("htmx:afterRequest", function (evento) {
   const bersaglio = evento.detail && evento.detail.target;
   if (bersaglio && bersaglio.closest && bersaglio.closest("#registro")) return;
   document.body.dispatchEvent(new Event("ogniTanto"));
+});
+
+// Gli avvisi compaiono in un angolo e se ne vanno da soli: scriverli nella
+// pagina significherebbe sostituire la zona colpita — un errore farebbe
+// sparire l'elenco dei risultati.
+document.body.addEventListener("avviso", function (evento) {
+  const dato = evento.detail || {};
+  const riquadro = document.createElement("div");
+  riquadro.className = "avviso " + (dato.livello === "buono" ? "buono" : "errore-avviso");
+  riquadro.textContent = dato.testo || "";
+  const chiudi = document.createElement("button");
+  chiudi.type = "button";
+  chiudi.className = "chiudi-avviso";
+  chiudi.setAttribute("aria-label", "×");
+  chiudi.textContent = "×";
+  chiudi.addEventListener("click", () => riquadro.remove());
+  riquadro.appendChild(chiudi);
+  document.getElementById("avvisi").appendChild(riquadro);
+  // Gli esiti buoni spariscono da soli; gli errori restano finché non si
+  // chiudono, perché chi non li ha visti non deve perderli.
+  if (dato.livello === "buono") setTimeout(() => riquadro.remove(), 6000);
 });
 
 // Il PDF si legge dentro l'app: una finestra del browser di sistema

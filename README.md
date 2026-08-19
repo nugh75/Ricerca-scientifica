@@ -92,7 +92,9 @@ The list is paged at fifty records, rows can be screened from the keyboard
 each record becomes a card, on a wide monitor the tables use the room. `roomy`
 / `compact` in the header changes the density; both stay remembered.
 
-At the foot of every page there is a **log of what the app is doing**: one line
+Failures never rearrange the page: they arrive as a notice in the corner,
+which stays until dismissed, while the list underneath is left untouched. At
+the foot of every page there is a **log of what the app is doing**: one line
 per database with the query sent, the records found and the time, and in red
 whatever failed. Nothing fails silently — unexpected faults land there too, and
 in `~/.ricerca/activity.log`. Searches and downloads **carry on server-side**:
@@ -143,7 +145,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 331 tests, none touches the network
+.venv/bin/pytest -q                       # 332 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -270,7 +272,9 @@ sul telefono ogni record diventa una scheda, su un monitor largo le tabelle
 usano lo spazio. In testata `comoda` / `compatta` cambia la densità; entrambe
 le scelte restano memorizzate.
 
-In fondo a ogni pagina c'è **il registro di quel che l'app sta facendo**: una
+Gli errori non scompaginano la pagina: arrivano come avviso in un angolo, che
+resta finché non lo si chiude, mentre l'elenco sotto non viene toccato. In
+fondo a ogni pagina c'è **il registro di quel che l'app sta facendo**: una
 riga per banca dati con la stringa inviata, i record trovati e il tempo, in
 rosso ciò che non ha funzionato. Nessun errore resta muto: anche i guasti
 imprevisti finiscono lì e in `~/.ricerca/activity.log`. Ricerche e scaricamenti
@@ -322,7 +326,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 331 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 332 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

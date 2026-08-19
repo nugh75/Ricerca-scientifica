@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import traceback
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -57,6 +58,23 @@ async def ciclo_di_vita(_: FastAPI):
 app = FastAPI(title="Ricerca", lifespan=ciclo_di_vita)
 
 
+def avvisa(risposta, testo: str, livello: str = "errore"):
+    """Manda un avviso alla pagina senza toccarne il contenuto.
+
+    Scrivere l'errore dentro la risposta significa sostituire la zona
+    colpita: l'elenco dei risultati sparirebbe per far posto a una riga
+    rossa. Con questa intestazione la pagina resta dov'è e l'avviso compare
+    in un angolo.
+    """
+
+    # Le intestazioni HTTP non portano UTF-8: accenti e punti mediani vanno
+    # scritti come sequenze di scampo, che JSON.parse ricompone nel browser.
+    risposta.headers["HX-Trigger"] = json.dumps(
+        {"avviso": {"testo": testo, "livello": livello}}, ensure_ascii=True
+    )
+    return risposta
+
+
 @app.middleware("http")
 async def conta_le_richieste(request: Request, chiama):
     """Finché una richiesta è in volo, l'app non si spegne da sola."""
@@ -79,6 +97,10 @@ async def guasto(request: Request, eccezione: Exception):
     )
     traceback.print_exception(type(eccezione), eccezione, eccezione.__traceback__)
     testo = i18n.strings(current_config().lang)["guasto"]
+
+    if request.headers.get("hx-request"):
+        # 204: htmx non sostituisce nulla, la pagina resta intera.
+        return avvisa(Response(status_code=204), testo)
     return HTMLResponse(f'<p class="nota errore">{testo}</p>', status_code=500)
 
 
@@ -404,7 +426,7 @@ def _pdf_presenti(works: list[Work]) -> dict[int, bool]:
 PER_PAGINA = 50
 
 
-def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1, esito_pdf: str = "") -> dict:
+def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1) -> dict:
     """Tutto ciò che serve a disegnare un elenco di risultati, in un posto solo.
 
     Ci si arriva da tre strade — ricerca appena conclusa, cambio dei campi,
@@ -426,7 +448,6 @@ def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1, esito_p
         "quando": voce.get("quando", ""),
         "conteggi": history.conteggi(id_ricerca),
         "fonti": voce.get("fonti", []),
-        "esito_pdf": esito_pdf,
         "pdf_su_disco": pdf.quanti_scaricati(tutti),
         "pagina": pagina,
         "pagine": pagine,
@@ -440,16 +461,12 @@ def _elenco(
     id_ricerca: str,
     campo: list[str],
     vista: str,
-    esito_pdf: str = "",
     pagina: int = 1,
 ):
     return templates.TemplateResponse(
         request,
         "partials/elenco.html",
-        base_context(
-            current_config(),
-            **contesto_elenco(id_ricerca, campo, vista, pagina, esito_pdf),
-        ),
+        base_context(current_config(), **contesto_elenco(id_ricerca, campo, vista, pagina)),
     )
 
 
@@ -510,7 +527,7 @@ async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
         except (httpx.HTTPError, ValueError, OSError) as exc:
             errore = str(exc)[:120]
             registro.errore(f"PDF non scaricato: {work.title[:60]}", errore)
-    return templates.TemplateResponse(
+    risposta = templates.TemplateResponse(
         request,
         "partials/pdf.html",
         base_context(
@@ -522,6 +539,10 @@ async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
             errore=errore,
         ),
     )
+    if errore:
+        etichette = i18n.strings(current_config().lang)
+        return avvisa(risposta, f"{etichette['pdf_error']}: {errore} — {etichette['pdf_upload_hint']}")
+    return risposta
 
 
 @app.post("/pdf/{id_ricerca}/{indice}/carica", response_class=HTMLResponse)
@@ -537,7 +558,9 @@ async def carica_pdf(request: Request, id_ricerca: str, indice: int, file: Uploa
     except (ValueError, OSError) as exc:
         problema = i18n.strings(current_config().lang)["pdf_upload_failed"]
         registro.errore("PDF caricato", str(exc)[:160])
-    return _scheda(request, id_ricerca, indice, problema_pdf=problema)
+
+    risposta = _scheda(request, id_ricerca, indice)
+    return avvisa(risposta, problema) if problema else risposta
 
 
 @app.get("/pdf/{id_ricerca}.zip")
@@ -736,8 +759,9 @@ async def zotero_massa(
     except (zotero_client.ZoteroError, httpx.HTTPError, OSError) as exc:
         messaggio = i18n.strings(config.lang)["zotero_error"].format(errore=str(exc)[:160])
         registro.errore("Zotero", str(exc)[:200])
+        return avvisa(_elenco(request, id_ricerca, campo, vista), messaggio)
 
-    return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
+    return avvisa(_elenco(request, id_ricerca, campo, vista), messaggio, "buono")
 
 
 async def _completa_da_unpaywall(id_ricerca: str, indici: list[int], config: Config) -> dict:
@@ -787,14 +811,18 @@ async def completa_da_unpaywall(
     config = current_config()
     etichette = i18n.strings(config.lang)
     if not config.mailto_valido:
-        return _elenco(request, id_ricerca, campo, vista, esito_pdf=etichette["unpaywall_no_email"])
+        return avvisa(_elenco(request, id_ricerca, campo, vista), etichette["unpaywall_no_email"])
 
     works = history.record(id_ricerca)
     indici = [i for i in selezione if i < len(works)] or list(range(len(works)))
     esito = await _completa_da_unpaywall(id_ricerca, indici, config)
     messaggio = etichette["unpaywall_done"].format(**esito)
     registro.annota("Unpaywall", messaggio)
-    return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
+    return avvisa(
+        _elenco(request, id_ricerca, campo, vista),
+        messaggio,
+        "errore" if esito["falliti"] else "buono",
+    )
 
 
 def _testo_da_riassumere(work: Work) -> str:
@@ -908,7 +936,11 @@ async def pdf_massa(
         registro.errore("PDF in blocco", esito)
     else:
         registro.annota("PDF in blocco", esito)
-    return _elenco(request, id_ricerca, campo, vista, esito_pdf=esito)
+    return avvisa(
+        _elenco(request, id_ricerca, campo, vista),
+        esito,
+        "errore" if falliti else "buono",
+    )
 
 
 @app.get("/export/{id_ricerca}.protocollo.md", response_class=PlainTextResponse)

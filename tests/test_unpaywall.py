@@ -1,6 +1,7 @@
 import httpx
 import pytest
 import respx
+from conftest import avviso_di
 from fastapi.testclient import TestClient
 
 from ricerca import config as config_module
@@ -85,7 +86,7 @@ def test_il_comando_in_blocco_completa_i_record_incompleti():
 
     pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
 
-    assert "Filled in from Unpaywall: 1" in pagina.text
+    assert "Filled in from Unpaywall: 1" in avviso_di(pagina)
     record = history.record(id_ricerca)
     assert record[0].venue == "Computers in Human Behavior"
     assert record[0].oa_url == "https://pmc.esempio/main.pdf"
@@ -98,7 +99,7 @@ def test_senza_email_il_comando_lo_dice_invece_di_tacere():
     config_module.save(Config(configurato="1"))
     id_ricerca = ricerca_incompleta()
     pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
-    assert "needs the courtesy email" in pagina.text
+    assert "needs the courtesy email" in avviso_di(pagina)
 
 
 @respx.mock
@@ -139,5 +140,5 @@ def test_un_guasto_di_unpaywall_finisce_nel_registro():
 
     pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
 
-    assert "failed: 1" in pagina.text
+    assert "failed: 1" in avviso_di(pagina)
     assert any("Unpaywall" in v.azione for v in registro.ultime())

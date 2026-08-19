@@ -1,5 +1,6 @@
 import httpx
 import respx
+from conftest import avviso_di
 from fastapi.testclient import TestClient
 
 from ricerca import history, pdf, search
@@ -83,7 +84,7 @@ def test_scaricamento_dei_pdf_in_blocco():
 
     pagina = client.post(f"/pdf-massa/{id_ricerca}", data={"selezione": [0, 1]})
 
-    assert "PDFs downloaded: 2" in pagina.text
+    assert "PDFs downloaded: 2" in avviso_di(pagina)
     record = history.record(id_ricerca)
     assert pdf.gia_scaricato(record[0]) and pdf.gia_scaricato(record[1])
     assert pdf.gia_scaricato(record[2]) is None
@@ -97,14 +98,14 @@ def test_senza_spunte_scarica_tutto_e_conta_i_falliti():
 
     pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
 
-    assert "PDFs downloaded: 1" in pagina.text
-    assert "failed: 1" in pagina.text
+    assert "PDFs downloaded: 1" in avviso_di(pagina)
+    assert "failed: 1" in avviso_di(pagina)
 
 
 def test_i_record_senza_pdf_aperto_non_contano():
     id_ricerca = ricerca_salvata(quanti=2, oa=False)
     pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
-    assert "PDFs downloaded: 0 · failed: 0" in pagina.text
+    assert "PDFs downloaded: 0 · failed: 0" in avviso_di(pagina)
 
 
 def test_il_pannello_dei_campi_non_si_duplica():
@@ -167,4 +168,4 @@ def test_zotero_in_blocco_manda_i_selezionati():
 
     inviati = rotta.calls[0].request.content
     assert b"Studio 2" in inviati and b"Studio 0" not in inviati
-    assert "Sent to Zotero" in pagina.text
+    assert "Sent to Zotero" in avviso_di(pagina)

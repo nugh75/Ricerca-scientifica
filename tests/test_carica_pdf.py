@@ -1,6 +1,7 @@
 import httpx
 import pytest
 import respx
+from conftest import avviso_di
 from fastapi.testclient import TestClient
 
 from ricerca import biblioteca, history, pdf
@@ -54,7 +55,8 @@ def test_un_file_che_non_e_un_pdf_viene_rifiutato():
         f"/pdf/{id_ricerca}/0/carica",
         files={"file": ("finto.pdf", b"<html>pagina di login</html>", "application/pdf")},
     )
-    assert "not a PDF" in risposta.text          # e lo dice a schermo, non solo nel registro
+    assert "not a PDF" in avviso_di(risposta)     # avviso in un angolo, scheda intatta
+    assert "scheda-titolo" in risposta.text
 
     assert pdf.gia_scaricato(history.record(id_ricerca)[0]) is None
     assert any("PDF" in v.azione for v in registro.ultime() if v.errore)

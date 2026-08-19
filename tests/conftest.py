@@ -60,3 +60,14 @@ def esegui_ricerca():
         raise AssertionError("il lavoro non si è concluso")
 
     return attendi
+
+
+def avviso_di(risposta) -> str:
+    """Il testo dell'avviso mandato alla pagina, dall'intestazione HX-Trigger."""
+
+    import json
+
+    intestazione = risposta.headers.get("HX-Trigger")
+    if not intestazione:
+        return ""
+    return json.loads(intestazione).get("avviso", {}).get("testo", "")

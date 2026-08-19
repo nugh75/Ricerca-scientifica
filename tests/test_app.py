@@ -1,5 +1,6 @@
 import httpx
 import respx
+from conftest import avviso_di
 from fastapi.testclient import TestClient
 
 from ricerca import config as config_module
@@ -211,7 +212,8 @@ def test_un_pdf_irraggiungibile_lascia_un_messaggio(esegui_ricerca):
     pagina = cerca_finta(esegui_ricerca)
     id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
     cella = client.post(f"/pdf/{id_ricerca}/0")
-    assert "PDF not downloaded" in cella.text
+    assert "PDF not downloaded" in avviso_di(cella)      # avviso, non riga in tabella
+    assert "PDF not downloaded" not in cella.text
     assert client.get(f"/pdf/{id_ricerca}/0/file").status_code == 404
 
 
@@ -235,3 +237,24 @@ def test_l_argomento_arriva_in_cronologia_dal_modulo_della_strategia():
 
     pagina = client.post("/suggerimenti", data={"topic": "AI literacy"})
     assert '<input type="hidden" name="topic" value="AI literacy">' in pagina.text
+
+
+@respx.mock
+def test_un_errore_non_scompagina_la_pagina(esegui_ricerca):
+    """Un guasto imprevisto non deve sostituire la zona colpita."""
+
+    @app.get("/rotta-che-esplode")
+    async def rotta_che_esplode():
+        raise RuntimeError("guasto voluto")
+
+    cliente = TestClient(app, raise_server_exceptions=False)
+
+    risposta = cliente.get("/rotta-che-esplode", headers={"hx-request": "true"})
+    assert risposta.status_code == 204          # htmx non sostituisce nulla
+    assert risposta.text == ""
+    assert "went wrong" in avviso_di(risposta)
+
+    # senza htmx (indirizzo aperto a mano) resta una pagina leggibile
+    diretta = cliente.get("/rotta-che-esplode")
+    assert diretta.status_code == 500
+    assert "went wrong" in diretta.text

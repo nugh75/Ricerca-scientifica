@@ -520,3 +520,27 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 
 .carica-pdf { display: flex; flex-wrap: wrap; align-items: center; gap: var(--u1); margin-top: var(--u1); }
 .carica-pdf input[type="file"] { flex: 1 1 12rem; font-size: .8125rem; padding: .25rem; border: 1px dashed var(--bordo); background: none; }
+
+/* ── avvisi: in un angolo, senza spostare nulla ─────────────── */
+.avvisi {
+  position: fixed; right: var(--u3); bottom: var(--u3); z-index: 400;
+  display: flex; flex-direction: column; gap: var(--u1);
+  max-width: min(92vw, 30rem); pointer-events: none;
+}
+.avviso {
+  pointer-events: auto; position: relative;
+  background: var(--scheda); color: var(--testo);
+  border: 1px solid var(--bordo); border-left: 3px solid var(--accento);
+  border-radius: var(--raggio); box-shadow: var(--ombra-rilievo);
+  padding: var(--u2) 2.25rem var(--u2) var(--u3);
+  font-size: .9375rem; line-height: 1.5;
+  animation: entra 240ms ease-out both;
+}
+.avviso.errore-avviso { border-left-color: var(--errore); }
+.chiudi-avviso {
+  position: absolute; top: .25rem; right: .25rem;
+  border: 0; background: none; padding: .25rem .4rem;
+  font-size: 1rem; line-height: 1; color: var(--testo-tenue);
+}
+.chiudi-avviso:hover { background: none; color: var(--testo); }
+@media (max-width: 44rem) { .avvisi { right: var(--u2); left: var(--u2); bottom: var(--u2); max-width: none; } }

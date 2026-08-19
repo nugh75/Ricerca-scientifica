@@ -16,6 +16,7 @@ Generati con Playwright dalla app in esecuzione in locale.
 | `13-lettore-pdf.png` | PDF reader inside the app / lettore dentro l'app |
 | `14-in-corso.png` | search running in background / ricerca in corso |
 | `15-registro.png` | activity log / registro delle attività |
+| `22-avviso.png` | notice that does not disturb the page / avviso che non scompagina |
 | `5-cronologia.png` | search history / cronologia |
 | `8-biblioteca.png` | full-text search in the PDFs / testo pieno nei PDF |
 | `4-impostazioni.png` | settings / impostazioni |
