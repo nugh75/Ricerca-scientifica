@@ -13,6 +13,7 @@ from .cache import client as client_con_cache
 from .dedup import merge
 from .i18n import strings
 from .keywords import messaggio_api
+from .registro import annota, errore
 from .models import SourceResult, Strategy, Work
 
 USER_AGENT = "ricerca/0.1 (assistente di strategia bibliografica)"
@@ -53,7 +54,17 @@ async def run(
 
     for result in results:
         assegna_pertinenza(result.works)
-    works = merge([w for result in results for w in result.works])
+    grezzi = [w for result in results for w in result.works]
+    works = merge(grezzi)
+    etichette = strings(config.lang)
+    annota(
+        etichette["log_search_done"],
+        etichette["log_search_summary"].format(
+            grezzi=len(grezzi),
+            unici=len(works),
+            errori=sum(1 for r in results if r.error),
+        ),
+    )
     # Prima la pertinenza, poi l'anno: un record trovato in alto da piu'
     # fonti conta piu' di uno recente trovato da una sola.
     works.sort(key=lambda w: (-w.punteggio, -(w.year or 0), w.title.lower()))
@@ -80,6 +91,7 @@ async def _one(
     reason = source.unavailable_reason(config, config.lang)
     if reason:
         result.error = reason
+        annota(t["log_source_skipped"].format(fonte=source.label), reason)
         return result
     if not query:
         result.error = t["err_empty_strategy"]
@@ -91,12 +103,18 @@ async def _one(
             result.works = await source.search(client, query, limit, config, strategy.filtri)
             result.error = None
             result.secondi = round(time.monotonic() - inizio, 2)
+            annota(
+                t["log_source_records"].format(fonte=source.label, quanti=len(result.works)),
+                f"{result.secondi}s · {query[:120]}",
+            )
             return result
         except Exception as exc:  # una fonte rotta non deve fermare le altre
             result.error = _message(exc, t)
             if attempt == 1:
+                annota(t["log_source_retry"].format(fonte=source.label), result.error)
                 await asyncio.sleep(1)
     result.secondi = round(time.monotonic() - inizio, 2)
+    errore(t["log_source_failed"].format(fonte=source.label), result.error or "?")
     return result
 
 

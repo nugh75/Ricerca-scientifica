@@ -339,3 +339,36 @@ a.tasto em { font-style: normal; font-family: var(--mono); font-size: .75rem; co
 .lettore-testa strong { font-size: .9375rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lettore-azioni { display: inline-flex; gap: var(--u1); flex-shrink: 0; }
 #lettore-telaio { width: 100%; height: calc(100% - 3.75rem); border: 0; background: var(--sfondo); }
+
+/* ── registro delle attività ───────────────────────────────── */
+.registro {
+  max-width: 1280px; margin: 0 auto var(--u3); padding: 0 var(--u3);
+}
+.registro > summary {
+  cursor: pointer; padding: var(--u2) 0; border-top: 1px solid var(--riga);
+  font: 500 .75rem/1.4 var(--testo-famiglia); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--testo-tenue);
+}
+.registro > summary:hover { color: var(--testo); }
+.registro-corpo { padding-bottom: var(--u1); }
+.registro-testa { display: flex; align-items: center; gap: var(--u2); flex-wrap: wrap; margin-bottom: var(--u1); }
+.registro-azioni { display: inline-flex; gap: var(--u1); margin-left: auto; }
+.errore-marchio { color: var(--errore); }
+ol.registro-voci {
+  list-style: none; margin: 0 0 var(--u2); padding: 0;
+  max-height: 16rem; overflow-y: auto;
+  font: 400 .8125rem/1.7 var(--mono);
+}
+ol.registro-voci li { display: grid; grid-template-columns: 4.5rem 14rem 1fr; gap: var(--u2); padding: .125rem 0; }
+ol.registro-voci time { color: var(--testo-tenue); }
+ol.registro-voci .dettaglio { color: var(--testo-tenue); overflow: hidden; text-overflow: ellipsis; }
+ol.registro-voci .riga-errore, ol.registro-voci li.riga-errore .azione { color: var(--errore); }
+@media (max-width: 44rem) { ol.registro-voci li { grid-template-columns: 4rem 1fr; } ol.registro-voci .dettaglio { grid-column: 1 / -1; } }
+
+/* ── lavoro in corso ───────────────────────────────────────── */
+.in-corso .attesa { display: flex; align-items: center; gap: var(--u2); font-size: .9375rem; color: var(--testo-tenue); margin: 0 0 var(--u1); }
+.barra {
+  width: 6rem; height: 3px; border-radius: 2px; display: inline-block;
+  background: linear-gradient(90deg, var(--riga) 0%, var(--accento) 50%, var(--riga) 100%);
+  background-size: 200% 100%; animation: scorre 1.2s ease-in-out infinite;
+}

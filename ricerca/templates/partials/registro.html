@@ -1,0 +1,23 @@
+<div class="registro-corpo" id="registro-corpo">
+  <div class="registro-testa">
+    {% if errori %}<span class="marchio errore-marchio">{{ t.log_errors.format(quanti=errori) }}</span>{% endif %}
+    <span class="registro-azioni">
+      <a class="copia" href="/registro.txt">{{ t.log_download }}</a>
+      <button type="button" class="copia" hx-post="/registro/svuota" hx-target="#registro-corpo" hx-swap="outerHTML">{{ t.log_clear }}</button>
+    </span>
+  </div>
+  {% if voci %}
+  <ol class="registro-voci">
+    {% for voce in voci %}
+    <li class="{% if voce.errore %}riga-errore{% endif %}">
+      <time>{{ voce.quando }}</time>
+      <span class="azione">{{ voce.azione }}</span>
+      <span class="dettaglio">{{ voce.dettaglio }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="aiuto">{{ t.log_empty }}</p>
+  {% endif %}
+  <p class="aiuto">{{ t.log_file }}</p>
+</div>

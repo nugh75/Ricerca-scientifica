@@ -18,3 +18,5 @@ Generated with Playwright from the app running locally.
 | `11-tema-chiaro.png` | tema chiaro |
 | `12-benvenuto.png` | configurazione guidata al primo avvio |
 | `13-lettore-pdf.png` | lettore dei PDF dentro l'app |
+| `14-in-corso.png` | ricerca avviata, che prosegue in background |
+| `15-registro.png` | registro delle attività in fondo alla pagina |

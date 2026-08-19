@@ -16,6 +16,7 @@ import httpx
 from .config import Config
 from .i18n import strings
 from .models import Suggestions
+from .registro import annota, errore
 
 OPENALEX = "https://api.openalex.org"
 EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -104,8 +105,17 @@ async def gather(
             nota = t["note_unavailable"].format(label=t[key], error=_short(value, t))
             if nota not in suggestions.notes:  # una sola chiamata, una sola nota
                 suggestions.notes.append(nota)
+                errore(t["log_terms_unavailable"], nota)
         else:
             setattr(suggestions, target, value)
+    annota(
+        t["log_terms"].format(topic=topic.strip()[:60]),
+        t["log_terms_detail"].format(
+            concetti=len(suggestions.concepts),
+            mesh=len(suggestions.mesh),
+            co=len(suggestions.cooccurring),
+        ),
+    )
     if topic_inglese.strip():
         suggestions.tradotto = topic_inglese.strip()
     if not suggestions.mesh and not mesh_failed and not topic_inglese.strip():

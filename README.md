@@ -45,6 +45,15 @@ si vuole da Impostazioni.
    record: si riapre, si riesporta e se ne scaricano i PDF senza ripeterla.
 7. **Biblioteca** — i PDF scaricati sono cercabili a testo pieno.
 
+In fondo a ogni pagina c'è **il registro di quel che l'app sta facendo**: una
+riga per banca dati con la stringa inviata, i record trovati e il tempo, e in
+rosso ciò che non ha funzionato. Nessun errore resta muto: anche i guasti
+imprevisti finiscono lì e in `~/.ricerca/attivita.log`.
+
+Ricerche e scaricamenti **proseguono sul server**: si può cambiare pagina e
+tornare, o chiudere il pannello — il lavoro non si ferma e la ricerca finita
+si ritrova in cronologia.
+
 Limiti di anno e «solo articoli di rivista» valgono per tutte le fonti,
 ognuna con la propria sintassi. Le risposte restano in una cache locale di un
 giorno: affinare una strategia non ribatte sulle API.
@@ -167,7 +176,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 251 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 262 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -184,6 +193,8 @@ frammenti di pagina. Niente Node, niente build, niente binari da firmare.
 - `ricerca/export.py` — BibTeX, CSV e riferimenti APA
 - `ricerca/finestra.py` — apertura in finestra propria
 - `ricerca/macchina.py` — che cosa regge il computer, quale modello consigliare
+- `ricerca/lavori.py` — operazioni che proseguono cambiando pagina
+- `ricerca/registro.py` — registro delle attività e degli errori
 - `ricerca/watchdog.py` — chiusura automatica quando la pagina si chiude
 - `ricerca/cache.py` — cache SQLite delle risposte, come trasporto httpx
 - `ricerca/zotero.py` — invio dei record inclusi a Zotero
@@ -235,6 +246,15 @@ configure later; it can be reopened any time from Settings.
 6. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
 7. **Library** — the downloaded PDFs are searchable in full text.
+
+At the foot of every page there is a **log of what the app is doing**: one
+line per database with the query sent, the records found and the time, and in
+red whatever failed. Nothing fails silently: unexpected faults land there too,
+and in `~/.ricerca/attivita.log`.
+
+Searches and downloads **carry on server-side**: change page and come back, or
+close the panel — the work does not stop, and a finished search shows up in
+the history.
 
 Year limits and “journal articles only” apply to every source, each in its own
 syntax. Responses are cached locally for a day: refining a strategy does not
@@ -344,7 +364,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 251 tests, none touches the network
+.venv/bin/pytest -q                       # 262 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

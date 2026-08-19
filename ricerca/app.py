@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import traceback
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -20,7 +21,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, diagnostica, history, i18n, keywords, macchina, pdf, search, watchdog
+from . import biblioteca, cache, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -45,6 +46,7 @@ templates.env.filters["apa_list"] = lambda works: [apa(w) for w in sorted(works,
 
 @asynccontextmanager
 async def ciclo_di_vita(_: FastAPI):
+    watchdog.stato.lavori_in_corso = lambda: len(lavori.in_corso())
     sorveglianza = asyncio.create_task(watchdog.sorveglia()) if watchdog.attiva() else None
     yield
     if sorveglianza is not None:
@@ -52,6 +54,31 @@ async def ciclo_di_vita(_: FastAPI):
 
 
 app = FastAPI(title="Ricerca", lifespan=ciclo_di_vita)
+
+
+@app.middleware("http")
+async def conta_le_richieste(request: Request, chiama):
+    """Finché una richiesta è in volo, l'app non si spegne da sola."""
+
+    watchdog.stato.apre_una_richiesta()
+    try:
+        return await chiama(request)
+    finally:
+        watchdog.stato.chiude_una_richiesta()
+
+
+@app.exception_handler(Exception)
+async def guasto(request: Request, eccezione: Exception):
+    """Un errore imprevisto deve lasciare una traccia leggibile, non una
+    pagina bianca: finisce nel registro e viene mostrato all'utente."""
+
+    registro.errore(
+        f"guasto su {request.url.path}",
+        f"{type(eccezione).__name__}: {eccezione}",
+    )
+    traceback.print_exception(type(eccezione), eccezione, eccezione.__traceback__)
+    testo = i18n.strings(current_config().lang)["guasto"]
+    return HTMLResponse(f'<p class="nota errore">{testo}</p>', status_code=500)
 
 
 @app.post("/battito")
@@ -84,6 +111,9 @@ def base_context(config: Config, **extra) -> dict:
         "t": i18n.strings(config.lang),
         "versione": __version__,
         "config_percorso": str(config_module.CONFIG_FILE),
+        "errori_registro": registro.quanti_errori(),
+        "voci": registro.ultime(),
+        "errori": registro.quanti_errori(),
     }
     context.update(extra)
     return context
@@ -292,15 +322,56 @@ async def cerca(
 ):
     config = current_config()
     strategy = strategy_from_form(label, terms, mesh, anno_da, anno_a, solo_articoli)
-    results, works = await search.run(strategy, fonte, max(1, min(limite, 100)), config)
-    id_ricerca = history.salva(topic, strategy, results, works)
+    limite = max(1, min(limite, 100))
 
+    async def esegui():
+        results, works = await search.run(strategy, fonte, limite, config)
+        return history.salva(topic, strategy, results, works)
+
+    lavoro = lavori.avvia(esegui(), f"ricerca: {topic[:60] or '—'}")
+    return templates.TemplateResponse(
+        request,
+        "partials/in-corso.html",
+        base_context(config, lavoro=lavoro, bersaglio="#passo-tre"),
+    )
+
+
+@app.get("/lavoro/{id_lavoro}", response_class=HTMLResponse)
+async def stato_lavoro(request: Request, id_lavoro: str, bersaglio: str = "#passo-tre"):
+    """La pagina chiede come va: finché dura mostra l'attesa, poi il risultato.
+
+    Il lavoro va avanti sul server: cambiare pagina non lo ferma, e tornando
+    qui lo si ritrova concluso.
+    """
+
+    config = current_config()
+    lavoro = lavori.prendi(id_lavoro)
+    if lavoro is None:
+        return templates.TemplateResponse(
+            request, "partials/lavoro-perso.html", base_context(config)
+        )
+    if not lavoro.finito:
+        return templates.TemplateResponse(
+            request,
+            "partials/in-corso.html",
+            base_context(config, lavoro=lavoro, bersaglio=bersaglio),
+        )
+    if lavoro.stato == "fallito":
+        return templates.TemplateResponse(
+            request,
+            "partials/lavoro-fallito.html",
+            base_context(config, lavoro=lavoro),
+        )
+
+    id_ricerca = lavoro.risultato
+    works = history.record(id_ricerca)
+    voce = history.voce(id_ricerca) or {}
     return templates.TemplateResponse(
         request,
         "partials/risultati.html",
         base_context(
             config,
-            results=results,
+            results=[],
             works=works,
             id_ricerca=id_ricerca,
             campi=list(CAMPI_PREDEFINITI),
@@ -308,7 +379,7 @@ async def cerca(
             vista="tabella",
             pdf_scaricati=_pdf_presenti(works),
             conteggi=history.conteggi(id_ricerca),
-            fonti=history.voce(id_ricerca).get("fonti", []),
+            fonti=voce.get("fonti", []),
             esito_pdf="",
             pdf_su_disco=pdf.quanti_scaricati(works),
         ),
@@ -409,6 +480,7 @@ async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
             await pdf.scarica(work, client)
         except (httpx.HTTPError, ValueError, OSError) as exc:
             errore = str(exc)[:120]
+            registro.errore(f"PDF non scaricato: {work.title[:60]}", errore)
     return templates.TemplateResponse(
         request,
         "partials/pdf.html",
@@ -534,8 +606,10 @@ async def zotero_massa(
         async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
             esito = await zotero_client.invia(da_inviare, config, client)
         messaggio = i18n.strings(config.lang)["zotero_done"].format(**esito)
+        registro.annota("Zotero", messaggio)
     except (zotero_client.ZoteroError, httpx.HTTPError, OSError) as exc:
         messaggio = i18n.strings(config.lang)["zotero_error"].format(errore=str(exc)[:160])
+        registro.errore("Zotero", str(exc)[:200])
 
     return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
 
@@ -575,6 +649,10 @@ async def pdf_massa(
     esito = i18n.strings(current_config().lang)["pdf_bulk_done"].format(
         presi=presi, falliti=falliti
     )
+    if falliti:
+        registro.errore("PDF in blocco", esito)
+    else:
+        registro.annota("PDF in blocco", esito)
     return _elenco(request, id_ricerca, campo, vista, esito_pdf=esito)
 
 
@@ -641,6 +719,33 @@ async def biblioteca_pagina(request: Request, q: str = ""):
             trovati=biblioteca.cerca(q) if q else [],
             documenti=len(biblioteca.documenti()),
         ),
+    )
+
+
+@app.get("/registro", response_class=HTMLResponse)
+async def registro_pagina(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "partials/registro.html",
+        base_context(current_config(), voci=registro.ultime(), errori=registro.quanti_errori()),
+    )
+
+
+@app.post("/registro/svuota", response_class=HTMLResponse)
+async def svuota_registro(request: Request):
+    registro.svuota()
+    return templates.TemplateResponse(
+        request,
+        "partials/registro.html",
+        base_context(current_config(), voci=[], errori=0),
+    )
+
+
+@app.get("/registro.txt", response_class=PlainTextResponse)
+async def registro_testo():
+    return PlainTextResponse(
+        registro.come_testo(),
+        headers={"Content-Disposition": 'attachment; filename="attivita.log"'},
     )
 
 

@@ -48,11 +48,11 @@ def test_query_rende_le_stringhe_per_ogni_motore():
 
 
 @respx.mock
-def test_cerca_mostra_risultati_ed_export():
+def test_cerca_mostra_risultati_ed_export(esegui_ricerca):
     respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS_FULL))
     respx.get(url__startswith="https://doaj.org").mock(return_value=httpx.Response(500))
 
-    page = client.post("/cerca", data={
+    page = esegui_ricerca(client, {
         "label": ["Concetto"], "terms": ["AI literacy"], "mesh": "",
         "fonte": ["openalex", "doaj"], "limite": "5",
     })
@@ -132,19 +132,19 @@ WORKS_OA = {"results": [{
 }]}
 
 
-def cerca_finta(**extra):
+def cerca_finta(attendi, **extra):
     dati = {"label": ["Concetto"], "terms": ["AI literacy"], "mesh": "",
             "fonte": ["openalex"], "limite": "5", "topic": "AI literacy"}
     dati.update(extra)
-    return client.post("/cerca", data=dati)
+    return attendi(client, dati)
 
 
 @respx.mock
-def test_la_ricerca_finisce_in_cronologia_ed_e_riapribile():
+def test_la_ricerca_finisce_in_cronologia_ed_e_riapribile(esegui_ricerca):
     respx.get(url__startswith="https://api.openalex.org/works").mock(
         return_value=httpx.Response(200, json=WORKS_OA))
 
-    pagina = cerca_finta()
+    pagina = cerca_finta(esegui_ricerca)
     id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
 
     cronologia = client.get("/cronologia")
@@ -156,10 +156,10 @@ def test_la_ricerca_finisce_in_cronologia_ed_e_riapribile():
 
 
 @respx.mock
-def test_i_campi_scelti_cambiano_tabella_ed_export():
+def test_i_campi_scelti_cambiano_tabella_ed_export(esegui_ricerca):
     respx.get(url__startswith="https://api.openalex.org/works").mock(
         return_value=httpx.Response(200, json=WORKS_OA))
-    pagina = cerca_finta()
+    pagina = cerca_finta(esegui_ricerca)
     id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
 
     elenco = client.post(f"/risultati/{id_ricerca}", data={"campo": ["doi", "titolo"], "vista": "tabella"})
@@ -171,10 +171,10 @@ def test_i_campi_scelti_cambiano_tabella_ed_export():
 
 
 @respx.mock
-def test_vista_apa_ed_export_dei_riferimenti():
+def test_vista_apa_ed_export_dei_riferimenti(esegui_ricerca):
     respx.get(url__startswith="https://api.openalex.org/works").mock(
         return_value=httpx.Response(200, json=WORKS_OA))
-    pagina = cerca_finta()
+    pagina = cerca_finta(esegui_ricerca)
     id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
 
     apa = client.post(f"/risultati/{id_ricerca}", data={"vista": "apa"})
@@ -185,13 +185,13 @@ def test_vista_apa_ed_export_dei_riferimenti():
 
 
 @respx.mock
-def test_scaricamento_del_pdf_aperto_e_apertura():
+def test_scaricamento_del_pdf_aperto_e_apertura(esegui_ricerca):
     respx.get(url__startswith="https://api.openalex.org/works").mock(
         return_value=httpx.Response(200, json=WORKS_OA))
     respx.get("https://esempio.org/aperto.pdf").mock(
         return_value=httpx.Response(200, content=b"%PDF-1.7\n%%EOF\n"))
 
-    pagina = cerca_finta()
+    pagina = cerca_finta(esegui_ricerca)
     id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
 
     cella = client.post(f"/pdf/{id_ricerca}/0")
@@ -203,12 +203,12 @@ def test_scaricamento_del_pdf_aperto_e_apertura():
 
 
 @respx.mock
-def test_un_pdf_irraggiungibile_lascia_un_messaggio():
+def test_un_pdf_irraggiungibile_lascia_un_messaggio(esegui_ricerca):
     respx.get(url__startswith="https://api.openalex.org/works").mock(
         return_value=httpx.Response(200, json=WORKS_OA))
     respx.get("https://esempio.org/aperto.pdf").mock(return_value=httpx.Response(403))
 
-    pagina = cerca_finta()
+    pagina = cerca_finta(esegui_ricerca)
     id_ricerca = pagina.text.split("/export/")[1].split(".bib")[0]
     cella = client.post(f"/pdf/{id_ricerca}/0")
     assert "PDF not downloaded" in cella.text

@@ -46,6 +46,13 @@
   <iframe id="lettore-telaio" title="{{ t.pdf_viewer_title }}"></iframe>
 </dialog>
 
+<details class="registro" id="registro" {% if errori_registro %}open{% endif %}>
+  <summary>{{ t.log_title }}{% if errori_registro %} · <span class="errore">{{ t.log_errors.format(quanti=errori_registro) }}</span>{% endif %}</summary>
+  <div id="registro-innesto" hx-get="/registro" hx-trigger="load, ogniTanto from:body">
+    {% include "partials/registro.html" %}
+  </div>
+</details>
+
 <footer>{{ t.footer }} · <span class="versione">Ricerca {{ versione }}</span></footer>
 <script>
 // Battito: finché una pagina è aperta il server resta vivo. Quando l'ultima
@@ -54,6 +61,11 @@ setInterval(function () {
   fetch("/battito", { method: "POST", keepalive: true }).catch(function () {});
 }, 4000);
 fetch("/battito", { method: "POST" }).catch(function () {});
+// Tornando in primo piano il battito riparte subito: i browser rallentano
+// i timer delle finestre in secondo piano.
+document.addEventListener("visibilitychange", function () {
+  if (!document.hidden) fetch("/battito", { method: "POST" }).catch(function () {});
+});
 window.addEventListener("pagehide", function () {
   navigator.sendBeacon ? navigator.sendBeacon("/chiudi") : fetch("/chiudi", { method: "POST", keepalive: true });
 });
@@ -62,6 +74,14 @@ function spunta(id, valore) {
   document.querySelectorAll('input[form="massa-' + id + '"][name="selezione"]')
     .forEach(function (casella) { casella.checked = valore; });
 }
+
+// Dopo ogni operazione il registro si aggiorna: così si vede che cosa è
+// appena successo, e soprattutto che cosa non ha funzionato.
+document.body.addEventListener("htmx:afterRequest", function (evento) {
+  const bersaglio = evento.detail && evento.detail.target;
+  if (bersaglio && bersaglio.closest && bersaglio.closest("#registro")) return;
+  document.body.dispatchEvent(new Event("ogniTanto"));
+});
 
 // Il PDF si legge dentro l'app: una finestra del browser di sistema
 // porterebbe fuori dall'applicazione.

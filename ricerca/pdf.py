@@ -18,6 +18,8 @@ from . import biblioteca
 from . import config as config_module
 from .export import cite_key, cognome
 from .models import Work
+from .i18n import strings
+from .registro import annota
 
 MAX_BYTE = 60 * 1024 * 1024
 _NON_FILE = re.compile(r"[^A-Za-z0-9._-]+")
@@ -157,6 +159,10 @@ async def scarica(work: Work, client: httpx.AsyncClient):
     percorso = cartella() / nome_libero(work)
     percorso.write_bytes(contenuto)
     _annota(work, percorso.name)
+    annota(
+        strings(config_module.load().lang)["log_pdf_saved"],
+        f"{percorso.name} · {len(contenuto) // 1024} KB",
+    )
     biblioteca.estrai(percorso)  # il testo serve per cercare dentro i PDF
     return percorso
 
