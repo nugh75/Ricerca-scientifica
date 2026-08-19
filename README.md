@@ -4,6 +4,10 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
+> **Beta.** It works and is used daily, but interfaces, file names and stored
+> formats can still change between versions. Problems and suggestions:
+> [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
+
 **English** · [Italiano](#italiano)
 
 ![Suggested searches](https://raw.githubusercontent.com/nugh75/Ricerca-scientifica/main/docs/screenshot/2-ricerche-suggerite.png)
@@ -188,6 +192,10 @@ they are read.
 ---
 
 # Italiano
+
+> **Beta.** Funziona e si usa tutti i giorni, ma interfaccia, nomi dei file e
+> formati salvati possono ancora cambiare da una versione all'altra. Problemi e
+> proposte: [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
 
 Assistente di ricerca bibliografica. Trasforma un argomento in parole chiave,
 stringhe di ricerca pronte per ogni banca dati e un elenco di articoli da

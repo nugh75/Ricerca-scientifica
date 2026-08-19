@@ -27,10 +27,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" dist/* \
-            --title "Ricerca ${{ github.ref_name }}" \
+          # Le versioni con lettere (b1, rc1) sono anteprime: GitHub le
+          # segnala come tali e non le propone come ultima stabile.
+          ANTEPRIMA=""
+          case "${{ github.ref_name }}" in *[a-z]*[0-9]) ANTEPRIMA="--prerelease" ;; esac
+          gh release create "${{ github.ref_name }}" dist/* $ANTEPRIMA \
+            --title "Ricerca ${{ github.ref_name }} — beta" \
             --notes "$(cat <<'NOTE'
           ## English
+
+          **Beta.** It works and it is used daily, but interfaces, file names
+          and stored formats can still change between versions. Problems and
+          suggestions: open an issue.
 
           Download the archive for your system, extract it and start it.
 
@@ -51,6 +59,10 @@ jobs:
           under Settings. Closing the window quits the app.
 
           ## Italiano
+
+          **Beta.** Funziona e si usa tutti i giorni, ma interfaccia, nomi dei
+          file e formati salvati possono ancora cambiare da una versione
+          all'altra. Problemi e proposte: apri una segnalazione.
 
           Scarica l'archivio del tuo sistema, estrailo e avvia.
 
