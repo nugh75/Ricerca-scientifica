@@ -244,6 +244,29 @@ chiamate per suggerimento (~$0.021) a una ($0.001).
 Il messaggio d'errore delle API viene mostrato anche quando non è JSON, così
 un `400` spiega da sé che cosa non va invece di restare un codice muto.
 
+## Sistema visivo
+
+Derivato da `design.md` («Zero Interface»), con quattro scelte fatte in
+accordo con chi commissiona:
+
+- **un solo accento**, grafite desaturato `#3a4a5c` su fondo `#fafafa`; il
+  resto è scala di grigi. Niente nero pieno, niente gradienti;
+- **System UI** per il testo (nessun carattere da scaricare, resa immediata)
+  e **JetBrains Mono** per query, conteggi e dati;
+- **struttura invariata**: cambia l'aspetto, non dove stanno le cose;
+- **nessuna icona**: numeri per i passi, parole per il resto.
+
+Dal documento vengono anche: unità di spaziatura da 8 px, raggio 8 px, ombre
+non oltre `0 2px 8px rgba(0,0,0,.08)`, larghezza massima 1280 px, etichetta
+sopra il campo, anello di fuoco da 2 px scostato di 2, ingresso in dissolvenza
+con traslazione di 16 px in 420 ms, e una barra che scorre al posto della
+rotella d'attesa. Il tema scuro non è nel documento: i valori sono derivati
+tenendo il carbone al posto del nero.
+
+Restano fuori le parti pensate per le landing page — sezioni a zig-zag, eroe
+a schermo diviso — e quelle per interfacce vocali o gestuali, che qui non
+hanno oggetto.
+
 ## Stato
 
 182 test, nessuno tocca la rete; altri 8 a contratto, che la interrogano

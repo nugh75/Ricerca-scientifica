@@ -128,3 +128,24 @@ def test_con_no_browser_non_si_apre_niente(monkeypatch):
     monkeypatch.setattr(finestra, "apri", lambda *a, **k: aperture.append(a))
     assert cli.main(["serve", "--no-browser"]) == 0
     assert aperture == []
+
+
+def test_ogni_classe_dei_template_ha_una_regola_di_stile():
+    """Una classe senza regola passa i test ma sfalda la pagina."""
+
+    import re
+    from pathlib import Path
+
+    radice = Path(__file__).resolve().parent.parent
+    modelli = list((radice / "ricerca/templates").rglob("*.html"))
+    usate = set()
+    for modello in modelli:
+        for gruppo in re.findall(r'class="([a-z0-9 _-]+)"', modello.read_text()):
+            usate.update(gruppo.split())
+
+    foglio = (radice / "ricerca/static/style.css").read_text()
+    definite = set(re.findall(r"\.([a-z][a-z0-9_-]*)", foglio))
+    # Alcune classi sono solo agganci per htmx o per il codice, non per lo stile.
+    solo_agganci = {"salta"}   # form senza campi, agganciato dai bottoni
+
+    assert not (usate - definite - solo_agganci)
