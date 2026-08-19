@@ -28,6 +28,7 @@ PRESETS = {
 class Config:
     lang: str = "en"
     tema: str = "auto"
+    densita: str = "comoda"
     configurato: str = ""
     mailto: str = ""
     llm_base_url: str = ""

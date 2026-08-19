@@ -109,3 +109,20 @@ def consiglio(memoria=RILEVA, silicio_apple=RILEVA) -> list[Modello]:
         else Modello("qwen3.8:27b", "18 GB", "reason_big_gpu")
     )
     return [prima, Modello("gemma4:26b-a4b-it-qat", "16 GB", "reason_comfortable")]
+
+
+def limite_consigliato(memoria=RILEVA) -> int:
+    """Quanti record per fonte chiedere senza appesantire questa macchina.
+
+    Ogni record diventa una riga con i suoi comandi: su una macchina modesta
+    duecento righe si sentono nello scorrimento.
+    """
+
+    memoria = memoria_gb() if memoria is RILEVA else memoria
+    if memoria is None:
+        return 25
+    if memoria < 8:
+        return 15
+    if memoria < 16:
+        return 25
+    return 50

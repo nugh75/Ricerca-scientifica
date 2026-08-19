@@ -1,12 +1,9 @@
 <!doctype html>
-<html lang="{{ lang }}" data-tema="{{ tema }}">
+<html lang="{{ lang }}" data-tema="{{ tema }}" data-densita="{{ densita }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Ricerca{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="icon" href="/static/icona.png" type="image/png">
 <link rel="manifest" href="/static/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/static/icona-180.png">
@@ -25,6 +22,7 @@
     <a href="/cronologia">{{ t.nav_history }}</a>
     <a href="/biblioteca">{{ t.nav_library }}</a>
     <a href="/impostazioni">{{ t.nav_settings }}</a>
+    {% include "partials/densita.html" %}
     {% include "partials/tema.html" %}
     <span class="lingue">
       <button type="button" class="lingua {% if lang == 'it' %}attiva{% endif %}" hx-post="/lingua/it" hx-target="body" hx-swap="outerHTML" lang="it">IT</button>
@@ -74,6 +72,36 @@ function spunta(id, valore) {
   document.querySelectorAll('input[form="massa-' + id + '"][name="selezione"]')
     .forEach(function (casella) { casella.checked = valore; });
 }
+
+// Tasti rapidi per lo screening: con centocinquanta record da valutare,
+// spostare il mouse su tre bottoni per riga è il grosso del lavoro.
+const SCORCIATOIE = { i: "incluso", f: "forse", e: "escluso" };
+document.addEventListener("keydown", function (evento) {
+  if (evento.metaKey || evento.ctrlKey || evento.altKey) return;
+  const dentroUnCampo = /^(input|textarea|select)$/i.test((evento.target.tagName || ""));
+  if (dentroUnCampo) return;
+  const riga = evento.target.closest && evento.target.closest("tr[data-riga]");
+  if (!riga) return;
+
+  if (evento.key === "ArrowDown" || evento.key === "ArrowUp") {
+    const vicina = evento.key === "ArrowDown" ? riga.nextElementSibling : riga.previousElementSibling;
+    if (vicina && vicina.hasAttribute("data-riga")) {
+      vicina.focus();
+      evento.preventDefault();
+    }
+    return;
+  }
+
+  const stato = SCORCIATOIE[evento.key.toLowerCase()];
+  if (!stato) return;
+  const bottone = [...riga.querySelectorAll(".segno")].find(
+    (b) => (b.getAttribute("hx-vals") || "").includes('"' + stato + '"')
+  );
+  if (bottone) {
+    bottone.click();
+    evento.preventDefault();
+  }
+});
 
 // Dopo ogni operazione il registro si aggiorna: così si vede che cosa è
 // appena successo, e soprattutto che cosa non ha funzionato.

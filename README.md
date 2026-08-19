@@ -76,6 +76,11 @@ configure later, and reopen it any time from Settings.
 Exports: `.bib`, `.csv` with the fields you choose, APA 7 references, and the
 search protocol.
 
+The list is paged at fifty records, rows can be screened from the keyboard
+(`i`, `f`, `e`, arrows to move), and the layout follows the screen: on a phone
+each record becomes a card, on a wide monitor the tables use the room. `roomy`
+/ `compact` in the header changes the density; both stay remembered.
+
 At the foot of every page there is a **log of what the app is doing**: one line
 per database with the query sent, the records found and the time, and in red
 whatever failed. Nothing fails silently — unexpected faults land there too, and
@@ -126,7 +131,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 266 tests, none touches the network
+.venv/bin/pytest -q                       # 279 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -229,6 +234,12 @@ vuole da Impostazioni.
 Export: `.bib`, `.csv` con i campi che scegli, riferimenti APA 7 e il
 protocollo di ricerca.
 
+L'elenco è diviso in pagine da cinquanta record, lo screening si fa anche da
+tastiera (`i`, `f`, `e`, frecce per spostarsi) e l'impaginato segue lo schermo:
+sul telefono ogni record diventa una scheda, su un monitor largo le tabelle
+usano lo spazio. In testata `comoda` / `compatta` cambia la densità; entrambe
+le scelte restano memorizzate.
+
 In fondo a ogni pagina c'è **il registro di quel che l'app sta facendo**: una
 riga per banca dati con la stringa inviata, i record trovati e il tempo, in
 rosso ciò che non ha funzionato. Nessun errore resta muto: anche i guasti
@@ -280,7 +291,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 266 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 279 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

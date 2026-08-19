@@ -1,5 +1,5 @@
 {% if works %}
-<p class="riepilogo"><b>{{ works|length }}</b> {{ t.summary_tail }}</p>
+<p class="riepilogo"><b>{{ totale }}</b> {{ t.summary_tail }}{% if pagine > 1 %} · {{ t.page_of.format(pagina=pagina, pagine=pagine) }}{% endif %}</p>
 <div class="scarica">
   <span class="etichetta-scarica">{{ t.downloads_title }}</span>
   <a class="tasto" href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib_btn }}</a>
@@ -26,7 +26,8 @@
   {% for riferimento in works|apa_list %}<li>{{ riferimento }}</li>{% endfor %}
 </ol>
 {% else %}
-<table>
+<div class="scorre">
+<table class="risultati">
   <thead><tr>
     <th class="spunta"></th>
     {% for campo in campi %}<th>{{ t['field_' ~ campo] }}</th>{% endfor %}
@@ -34,37 +35,54 @@
   </tr></thead>
   <tbody>
   {% for w in works %}
-  {% set riga = loop.index0 %}
-  <tr>
+  {% set riga = inizio + loop.index0 %}
+  <tr tabindex="0" data-riga="{{ riga }}">
     <td class="spunta"><input type="checkbox" form="massa-{{ id_ricerca }}" name="selezione" value="{{ riga }}"
                               aria-label="{{ t.bulk_title }} {{ riga + 1 }}"></td>
     {% for campo in campi %}
     {% if campo == 'titolo' %}
-      <td>{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}</td>
     {% elif campo == 'anno' %}
-      <td class="anno">{{ w.year or '—' }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="anno">{{ w.year or '—' }}</td>
     {% elif campo == 'autori' %}
-      <td>{{ w.authors_short }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.authors_short }}</td>
     {% elif campo == 'sede' %}
-      <td>{{ w.venue or '' }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.venue or '' }}</td>
     {% elif campo == 'doi' %}
-      <td class="fonti-cella">{{ w.doi or '' }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{{ w.doi or '' }}</td>
     {% elif campo == 'url' %}
-      <td class="fonti-cella">{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.url }}</a>{% endif %}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.url }}</a>{% endif %}</td>
     {% elif campo == 'abstract' %}
-      <td class="abstract">{{ (w.abstract or '')[:400] }}{% if w.abstract and w.abstract|length > 400 %}…{% endif %}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="abstract">{{ (w.abstract or '')[:400] }}{% if w.abstract and w.abstract|length > 400 %}…{% endif %}</td>
     {% elif campo == 'fonti' %}
-      <td class="fonti-cella">{{ w.sources|join(' · ') }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{{ w.sources|join(' · ') }}</td>
     {% elif campo == 'pdf' %}
-      <td class="fonti-cella">{{ w.oa_url or '' }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{{ w.oa_url or '' }}</td>
     {% endif %}
     {% endfor %}
-    <td class="cella-pdf">{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
-    <td class="cella-screening">{% with work = w, indice = riga, fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}</td>
+    <td class="cella-pdf" data-etichetta="{{ t.pdf_column }}">{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
+    <td class="cella-screening" data-etichetta="{{ t.screening_title }}">{% with work = w, indice = riga, fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}</td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
+<p class="aiuto">{{ t.shortcuts_hint }}</p>
+{% endif %}
+{% if pagine > 1 %}
+<div class="pagine">
+  {% if pagina > 1 %}
+  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+          hx-vals='{"pagina": {{ pagina - 1 }}, "vista": "{{ vista }}"}'
+          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.page_previous }}</button>
+  {% endif %}
+  <span class="conteggi">{{ t.page_of.format(pagina=pagina, pagine=pagine) }}</span>
+  {% if pagina < pagine %}
+  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+          hx-vals='{"pagina": {{ pagina + 1 }}, "vista": "{{ vista }}"}'
+          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.page_next }}</button>
+  {% endif %}
+</div>
 {% endif %}
 {% else %}
 <p class="nota">{{ t.empty_results }}</p>

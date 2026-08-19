@@ -1,3 +1,55 @@
+/* JetBrains Mono, incluso nel pacchetto: chi usa un modello locale
+   spesso lavora senza rete, e un carattere da scaricare ripiegherebbe
+   su quello di sistema. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/font/jetbrains-mono-400-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/static/font/jetbrains-mono-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/static/font/jetbrains-mono-500-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/static/font/jetbrains-mono-500-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/static/font/jetbrains-mono-600-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/static/font/jetbrains-mono-600-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* Ricerca — sistema visivo derivato da design.md («Zero Interface»).
    Grigi e bianchi, un solo accento grafite desaturato, System UI per il
    testo e JetBrains Mono per query e dati. Nessun gradiente, nessun nero
@@ -83,7 +135,7 @@ body {
 header {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--u2) var(--u3); flex-wrap: wrap;
-  max-width: 1280px; margin: 0 auto; padding: var(--u3) var(--u3) var(--u2);
+  max-width: min(96vw, 1680px); margin: 0 auto; padding: var(--u3) var(--u3) var(--u2);
   border-bottom: 1px solid var(--riga);
 }
 .brand { font: 600 1.25rem/1.2 var(--testo-famiglia); letter-spacing: -.01em; color: var(--testo); text-decoration: none; }
@@ -103,9 +155,9 @@ a {
 }
 a:hover { text-decoration-color: var(--accento); }
 
-main { max-width: 1280px; margin: 0 auto; padding: 0 var(--u3) var(--u6); }
+main { max-width: min(96vw, 1680px); margin: 0 auto; padding: 0 var(--u3) var(--u6); }
 footer {
-  max-width: 1280px; margin: 0 auto; padding: 0 var(--u3) var(--u4);
+  max-width: min(96vw, 1680px); margin: 0 auto; padding: 0 var(--u3) var(--u4);
   font-size: .875rem; color: var(--testo-tenue);
 }
 
@@ -350,7 +402,7 @@ a.tasto em { font-style: normal; font-family: var(--mono); font-size: .75rem; co
 
 /* ── registro delle attività ───────────────────────────────── */
 .registro {
-  max-width: 1280px; margin: 0 auto var(--u3); padding: 0 var(--u3);
+  max-width: min(96vw, 1680px); margin: 0 auto var(--u3); padding: 0 var(--u3);
 }
 .registro > summary {
   cursor: pointer; padding: var(--u2) 0; border-top: 1px solid var(--riga);
@@ -380,3 +432,53 @@ ol.registro-voci .riga-errore, ol.registro-voci li.riga-errore .azione { color: 
   background: linear-gradient(90deg, var(--riga) 0%, var(--accento) 50%, var(--riga) 100%);
   background-size: 200% 100%; animation: scorre 1.2s ease-in-out infinite;
 }
+
+/* ── 1. contenuto largo: scorre dentro il suo riquadro, mai la pagina ── */
+.scorre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.scorre > table { min-width: 44rem; }
+
+/* ── 2. sotto i 768 px la tabella diventa un elenco di schede ────────── */
+@media (max-width: 48rem) {
+  /* Solo l'elenco dei risultati diventa schede: le altre tabelle restano
+     tabelle e continuano a scorrere dentro il loro riquadro. */
+  .scorre > table.risultati { min-width: 0; display: block; }
+  table.risultati thead { display: none; }
+  table.risultati tbody, table.risultati tr, table.risultati td { display: block; width: 100%; }
+  table.risultati tr {
+    border: 1px solid var(--riga); border-radius: var(--raggio);
+    background: var(--scheda); padding: var(--u2); margin-bottom: var(--u2);
+  }
+  table.risultati td { border: 0; padding: .25rem 0; }
+  table.risultati td[data-etichetta]::before {
+    content: attr(data-etichetta); display: block;
+    font: 500 .6875rem/1.4 var(--testo-famiglia); letter-spacing: .06em;
+    text-transform: uppercase; color: var(--testo-tenue);
+  }
+  table.risultati td:empty { display: none; }
+  table.risultati .screening { max-width: none; }
+  table.fonti-statistiche code { max-width: none; }
+}
+
+/* ── 4. densità: comoda oppure compatta ─────────────────────────────── */
+html[data-densita="compatta"] {
+  --u1: .375rem; --u2: .75rem; --u3: 1rem; --u4: 1.25rem; --u6: 2rem;
+}
+html[data-densita="compatta"] body { font-size: 15px; }
+html[data-densita="compatta"] tbody td { padding-top: .375rem; padding-bottom: .375rem; }
+html[data-densita="compatta"] .scheda { padding: var(--u2) var(--u3); }
+html[data-densita="compatta"] .passo > h1 { font-size: 1.75rem; }
+html[data-densita="compatta"] .passo > h2 { font-size: 1.25rem; }
+html[data-densita="compatta"] .motivo { width: 6rem; }
+
+/* ── 5. i comandi restano a portata scorrendo elenchi lunghi ─────────── */
+form.comandi {
+  position: sticky; top: 0; z-index: 3;
+  background: var(--scheda); border-color: var(--bordo);
+}
+@media (max-width: 48rem) { form.comandi { position: static; } }
+
+.densita { display: inline-flex; gap: 2px; }
+
+.pagine { display: flex; align-items: center; gap: var(--u2); margin: var(--u3) 0; }
+
+tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px; background: var(--accento-tenue); }

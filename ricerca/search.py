@@ -57,6 +57,15 @@ async def run(
     grezzi = [w for result in results for w in result.works]
     works = merge(grezzi)
     etichette = strings(config.lang)
+    if results and all(r.error == SENZA_RETE for r in results):
+        # Otto errori identici non aggiungono nulla: uno solo, chiaro.
+        for risultato in results:
+            risultato.error = etichette["err_senza_rete"]
+        errore(etichette["err_senza_rete"])
+    else:
+        for risultato in results:
+            if risultato.error == SENZA_RETE:
+                risultato.error = etichette["err_rete_fonte"]
     annota(
         etichette["log_search_done"],
         etichette["log_search_summary"].format(
@@ -144,12 +153,15 @@ def statistiche(results: list[SourceResult], works: list[Work]) -> list[dict]:
     return righe
 
 
+SENZA_RETE = "\u2205rete"          # marcatore interno, non finisce a schermo
+
+
 def _message(exc: Exception, t: dict[str, str]) -> str:
+    if isinstance(exc, httpx.TransportError):
+        return SENZA_RETE
     if isinstance(exc, httpx.HTTPStatusError):
         spiegazione = messaggio_api(exc.response)
         codice = exc.response.status_code
         return f"HTTP {codice} — {spiegazione}" if spiegazione else f"HTTP {codice}"
-    if isinstance(exc, httpx.TimeoutException):
-        return t["err_timeout"]
     text = str(exc) or exc.__class__.__name__
     return text[:200]

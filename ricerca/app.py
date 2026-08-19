@@ -108,6 +108,7 @@ def base_context(config: Config, **extra) -> dict:
         "config": config,
         "lang": config.lang,
         "tema": config.tema if config.tema in ("chiaro", "scuro") else "auto",
+        "densita": config.densita if config.densita == "compatta" else "comoda",
         "t": i18n.strings(config.lang),
         "versione": __version__,
         "config_percorso": str(config_module.CONFIG_FILE),
@@ -127,6 +128,16 @@ async def cambia_tema(request: Request, tema: str):
     config.tema = tema if tema in ("chiaro", "scuro", "auto") else "auto"
     config_module.save(config)
     return templates.TemplateResponse(request, "partials/tema.html", base_context(config))
+
+
+@app.post("/densita/{densita}", response_class=HTMLResponse)
+async def cambia_densita(request: Request, densita: str):
+    """Righe comode o compatte: dipende da quanto schermo si ha."""
+
+    config = current_config()
+    config.densita = "compatta" if densita == "compatta" else "comoda"
+    config_module.save(config)
+    return templates.TemplateResponse(request, "partials/densita.html", base_context(config))
 
 
 @app.post("/lingua/{lang}")
@@ -280,6 +291,7 @@ async def suggerimenti(request: Request, topic: str = Form(...)):
             sources=sources_registry.executable(),
             copy_only=sources_registry.copy_only(),
             selected=sources_registry.DEFAULT_SELECTED,
+            limite_predefinito=macchina.limite_consigliato(),
         ),
     )
 
@@ -363,26 +375,10 @@ async def stato_lavoro(request: Request, id_lavoro: str):
             base_context(config, lavoro=lavoro),
         )
 
-    id_ricerca = lavoro.risultato
-    works = history.record(id_ricerca)
-    voce = history.voce(id_ricerca) or {}
     return templates.TemplateResponse(
         request,
         "partials/risultati.html",
-        base_context(
-            config,
-            results=[],
-            works=works,
-            id_ricerca=id_ricerca,
-            campi=list(CAMPI_PREDEFINITI),
-            tutti_i_campi=CAMPI,
-            vista="tabella",
-            pdf_scaricati=_pdf_presenti(works),
-            conteggi=history.conteggi(id_ricerca),
-            fonti=voce.get("fonti", []),
-            esito_pdf="",
-            pdf_su_disco=pdf.quanti_scaricati(works),
-        ),
+        base_context(config, results=[], **contesto_elenco(lavoro.risultato, [], "tabella")),
     )
 
 
@@ -402,25 +398,56 @@ def _pdf_presenti(works: list[Work]) -> dict[int, bool]:
     return {i: pdf.gia_scaricato(w) is not None for i, w in enumerate(works)}
 
 
-def _elenco(request: Request, id_ricerca: str, campo: list[str], vista: str, esito_pdf: str = ""):
-    works = history.record(id_ricerca)
+# Cinquanta record per pagina: oltre, la pagina si appesantisce e sulle
+# macchine modeste lo scorrimento si sente.
+PER_PAGINA = 50
+
+
+def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1, esito_pdf: str = "") -> dict:
+    """Tutto ciò che serve a disegnare un elenco di risultati, in un posto solo.
+
+    Ci si arriva da tre strade — ricerca appena conclusa, cambio dei campi,
+    ricerca riaperta dalla cronologia — e devono mostrare le stesse cose.
+    """
+
+    tutti = history.record(id_ricerca)
     voce = history.voce(id_ricerca) or {}
+    pagine = max(1, -(-len(tutti) // PER_PAGINA))
+    pagina = min(max(1, pagina), pagine)
+    inizio = (pagina - 1) * PER_PAGINA
+    return {
+        "works": tutti[inizio : inizio + PER_PAGINA],
+        "id_ricerca": id_ricerca,
+        "campi": normalizza_campi(campo),
+        "tutti_i_campi": CAMPI,
+        "vista": "apa" if vista == "apa" else "tabella",
+        "pdf_scaricati": _pdf_presenti(tutti),
+        "quando": voce.get("quando", ""),
+        "conteggi": history.conteggi(id_ricerca),
+        "fonti": voce.get("fonti", []),
+        "esito_pdf": esito_pdf,
+        "pdf_su_disco": pdf.quanti_scaricati(tutti),
+        "pagina": pagina,
+        "pagine": pagine,
+        "inizio": inizio,
+        "totale": len(tutti),
+    }
+
+
+def _elenco(
+    request: Request,
+    id_ricerca: str,
+    campo: list[str],
+    vista: str,
+    esito_pdf: str = "",
+    pagina: int = 1,
+):
     return templates.TemplateResponse(
         request,
         "partials/elenco.html",
         base_context(
             current_config(),
-            works=works,
-            id_ricerca=id_ricerca,
-            campi=normalizza_campi(campo),
-            tutti_i_campi=CAMPI,
-            vista="apa" if vista == "apa" else "tabella",
-            pdf_scaricati=_pdf_presenti(works),
-            quando=voce.get("quando", ""),
-            conteggi=history.conteggi(id_ricerca),
-            fonti=voce.get("fonti", []),
-            esito_pdf=esito_pdf,
-            pdf_su_disco=pdf.quanti_scaricati(works),
+            **contesto_elenco(id_ricerca, campo, vista, pagina, esito_pdf),
         ),
     )
 
@@ -431,10 +458,11 @@ async def risultati(
     id_ricerca: str,
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
+    pagina: int = Form(default=1),
 ):
     """Ridisegna l'elenco con i campi scelti, come tabella o come lista APA."""
 
-    return _elenco(request, id_ricerca, campo, vista)
+    return _elenco(request, id_ricerca, campo, vista, pagina=pagina)
 
 
 def _campi_da_query(campi: str | None) -> list[str]:
@@ -763,25 +791,10 @@ async def cronologia_voce(request: Request, id_ricerca: str):
     voce = history.voce(id_ricerca)
     if voce is None:
         return RedirectResponse("/cronologia", status_code=303)
-    works = history.record(id_ricerca)
     return templates.TemplateResponse(
         request,
         "ricerca_salvata.html",
-        base_context(
-            current_config(),
-            voce=voce,
-            works=works,
-            id_ricerca=id_ricerca,
-            campi=list(CAMPI_PREDEFINITI),
-            tutti_i_campi=CAMPI,
-            vista="tabella",
-            pdf_scaricati=_pdf_presenti(works),
-            quando=voce.get("quando", ""),
-            conteggi=history.conteggi(id_ricerca),
-            fonti=voce.get("fonti", []),
-            esito_pdf="",
-            pdf_su_disco=pdf.quanti_scaricati(works),
-        ),
+        base_context(current_config(), voce=voce, **contesto_elenco(id_ricerca, [], "tabella")),
     )
 
 

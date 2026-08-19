@@ -8,6 +8,7 @@
 
   {% if voci %}
   <div class="scheda">
+    <div class="scorre">
     <table>
       <thead><tr>
         <th>{{ t.history_when }}</th><th>{{ t.history_topic }}</th>
@@ -31,6 +32,7 @@
       {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
   <form method="post" action="/cronologia/svuota" class="azioni">
     <button type="submit">{{ t.history_clear }}</button>

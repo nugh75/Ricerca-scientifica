@@ -1,0 +1,7 @@
+<span class="densita" id="densita">
+  {% for valore, etichetta in (('comoda', t.density_comfortable), ('compatta', t.density_compact)) %}
+  <button type="button" class="lingua {% if densita == valore %}attiva{% endif %}"
+          hx-post="/densita/{{ valore }}" hx-target="#densita" hx-swap="outerHTML"
+          onclick="document.documentElement.setAttribute('data-densita', '{{ valore }}')">{{ etichetta }}</button>
+  {% endfor %}
+</span>

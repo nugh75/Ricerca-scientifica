@@ -19,4 +19,6 @@ Generati con Playwright dalla app in esecuzione in locale.
 | `4-impostazioni.png` | settings / impostazioni |
 | `10-tema-scuro.png`, `11-tema-chiaro.png`, `16-link-scuro.png` | dark and light theme / tema scuro e chiaro |
 | `7-italiano.png` | Italian interface / interfaccia in italiano |
+| `18-telefono.png` | records as cards on a phone / record a schede sul telefono |
+| `19-compatta.png` | compact density / densità compatta |
 | `17-risultati-puliti.png` | results, no nesting / risultati senza annidamenti |
