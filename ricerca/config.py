@@ -36,6 +36,7 @@ class Config:
     core_api_key: str = ""
     s2_api_key: str = ""
     ncbi_api_key: str = ""
+    openalex_api_key: str = ""
     zotero_api_key: str = ""
     zotero_library_id: str = ""
     zotero_library_type: str = "users"

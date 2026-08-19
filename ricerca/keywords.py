@@ -139,6 +139,8 @@ async def _openalex(topic: str, client: httpx.AsyncClient, config: Config):
     params = {"search": topic, "per_page": "50", "select": "title,topics,keywords"}
     if config.mailto_valido:
         params["mailto"] = config.mailto_valido
+    if config.openalex_api_key:
+        params["api_key"] = config.openalex_api_key
     response = await client.get(f"{OPENALEX}/works", params=params, timeout=25)
     response.raise_for_status()
     risultati = response.json().get("results", [])

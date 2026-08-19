@@ -16,8 +16,8 @@ class OpenAlex(Source):
     homepage = "https://openalex.org"
 
     def avviso(self, config: Config, lang: str | None = None) -> str | None:
-        # Dal 2026 le richieste sono a consumo: c'è un budget giornaliero.
-        return strings(lang)["openalex_budget"]
+        # Senza chiave si finisce nella corsia anonima, limitata e a budget.
+        return None if config.openalex_api_key else strings(lang)["openalex_budget"]
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
         pezzi = [f"title_and_abstract.search:{query}"]
@@ -34,6 +34,8 @@ class OpenAlex(Source):
         }
         if config.mailto_valido:
             params["mailto"] = config.mailto_valido
+        if config.openalex_api_key:
+            params["api_key"] = config.openalex_api_key
         response = await client.get(API, params=params, timeout=25)
         response.raise_for_status()
         return [_work(item) for item in response.json().get("results", [])]

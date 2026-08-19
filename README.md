@@ -121,11 +121,14 @@ In CI li produce `.github/workflows/release.yml` a ogni tag `v*`.
 
 ## Chiavi ed email: tutto dall'interfaccia
 
-Dal 2026 OpenAlex misura le richieste a consumo. L'app ne fa **una sola** per
-suggerimento: temi e parole chiave si leggono nei primi cinquanta risultati
-invece di chiamare gli endpoint `/text/*`, che costano dieci volte tanto.
-Quando il budget giornaliero finisce, OpenAlex risponde `429`: l'app mostra il
-messaggio così com'è e continua con le altre fonti. L'email di cortesia resta utile e viene spedita solo se è un
+Dal 2026 OpenAlex misura le richieste. Senza chiave si usa la corsia anonima,
+che ha un budget giornaliero e poi risponde `429`; la **chiave è gratuita** e
+si richiede in un minuto su [openalex.org/rest-api](https://openalex.org/rest-api).
+È il singolo campo che più cambia la qualità dei suggerimenti.
+
+L'app fa comunque **una sola** chiamata per suggerimento: temi e parole chiave
+si leggono nei primi cinquanta risultati invece di chiamare gli endpoint
+`/text/*`, che costano dieci volte tanto. L'email di cortesia resta utile e viene spedita solo se è un
 indirizzo valido: un `mailto` malformato fa rispondere `400`.
 
 Nessuna chiave è obbligatoria e nessuna va scritta in un file a mano.
@@ -134,7 +137,8 @@ Dalla pagina **Impostazioni**:
 - **email di cortesia** — OpenAlex la usa per concedere limiti di richiesta
   più larghi; senza, risponde spesso `429`. Si può inserire anche dalla
   pagina iniziale, al primo avvio;
-- **chiave Semantic Scholar**, **chiave CORE**, **chiave NCBI/PubMed**;
+- **chiave OpenAlex** (gratuita), **chiave Semantic Scholar**, **chiave CORE**,
+  **chiave NCBI/PubMed**;
 - **chiave e libreria Zotero**, per spedire i record inclusi nella tua
   libreria con un bottone;
 - **endpoint e modello LLM** (facoltativi: servono anche a tradurre un topic
@@ -162,7 +166,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 231 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 238 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -335,7 +339,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 231 tests, none touches the network
+.venv/bin/pytest -q                       # 238 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

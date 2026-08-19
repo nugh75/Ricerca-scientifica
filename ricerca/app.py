@@ -133,6 +133,7 @@ async def salva_benvenuto(
     core_api_key: str = Form(default=""),
     s2_api_key: str = Form(default=""),
     ncbi_api_key: str = Form(default=""),
+    openalex_api_key: str = Form(default=""),
     zotero_api_key: str = Form(default=""),
     zotero_library_id: str = Form(default=""),
     lingua: str = Form(default="en"),
@@ -150,6 +151,7 @@ async def salva_benvenuto(
         ("core_api_key", core_api_key),
         ("s2_api_key", s2_api_key),
         ("ncbi_api_key", ncbi_api_key),
+        ("openalex_api_key", openalex_api_key),
         ("zotero_api_key", zotero_api_key),
     ):
         if valore.strip():
@@ -691,7 +693,10 @@ async def impostazioni(request: Request, salvato: int = 0):
     )
 
 
-SECRET_FIELDS = ("llm_api_key", "core_api_key", "s2_api_key", "ncbi_api_key", "zotero_api_key")
+SECRET_FIELDS = (
+    "llm_api_key", "core_api_key", "s2_api_key", "ncbi_api_key",
+    "zotero_api_key", "openalex_api_key",
+)
 
 
 @app.post("/impostazioni")
@@ -703,6 +708,7 @@ async def salva_impostazioni(
     core_api_key: str = Form(default=""),
     s2_api_key: str = Form(default=""),
     ncbi_api_key: str = Form(default=""),
+    openalex_api_key: str = Form(default=""),
     zotero_api_key: str = Form(default=""),
     zotero_library_id: str = Form(default=""),
     zotero_library_type: str = Form(default="users"),
@@ -727,6 +733,7 @@ async def salva_impostazioni(
         "core_api_key": core_api_key.strip(),
         "s2_api_key": s2_api_key.strip(),
         "ncbi_api_key": ncbi_api_key.strip(),
+        "openalex_api_key": openalex_api_key.strip(),
         "zotero_api_key": zotero_api_key.strip(),
     }
     for campo, valore in nuovi.items():

@@ -78,6 +78,11 @@
   <p>{{ t.welcome_keys_body }}</p>
 
   <div class="scheda">
+    <p>{{ t.welcome_key_openalex }}</p>
+    <label for="openalex_api_key">{{ t.settings_openalex }}</label>
+    <input id="openalex_api_key" name="openalex_api_key" type="password" autocomplete="off"
+           placeholder="{% if config.openalex_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+
     <p>{{ t.welcome_key_s2 }}</p>
     <label for="s2_api_key">{{ t.settings_s2 }}</label>
     <input id="s2_api_key" name="s2_api_key" type="password" autocomplete="off"

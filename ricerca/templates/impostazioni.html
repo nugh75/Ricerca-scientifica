@@ -31,6 +31,12 @@
     <h3>{{ t.settings_sources }}</h3>
     <label for="mailto">{{ t.settings_mailto }}</label>
     <input id="mailto" name="mailto" value="{{ config.mailto }}" placeholder="{{ t.mailto_placeholder }}">
+    <label for="openalex_api_key">{{ t.settings_openalex }}</label>
+    <span class="chiave">
+      <input id="openalex_api_key" name="openalex_api_key" type="password" autocomplete="off"
+             placeholder="{% if config.openalex_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
+      {% if config.openalex_api_key %}<label class="rimuovi"><input type="checkbox" name="rimuovi" value="openalex_api_key"> {{ t.key_remove }}</label>{% endif %}
+    </span>
     <label for="s2_api_key">{{ t.settings_s2 }}</label>
     <span class="chiave">
       <input id="s2_api_key" name="s2_api_key" type="password" autocomplete="off"
