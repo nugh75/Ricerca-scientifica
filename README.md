@@ -70,8 +70,12 @@ configure later, and reopen it any time from Settings.
    reason, one at a time or in bulk on the ticked records. Counters follow the
    PRISMA flow; the protocol export gathers strings, numbers and decisions for
    your Methods section, as Markdown or plain text.
-5. **PDFs** — open-access articles download with one button, per row or all at
-   once, and open in a reader **inside the app**. Files are named
+5. **PDFs** — **Unpaywall** fills in what the databases left out: venue, year,
+   authors, and above all the open copies deposited in repositories when the
+   publisher charges. On a real search of twenty records the sources offered no
+   readable PDF at all; Unpaywall found four. Open-access articles then download
+   with one button, per row or all at once, and open in a reader **inside the
+   app**. Files are named
    `year_authors_title.pdf`; the whole set comes out as a zip.
 6. **History** — every search is stored with its strategy and its records:
    reopen it, export it again, fetch its PDFs without running it twice.
@@ -100,8 +104,8 @@ app produces the string to paste into their own interface.
 No key is required, and none has to be written into a file by hand. From
 **Settings** (or the guided setup) you can set:
 
-- the **courtesy email**, which OpenAlex and Crossref use to grant wider rate
-  limits;
+- the **courtesy email**, which OpenAlex, Crossref and Unpaywall use to know
+  who is calling — Unpaywall does not answer without it;
 - the free **OpenAlex key** — without it you are in the anonymous lane, which
   has a daily budget and then answers `429`. It takes a minute to request at
   [openalex.org/rest-api](https://openalex.org/rest-api) and it is the single
@@ -135,7 +139,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 296 tests, none touches the network
+.venv/bin/pytest -q                       # 305 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -154,6 +158,7 @@ fragments. No Node, no build step, no binaries to sign.
 | `ricerca/history.py` | search history and screening decisions |
 | `ricerca/pdf.py`, `biblioteca.py` | open-access PDFs and their text |
 | `ricerca/cache.py` | SQLite response cache, as an httpx transport |
+| `ricerca/unpaywall.py` | missing metadata and open copies, from the DOI |
 | `ricerca/zotero.py` | sends the included records to Zotero |
 | `ricerca/macchina.py` | what the computer can run, which model to suggest |
 | `ricerca/finestra.py`, `watchdog.py` | its own window; quits when closed |
@@ -234,8 +239,12 @@ vuole da Impostazioni.
    motivo, uno per volta o in blocco sui record spuntati. I conteggi seguono il
    diagramma PRISMA; il protocollo raccoglie stringhe, numeri e decisioni per
    la sezione «Metodo», in Markdown o in testo semplice.
-5. **PDF** — gli articoli ad accesso aperto si scaricano con un tasto, per riga
-   o tutti insieme, e si leggono in un lettore **dentro l'app**. I file si
+5. **PDF** — **Unpaywall** completa ciò che le banche dati non danno: sede,
+   anno, autori e soprattutto le copie aperte depositate nei repository quando
+   l'editore fa pagare. Su una ricerca vera di venti record le fonti non
+   offrivano nessun PDF leggibile; Unpaywall ne ha trovati quattro. Gli articoli
+   aperti si scaricano poi con un tasto, per riga o tutti insieme, e si leggono
+   in un lettore **dentro l'app**. I file si
    chiamano `anno_autori_titolo.pdf`; l'insieme esce in uno zip.
 6. **Cronologia** — ogni ricerca resta con la sua strategia e i suoi record: si
    riapre, si riesporta, se ne scaricano i PDF senza ripeterla.
@@ -266,8 +275,8 @@ Science l'app produce la stringa da incollare nella loro interfaccia.
 Nessuna chiave è obbligatoria e nessuna va scritta a mano in un file. Da
 **Impostazioni** (o dalla guida iniziale) si impostano:
 
-- l'**email di cortesia**, che OpenAlex e Crossref usano per concedere limiti
-  di richiesta più larghi;
+- l'**email di cortesia**, che OpenAlex, Crossref e Unpaywall usano per
+  riconoscere chi interroga — senza, Unpaywall non risponde affatto;
 - la **chiave OpenAlex**, gratuita: senza si resta nella corsia anonima, che ha
   un budget giornaliero e poi risponde `429`. Si richiede in un minuto su
   [openalex.org/rest-api](https://openalex.org/rest-api) ed è il singolo campo
@@ -301,7 +310,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 296 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 305 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

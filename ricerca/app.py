@@ -21,7 +21,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, watchdog
+from . import biblioteca, cache, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -717,6 +717,73 @@ async def zotero_massa(
         registro.errore("Zotero", str(exc)[:200])
 
     return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
+
+
+async def _completa_da_unpaywall(id_ricerca: str, indici: list[int], config: Config) -> dict:
+    """Chiede a Unpaywall i campi mancanti dei record indicati."""
+
+    works = history.record(id_ricerca)
+    etichette = i18n.strings(config.lang)
+    completati = falliti = 0
+    cancello = asyncio.Semaphore(4)
+
+    async def uno(indice: int, work: Work, client: httpx.AsyncClient):
+        nonlocal completati, falliti
+        if not work.doi or not unpaywall.da_completare(work):
+            return
+        async with cancello:
+            try:
+                conosciuto = await unpaywall.dati(work.doi, config, client)
+            except (httpx.HTTPError, ValueError) as exc:
+                falliti += 1
+                registro.errore("Unpaywall", f"{work.doi}: {str(exc)[:120]}")
+                return
+        aggiunte = unpaywall.completamento(work, conosciuto)
+        if aggiunte:
+            history.completa(id_ricerca, indice, aggiunte)
+            completati += 1
+            registro.annota(
+                etichette["log_unpaywall_record"].format(campi=", ".join(aggiunte)),
+                work.title[:70],
+            )
+
+    async with cache.client(headers={"User-Agent": search.USER_AGENT}) as client:
+        await asyncio.gather(*(uno(i, works[i], client) for i in indici if i < len(works)))
+
+    return {"completati": completati, "falliti": falliti}
+
+
+@app.post("/unpaywall/{id_ricerca}", response_class=HTMLResponse)
+async def completa_da_unpaywall(
+    request: Request,
+    id_ricerca: str,
+    selezione: list[int] = Form(default=[]),
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+):
+    """Completa i record spuntati — o tutti — con quel che sa Unpaywall."""
+
+    config = current_config()
+    etichette = i18n.strings(config.lang)
+    if not config.mailto_valido:
+        return _elenco(request, id_ricerca, campo, vista, esito_pdf=etichette["unpaywall_no_email"])
+
+    works = history.record(id_ricerca)
+    indici = [i for i in selezione if i < len(works)] or list(range(len(works)))
+    esito = await _completa_da_unpaywall(id_ricerca, indici, config)
+    messaggio = etichette["unpaywall_done"].format(**esito)
+    registro.annota("Unpaywall", messaggio)
+    return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
+
+
+@app.post("/scheda/{id_ricerca}/{indice}/unpaywall", response_class=HTMLResponse)
+async def completa_scheda(request: Request, id_ricerca: str, indice: int):
+    """Lo stesso, per il record aperto nella scheda."""
+
+    config = current_config()
+    if config.mailto_valido:
+        await _completa_da_unpaywall(id_ricerca, [indice], config)
+    return _scheda(request, id_ricerca, indice)
 
 
 @app.post("/pdf-massa/{id_ricerca}", response_class=HTMLResponse)

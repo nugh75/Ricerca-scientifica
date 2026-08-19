@@ -44,6 +44,10 @@
             hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.bulk_zotero }}</button>
     {% endif %}
+    <button type="button" hx-post="/unpaywall/{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+            hx-indicator="#attesa-pdf">{{ t.unpaywall_fill }}</button>
     <button type="button" class="primario" hx-post="/pdf-massa/{{ id_ricerca }}"
             hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"

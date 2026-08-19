@@ -112,3 +112,25 @@ async def test_i_modelli_consigliati_esistono_ancora(client, etichetta):
         headers={"Accept": "application/vnd.docker.distribution.manifest.v2+json"},
     )
     assert risposta.status_code == 200, f"{etichetta} non è più nel registro di Ollama"
+
+
+async def test_unpaywall_risponde_e_i_campi_ci_sono(client):
+    """Un DOI ad accesso aperto noto: se cambia la forma della risposta, il
+    completamento dei metadati smetterebbe di funzionare in silenzio."""
+
+    from ricerca import unpaywall
+    from ricerca.config import Config
+
+    try:
+        dati = await unpaywall.dati(
+            "10.1038/nature12373",
+            Config(mailto="unpaywall@impactstory.org"),
+            client,
+        )
+    except httpx.HTTPStatusError as errore:
+        _salta_se_limitata(errore, "unpaywall")
+
+    assert dati["venue"] == "Nature"
+    assert dati["year"] == 2013
+    assert dati["authors"], "Unpaywall non restituisce più gli autori"
+    assert dati["oa_url"].endswith(".pdf")

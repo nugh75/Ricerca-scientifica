@@ -79,16 +79,25 @@ def record(id_voce: str) -> list[Work]:
         return []
     prese = trovata.get("decisioni", {})
     corrette = trovata.get("correzioni", {})
+    completate = trovata.get("completamenti", {})
     lavori = []
     for indice, dati in enumerate(trovata.get("record", [])):
         lavoro = Work(**dati)
         decisione = prese.get(str(indice), {})
         lavoro.decisione = decisione.get("stato", "")
         lavoro.motivo = decisione.get("motivo", "")
+        # Prima ciò che mancava, poi ciò che è stato corretto a mano: la
+        # correzione dell'utente vince sempre sul completamento automatico.
+        for campo, valore in completate.get(str(indice), {}).items():
+            if hasattr(lavoro, campo):
+                setattr(lavoro, campo, valore)
+                lavoro.completato.append(campo)
         for campo, valore in corrette.get(str(indice), {}).items():
             if hasattr(lavoro, campo):
                 setattr(lavoro, campo, valore)
                 lavoro.corretto.append(campo)
+                if campo in lavoro.completato:
+                    lavoro.completato.remove(campo)
         lavori.append(lavoro)
     return lavori
 
@@ -125,6 +134,23 @@ def correggi(id_voce: str, indice: int, campi: dict) -> dict:
             correzioni_voce[chiave] = attuali
         else:
             correzioni_voce.pop(chiave, None)
+        _scrivi(voci)
+        return attuali
+    return {}
+
+
+def completa(id_voce: str, indice: int, campi: dict) -> dict:
+    """Registra i campi trovati da Unpaywall per un record."""
+
+    voci = _leggi()
+    for voce_corrente in voci:
+        if voce_corrente.get("id") != id_voce:
+            continue
+        completamenti = voce_corrente.setdefault("completamenti", {})
+        attuali = completamenti.setdefault(str(indice), {})
+        attuali.update({c: v for c, v in campi.items() if v})
+        if not attuali:
+            completamenti.pop(str(indice), None)
         _scrivi(voci)
         return attuali
     return {}

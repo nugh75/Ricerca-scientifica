@@ -64,6 +64,8 @@ class Work:
     motivo: str = ""
     # Campi corretti a mano: gli originali restano nella cronologia.
     corretto: list[str] = field(default_factory=list)
+    # Campi completati da Unpaywall: mancavano, non erano sbagliati.
+    completato: list[str] = field(default_factory=list)
 
     @property
     def authors_short(self) -> str:
