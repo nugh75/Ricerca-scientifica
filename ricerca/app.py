@@ -531,11 +531,13 @@ async def carica_pdf(request: Request, id_ricerca: str, indice: int, file: Uploa
     works = history.record(id_ricerca)
     if indice >= len(works):
         return HTMLResponse("")
+    problema = ""
     try:
         pdf.salva_caricato(works[indice], await file.read())
     except (ValueError, OSError) as exc:
+        problema = i18n.strings(current_config().lang)["pdf_upload_failed"]
         registro.errore("PDF caricato", str(exc)[:160])
-    return _scheda(request, id_ricerca, indice)
+    return _scheda(request, id_ricerca, indice, problema_pdf=problema)
 
 
 @app.get("/pdf/{id_ricerca}.zip")
@@ -588,7 +590,7 @@ async def scheda(request: Request, id_ricerca: str):
     return _scheda(request, id_ricerca, int(request.path_params["indice"]))
 
 
-def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = False):
+def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = False, problema_pdf: str = ""):
     config = current_config()
     works = history.record(id_ricerca)
     if not works:
@@ -613,6 +615,7 @@ def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = Fals
             nome_pdf=(pdf.gia_scaricato(work).name if pdf.gia_scaricato(work) else ""),
             cartella_pdf=str(config_module.CONFIG_DIR / "pdf"),
             salvato=salvato,
+            problema_pdf=problema_pdf,
             sintesi=history.sintesi(id_ricerca, indice),
             sintesi_in_corso=lavori.per_descrizione(f"sintesi:{id_ricerca}:{indice}") is not None,
             ha_testo=bool(_testo_da_riassumere(work).strip()),

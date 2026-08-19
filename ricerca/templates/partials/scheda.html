@@ -95,6 +95,7 @@
       {% else %}<p class="aiuto">{{ t.pdf_none }}</p>{% endif %}
 
       {% if not scaricato %}
+      {% if problema_pdf %}<p class="nota errore">{{ problema_pdf }}</p>{% endif %}
       <p class="aiuto">{{ t.pdf_upload_hint }}</p>
       <form hx-post="/pdf/{{ id_ricerca }}/{{ indice }}/carica" hx-encoding="multipart/form-data"
             hx-target="#scheda-corpo" class="carica-pdf">

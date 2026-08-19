@@ -50,8 +50,11 @@ def test_un_file_che_non_e_un_pdf_viene_rifiutato():
     registro.svuota()
     id_ricerca = ricerca_chiusa()
 
-    client.post(f"/pdf/{id_ricerca}/0/carica",
-                files={"file": ("finto.pdf", b"<html>pagina di login</html>", "application/pdf")})
+    risposta = client.post(
+        f"/pdf/{id_ricerca}/0/carica",
+        files={"file": ("finto.pdf", b"<html>pagina di login</html>", "application/pdf")},
+    )
+    assert "not a PDF" in risposta.text          # e lo dice a schermo, non solo nel registro
 
     assert pdf.gia_scaricato(history.record(id_ricerca)[0]) is None
     assert any("PDF" in v.azione for v in registro.ultime() if v.errore)

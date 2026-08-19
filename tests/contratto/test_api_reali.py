@@ -79,12 +79,18 @@ async def test_doaj_risponde_e_i_campi_ci_sono(client):
     await _controlla("doaj", client)
 
 
-async def test_openalex_estrae_ancora_i_concetti(client):
+async def test_openalex_estrae_ancora_i_termini(client):
+    """Concetti, aree e co-occorrenze arrivano da una sola chiamata a /works."""
+
     try:
-        concetti = await keywords._openalex_concepts("AI literacy in teacher education", client, CONFIG)
+        concetti, aree, co_occorrenze = await keywords._openalex(
+            "AI literacy in teacher education", client, CONFIG
+        )
     except httpx.HTTPStatusError as errore:
         _salta_se_limitata(errore, "openalex")
-    assert concetti and all(isinstance(nome, str) for nome, _ in concetti)
+
+    assert concetti or aree or co_occorrenze, "OpenAlex non restituisce più nulla di utile"
+    assert all(isinstance(nome, str) for nome, _ in concetti)
 
 
 async def test_pubmed_traduce_ancora_in_mesh(client):
