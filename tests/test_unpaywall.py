@@ -142,3 +142,71 @@ def test_un_guasto_di_unpaywall_finisce_nel_registro():
 
     assert "failed: 1" in avviso_di(pagina)
     assert any("Unpaywall" in v.azione for v in registro.ultime())
+
+
+UNA_COPIA = {
+    "best_oa_location": {"url_for_pdf": "https://editore/x.pdf"},
+    "oa_locations": [
+        {"host_type": "publisher", "url_for_pdf": "https://editore/x.pdf"},
+        {"host_type": "repository", "url_for_pdf": "https://deposito/x.pdf"},
+    ],
+    "z_authors": [],
+}
+
+
+def test_le_copie_arrivano_tutte_e_i_depositi_per_primi():
+    from ricerca.unpaywall import _copie
+
+    assert _copie(UNA_COPIA) == ["https://deposito/x.pdf", "https://editore/x.pdf"]
+
+
+@respx.mock
+async def test_altre_copie_non_esplode_se_unpaywall_e_giu():
+    respx.get(url__startswith=unpaywall.API).mock(return_value=httpx.Response(503))
+    assert await unpaywall.altre_copie("10.1/x", Config(mailto="x@y.it"), httpx.AsyncClient()) == []
+    # e senza email non solleva, semplicemente non ha nulla da dire
+    assert await unpaywall.altre_copie("10.1/x", Config(), httpx.AsyncClient()) == []
+
+
+@respx.mock
+def test_quando_i_nostri_collegamenti_falliscono_si_chiede_a_unpaywall():
+    from ricerca import registro
+
+    config_module.save(Config(mailto="x@y.it", configurato="1"))
+    registro.svuota()
+
+    respx.get("https://fonte/rotto.pdf").mock(return_value=httpx.Response(403))
+    respx.get(url__startswith=unpaywall.API).mock(return_value=httpx.Response(200, json=UNA_COPIA))
+    respx.get("https://deposito/x.pdf").mock(
+        return_value=httpx.Response(200, content=b"%PDF-1.7\n%%EOF\n"))
+    respx.get("https://editore/x.pdf").mock(return_value=httpx.Response(403))
+
+    works = [Work(title="Studio chiuso", doi="10.1/x", year=2024, authors=["Rossi M"],
+                  oa_url="https://fonte/rotto.pdf", sources=["crossref"])]
+    id_ricerca = history.salva("t", Strategy([Block("C", ["x"])]),
+                               [SourceResult("crossref", "Crossref", "q", works=works)], works)
+
+    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
+
+    from conftest import avviso_di
+    assert "PDFs downloaded: 1" in avviso_di(pagina)
+    assert any("rescued" in v.azione for v in registro.ultime())
+    # e la copia trovata resta col record, per la prossima volta
+    assert "https://deposito/x.pdf" in history.record(id_ricerca)[0].oa_urls
+
+
+@respx.mock
+def test_se_nemmeno_unpaywall_ha_copie_lo_dice_chiaramente():
+    config_module.save(Config(mailto="x@y.it", configurato="1"))
+    respx.get("https://fonte/rotto.pdf").mock(return_value=httpx.Response(403))
+    respx.get(url__startswith=unpaywall.API).mock(
+        return_value=httpx.Response(200, json={"oa_locations": [], "z_authors": []}))
+
+    works = [Work(title="Dietro paywall", doi="10.1/y", oa_url="https://fonte/rotto.pdf")]
+    id_ricerca = history.salva("t", Strategy([Block("C", ["x"])]),
+                               [SourceResult("crossref", "Crossref", "q", works=works)], works)
+
+    cella = client.post(f"/pdf/{id_ricerca}/0")
+
+    from conftest import avviso_di
+    assert "not even among those Unpaywall knows" in avviso_di(cella)

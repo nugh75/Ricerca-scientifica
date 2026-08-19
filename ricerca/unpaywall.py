@@ -54,6 +54,7 @@ async def dati(doi: str, config: Config, client: httpx.AsyncClient) -> dict:
 
     migliore = corpo.get("best_oa_location") or {}
     return {
+        "oa_urls": _copie(corpo),
         "title": corpo.get("title") or "",
         "venue": corpo.get("journal_name") or "",
         "year": corpo.get("year"),
@@ -62,6 +63,32 @@ async def dati(doi: str, config: Config, client: httpx.AsyncClient) -> dict:
         "oa_status": corpo.get("oa_status") or "",
         "editore": corpo.get("publisher") or "",
     }
+
+
+def _copie(corpo: dict) -> list[str]:
+    """Tutti i PDF conosciuti, i depositi prima degli editori.
+
+    I repository servono i file senza guardare chi chiede; molti siti degli
+    editori rispondono con una pagina di consenso o un blocco.
+    """
+
+    posti = corpo.get("oa_locations") or []
+    ordinati = sorted(posti, key=lambda p: 0 if p.get("host_type") == "repository" else 1)
+    indirizzi = []
+    for posto in ordinati:
+        indirizzo = posto.get("url_for_pdf")
+        if indirizzo and indirizzo not in indirizzi:
+            indirizzi.append(indirizzo)
+    return indirizzi
+
+
+async def altre_copie(doi: str, config: Config, client: httpx.AsyncClient) -> list[str]:
+    """Le copie che Unpaywall conosce: si usano quando le nostre falliscono."""
+
+    try:
+        return (await dati(doi, config, client)).get("oa_urls", [])
+    except (SenzaEmail, httpx.HTTPError, ValueError):
+        return []
 
 
 def da_completare(work: Work) -> list[str]:
@@ -87,4 +114,9 @@ def completamento(work: Work, conosciuto: dict) -> dict:
         valore = conosciuto.get(campo)
         if valore:
             aggiunte[campo] = valore
+    # Le copie in più valgono anche quando un collegamento ce l'abbiamo già:
+    # spesso è quello che non funziona.
+    altre = [u for u in conosciuto.get("oa_urls", []) if u not in work.candidati_pdf()]
+    if altre:
+        aggiunte["oa_urls"] = work.oa_urls + altre
     return aggiunte

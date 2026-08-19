@@ -74,7 +74,11 @@ configure later, and reopen it any time from Settings.
    three different fields, Europe PMC in its full-text list, PubMed as a
    PubMed Central copy, Crossref as publisher links — and the download tries
    them in turn until one returns a real PDF, because the first is often a
-   landing page. **Unpaywall** then fills in what the databases left out: venue, year,
+   landing page. **Unpaywall** then fills in what the databases left out, and steps in
+   automatically when every link fails: it knows the repository copies that
+   publishers do not declare. Where even it has nothing, the article is
+   genuinely closed — and that is where the manual upload comes in. It fills
+   in: venue, year,
    authors, and above all the open copies deposited in repositories when the
    publisher charges. On a real search of twenty records the sources offered no
    readable PDF at all; Unpaywall found four. Open-access articles then download
@@ -149,7 +153,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 339 tests, none touches the network
+.venv/bin/pytest -q                       # 343 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -258,7 +262,10 @@ vuole da Impostazioni.
    pieni, PubMed come copia in PubMed Central, Crossref come collegamenti
    dell'editore — e lo scaricamento li prova a turno finché uno restituisce un
    PDF vero, perché il primo è spesso una pagina di destinazione. **Unpaywall**
-   completa poi ciò che le banche dati non danno: sede,
+   interviene poi da solo quando tutti i collegamenti falliscono: conosce le
+   copie nei depositi che gli editori non dichiarano. Dove non ha nulla
+   nemmeno lui, l'articolo è chiuso davvero, ed è lì che serve il caricamento a
+   mano. Completa inoltre: sede,
    anno, autori e soprattutto le copie aperte depositate nei repository quando
    l'editore fa pagare. Su una ricerca vera di venti record le fonti non
    offrivano nessun PDF leggibile; Unpaywall ne ha trovati quattro. Gli articoli
@@ -335,7 +342,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 339 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 343 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

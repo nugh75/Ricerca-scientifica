@@ -520,13 +520,13 @@ async def scarica_pdf(request: Request, id_ricerca: str, indice: int):
     if indice >= len(works):
         return HTMLResponse("")
     work = works[indice]
+    config = current_config()
     errore = None
-    async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
-        try:
-            await pdf.scarica(work, client)
-        except (httpx.HTTPError, ValueError, OSError) as exc:
-            errore = str(exc)[:120]
-            registro.errore(f"PDF non scaricato: {work.title[:60]}", errore)
+    async with httpx.AsyncClient(
+        headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+    ) as client:
+        if not await _scarica_con_ripiego(id_ricerca, indice, work, config, client):
+            errore = i18n.strings(config.lang)["pdf_not_found"]
     risposta = templates.TemplateResponse(
         request,
         "partials/pdf.html",
@@ -764,6 +764,42 @@ async def zotero_massa(
     return avvisa(_elenco(request, id_ricerca, campo, vista), messaggio, "buono")
 
 
+async def _scarica_con_ripiego(
+    id_ricerca: str, indice: int, work: Work, config: Config, client: httpx.AsyncClient
+) -> bool:
+    """Scarica il PDF; se i collegamenti che abbiamo falliscono, ne chiede
+    altri a Unpaywall e riprova una volta sola."""
+
+    try:
+        await pdf.scarica(work, client)
+        return True
+    except (httpx.HTTPError, ValueError, OSError) as exc:
+        primo_motivo = str(exc)[:120]
+
+    if not (config.mailto_valido and work.doi):
+        registro.errore(f"PDF non scaricato: {work.title[:60]}", primo_motivo)
+        return False
+
+    altre = await unpaywall.altre_copie(work.doi, config, client)
+    nuove = [u for u in altre if u not in work.candidati_pdf()]
+    if not nuove:
+        registro.errore(f"PDF non scaricato: {work.title[:60]}", primo_motivo)
+        return False
+
+    work.oa_urls = work.oa_urls + nuove
+    history.completa(id_ricerca, indice, {"oa_urls": work.oa_urls})
+    try:
+        await pdf.scarica(work, client)
+        registro.annota(
+            i18n.strings(config.lang)["log_pdf_rescued"],
+            f"{work.title[:60]} · {len(nuove)}",
+        )
+        return True
+    except (httpx.HTTPError, ValueError, OSError) as exc:
+        registro.errore(f"PDF non scaricato: {work.title[:60]}", str(exc)[:120])
+        return False
+
+
 async def _completa_da_unpaywall(id_ricerca: str, indici: list[int], config: Config) -> dict:
     """Chiede a Unpaywall i campi mancanti dei record indicati."""
 
@@ -916,16 +952,16 @@ async def pdf_massa(
         # Tre alla volta: piu' veloce di uno per uno, senza sembrare un raschiatore.
         cancello = asyncio.Semaphore(3)
 
-        async def prendi(work, client):
-            async with cancello:
-                try:
-                    await pdf.scarica(work, client)
-                    return True
-                except (httpx.HTTPError, ValueError, OSError):
-                    return False
+        config = current_config()
 
-        async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
-            esiti = await asyncio.gather(*(prendi(w, client) for _i, w in da_prendere))
+        async def prendi(indice, work, client):
+            async with cancello:
+                return await _scarica_con_ripiego(id_ricerca, indice, work, config, client)
+
+        async with httpx.AsyncClient(
+            headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+        ) as client:
+            esiti = await asyncio.gather(*(prendi(i, w, client) for i, w in da_prendere))
         presi = sum(1 for e in esiti if e)
         falliti = len(esiti) - presi
 
