@@ -33,6 +33,10 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+<dialog id="scheda" aria-label="{{ t.card_title }}">
+  <div id="scheda-corpo"></div>
+</dialog>
+
 <dialog id="lettore" aria-label="{{ t.pdf_viewer_title }}">
   <div class="lettore-testa">
     <strong id="lettore-titolo"></strong>
@@ -125,6 +129,7 @@ document.addEventListener("click", function (event) {
     return;
   }
   if (event.target.id === "lettore-chiudi") lettore.close();
+  if (event.target.id === "scheda-chiudi") document.getElementById("scheda").close();
 });
 lettore.addEventListener("close", function () {
   document.getElementById("lettore-telaio").src = "";  // ferma il caricamento

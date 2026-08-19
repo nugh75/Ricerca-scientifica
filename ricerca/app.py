@@ -556,6 +556,83 @@ async def apri_pdf(id_ricerca: str, indice: int):
     )
 
 
+def _posizioni_per_fonte(voce: dict, work: Work) -> list[dict]:
+    """In che posizione ogni banca dati ha restituito questo record."""
+
+    righe = []
+    for fonte in voce.get("fonti", []):
+        if fonte.get("id") in work.sources:
+            righe.append({"etichetta": fonte.get("etichetta", ""), "trovati": fonte.get("trovati", 0)})
+    return righe
+
+
+@app.get("/scheda/{id_ricerca}/{indice}", response_class=HTMLResponse)
+async def scheda(request: Request, id_ricerca: str):
+    """La scheda intera di un record, dentro la finestra dell'app."""
+
+    return _scheda(request, id_ricerca, int(request.path_params["indice"]))
+
+
+def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = False):
+    config = current_config()
+    works = history.record(id_ricerca)
+    if not works:
+        return HTMLResponse("")
+    indice = min(max(0, indice), len(works) - 1)
+    work = works[indice]
+    voce = history.voce(id_ricerca) or {}
+    return templates.TemplateResponse(
+        request,
+        "partials/scheda.html",
+        base_context(
+            config,
+            work=work,
+            originale=history.originale(id_ricerca, indice),
+            indice=indice,
+            totale=len(works),
+            id_ricerca=id_ricerca,
+            posizioni=_posizioni_per_fonte(voce, work),
+            riferimento=apa(work),
+            bibtex=to_bibtex([work]).strip(),
+            scaricato=pdf.gia_scaricato(work) is not None,
+            nome_pdf=(pdf.gia_scaricato(work).name if pdf.gia_scaricato(work) else ""),
+            cartella_pdf=str(config_module.CONFIG_DIR / "pdf"),
+            salvato=salvato,
+        ),
+    )
+
+
+@app.post("/scheda/{id_ricerca}/{indice}", response_class=HTMLResponse)
+async def salva_scheda(
+    request: Request,
+    id_ricerca: str,
+    indice: int,
+    title: str = Form(default=""),
+    authors: str = Form(default=""),
+    year: str = Form(default=""),
+    venue: str = Form(default=""),
+    doi: str = Form(default=""),
+):
+    """Correzioni a mano ai metadati: gli originali restano nella cronologia."""
+
+    history.correggi(
+        id_ricerca,
+        indice,
+        {
+            "title": title.strip(),
+            "authors": [a.strip() for a in authors.split(";") if a.strip()],
+            "year": int(year) if year.strip().isdigit() else None,
+            "venue": venue.strip(),
+            "doi": doi.strip(),
+        },
+    )
+    registro.annota(
+        i18n.strings(current_config().lang)["log_record_fixed"],
+        f"{id_ricerca} · {indice}",
+    )
+    return _scheda(request, id_ricerca, indice, salvato=True)
+
+
 @app.post("/screening/{id_ricerca}/{indice}", response_class=HTMLResponse)
 async def screening(
     request: Request,

@@ -62,6 +62,8 @@ class Work:
     # Screening: riempiti al momento della lettura dalla cronologia.
     decisione: str = ""
     motivo: str = ""
+    # Campi corretti a mano: gli originali restano nella cronologia.
+    corretto: list[str] = field(default_factory=list)
 
     @property
     def authors_short(self) -> str:

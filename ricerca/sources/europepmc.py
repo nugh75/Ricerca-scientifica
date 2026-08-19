@@ -5,7 +5,7 @@ import httpx
 from ..config import Config
 from ..models import Strategy, Work
 from ..strategy import or_group
-from .base import Source, clean
+from .base import Source, clean, testo
 
 API = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
 
@@ -67,6 +67,6 @@ def _work(item: dict) -> Work:
         doi=doi,
         venue=_venue(item),
         url=f"https://europepmc.org/article/{item.get('source', 'MED')}/{item.get('id', '')}",
-        abstract=clean(item.get("abstractText")),
+        abstract=testo(item.get("abstractText")),
         sources=["europepmc"],
     )

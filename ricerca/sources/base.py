@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import httpx
 
 from ..config import Config
@@ -48,8 +50,21 @@ class Source:
         raise NotImplementedError
 
 
+_MARCATURA = re.compile(r"<[^>]+>")
+
+
 def clean(value) -> str | None:
     if value is None:
         return None
     text = str(value).strip()
     return text or None
+
+
+def testo(value) -> str | None:
+    """Abstract senza marcatura: le fonti li restituiscono con tag JATS o
+    HTML dentro, che a schermo si leggono come `<h4>Introduction</h4>`."""
+
+    if value is None:
+        return None
+    ripulito = " ".join(_MARCATURA.sub(" ", str(value)).split())
+    return ripulito or None

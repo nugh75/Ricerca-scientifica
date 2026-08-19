@@ -78,14 +78,64 @@ def record(id_voce: str) -> list[Work]:
     if not trovata:
         return []
     prese = trovata.get("decisioni", {})
+    corrette = trovata.get("correzioni", {})
     lavori = []
     for indice, dati in enumerate(trovata.get("record", [])):
         lavoro = Work(**dati)
         decisione = prese.get(str(indice), {})
         lavoro.decisione = decisione.get("stato", "")
         lavoro.motivo = decisione.get("motivo", "")
+        for campo, valore in corrette.get(str(indice), {}).items():
+            if hasattr(lavoro, campo):
+                setattr(lavoro, campo, valore)
+                lavoro.corretto.append(campo)
         lavori.append(lavoro)
     return lavori
+
+
+CAMPI_CORREGGIBILI = ("title", "authors", "year", "venue", "doi")
+
+
+def correggi(id_voce: str, indice: int, campi: dict) -> dict:
+    """Salva una correzione a mano. L'originale resta dov'è.
+
+    Le banche dati sbagliano: un anno di stampa al posto di quello di
+    pubblicazione, un autore attaccato al precedente. Correggerlo migliora
+    `.bib` e riferimenti APA, ma il dato d'origine non si tocca.
+    """
+
+    voci = _leggi()
+    for voce_corrente in voci:
+        if voce_corrente.get("id") != id_voce:
+            continue
+        originali = voce_corrente.get("record", [])
+        if indice >= len(originali):
+            return {}
+        correzioni_voce = voce_corrente.setdefault("correzioni", {})
+        chiave = str(indice)
+        attuali = correzioni_voce.get(chiave, {})
+        for campo, valore in campi.items():
+            if campo not in CAMPI_CORREGGIBILI:
+                continue
+            if valore in (None, "", []) or valore == originali[indice].get(campo):
+                attuali.pop(campo, None)     # tornato all'originale: non è più una correzione
+            else:
+                attuali[campo] = valore
+        if attuali:
+            correzioni_voce[chiave] = attuali
+        else:
+            correzioni_voce.pop(chiave, None)
+        _scrivi(voci)
+        return attuali
+    return {}
+
+
+def originale(id_voce: str, indice: int) -> Work | None:
+    """Il record come è arrivato dalle banche dati, senza correzioni."""
+
+    trovata = voce(id_voce) or {}
+    dati = trovata.get("record", [])
+    return Work(**dati[indice]) if indice < len(dati) else None
 
 
 def strategia(id_voce: str) -> Strategy:

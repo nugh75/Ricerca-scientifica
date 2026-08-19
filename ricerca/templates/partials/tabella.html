@@ -41,7 +41,12 @@
                               aria-label="{{ t.bulk_title }} {{ riga + 1 }}"></td>
     {% for campo in campi %}
     {% if campo == 'titolo' %}
-      <td data-etichetta="{{ t['field_' ~ campo] }}">{% if w.url %}<a href="{{ w.url }}" target="_blank" rel="noreferrer">{{ w.title }}</a>{% else %}{{ w.title }}{% endif %}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}">
+        <button type="button" class="titolo-record" hx-get="/scheda/{{ id_ricerca }}/{{ riga }}"
+                hx-target="#scheda-corpo" onclick="document.getElementById('scheda').showModal()"
+                title="{{ t.card_open }}">{{ w.title }}</button>
+        {% if w.corretto %}<span class="marchio piccolo">{{ t.card_fixed }}</span>{% endif %}
+      </td>
     {% elif campo == 'anno' %}
       <td data-etichetta="{{ t['field_' ~ campo] }}" class="anno">{{ w.year or '—' }}</td>
     {% elif campo == 'autori' %}

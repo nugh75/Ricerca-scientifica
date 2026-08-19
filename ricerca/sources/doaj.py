@@ -6,7 +6,7 @@ import httpx
 
 from ..config import Config
 from ..models import Work
-from .base import Source, clean
+from .base import Source, clean, testo
 
 API = "https://doaj.org/api/search/articles"
 
@@ -43,7 +43,7 @@ def _work(bib: dict) -> Work:
         doi=clean(doi),
         venue=clean((bib.get("journal") or {}).get("title")),
         url=clean(link) or (f"https://doi.org/{doi}" if doi else None),
-        abstract=clean(bib.get("abstract")),
+        abstract=testo(bib.get("abstract")),
         oa_url=clean(link),
         sources=["doaj"],
     )

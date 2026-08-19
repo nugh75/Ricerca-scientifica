@@ -1,0 +1,99 @@
+<div class="scheda-testa">
+  <span class="scheda-provenienza">
+    {{ work.year or '—' }}{% for fonte in work.sources %} · <span class="fonti-cella">{{ fonte }}</span>{% endfor %}
+  </span>
+  <span class="scheda-navigazione">
+    {% if indice > 0 %}
+    <button type="button" class="copia" hx-get="/scheda/{{ id_ricerca }}/{{ indice - 1 }}"
+            hx-target="#scheda-corpo">‹ {{ t.card_previous }}</button>
+    {% endif %}
+    <span class="conteggi">{{ t.card_of.format(indice=indice + 1, totale=totale) }}</span>
+    {% if indice + 1 < totale %}
+    <button type="button" class="copia" hx-get="/scheda/{{ id_ricerca }}/{{ indice + 1 }}"
+            hx-target="#scheda-corpo">{{ t.card_next }} ›</button>
+    {% endif %}
+    <button type="button" class="copia" id="scheda-chiudi">{{ t.pdf_viewer_close }}</button>
+  </span>
+</div>
+
+<div class="scheda-contenuto">
+  <h2 class="scheda-titolo">{{ work.title }}</h2>
+  <p class="scheda-autori">{{ work.authors|join('; ') or '—' }}</p>
+  <p class="aiuto">
+    {{ work.venue or '—' }}{% if work.doi %} · {{ work.doi }}{% endif %}
+    {% if work.corretto %}<span class="marchio">{{ t.card_fixed }}</span>{% endif %}
+  </p>
+
+  <div class="scheda-riquadro">
+    <h3>{{ t.screening_title }}</h3>
+    {% with fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}
+  </div>
+
+  <h3>{{ t.card_abstract }}</h3>
+  {% if work.abstract %}<p class="scheda-abstract">{{ work.abstract }}</p>
+  {% else %}<p class="aiuto">{{ t.card_no_abstract }}</p>{% endif %}
+
+  <div class="scheda-colonne">
+    <div class="scheda-riquadro">
+      <h3>{{ t.card_found_by }}</h3>
+      <ul class="stato">
+        {% for posizione in posizioni %}
+        <li>{{ posizione.etichetta }} — {{ posizione.trovati }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="scheda-riquadro">
+      <h3>{{ t.card_file }}</h3>
+      {% if scaricato %}
+      <p class="aiuto"><code>{{ nome_pdf }}</code><br>{{ cartella_pdf }}</p>
+      <button type="button" class="copia" data-pdf="/pdf/{{ id_ricerca }}/{{ indice }}/file"
+              data-titolo="{{ work.title }}">{{ t.pdf_open }}</button>
+      {% elif work.oa_url %}
+      <button type="button" class="copia" hx-post="/pdf/{{ id_ricerca }}/{{ indice }}"
+              hx-target="this" hx-swap="outerHTML">{{ t.pdf_download }}</button>
+      {% else %}<p class="aiuto">{{ t.pdf_none }}</p>{% endif %}
+    </div>
+  </div>
+
+  <h3>{{ t.card_citation }}</h3>
+  <p class="scheda-riferimento">{{ riferimento }}</p>
+  <div class="azioni">
+    <button type="button" class="copia" data-copia="{{ riferimento }}" data-copiato="{{ t.copied }}">{{ t.card_copy_apa }}</button>
+    <button type="button" class="copia" data-copia="{{ bibtex }}" data-copiato="{{ t.copied }}">{{ t.card_copy_bibtex }}</button>
+    {% if work.doi %}<button type="button" class="copia" data-copia="{{ work.doi }}" data-copiato="{{ t.copied }}">{{ t.card_copy_doi }}</button>{% endif %}
+    {% if work.url %}<a class="copia" href="{{ work.url }}" target="_blank" rel="noreferrer">{{ t.card_publisher }} ↗</a>{% endif %}
+  </div>
+
+  <form class="scheda-riquadro" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}" hx-target="#scheda-corpo">
+    <h3>{{ t.card_metadata }}</h3>
+    <p class="aiuto">{{ t.card_fix_hint }}</p>
+    {% if salvato %}<p class="marchio">{{ t.card_saved }}</p>{% endif %}
+
+    <label for="c-title">{{ t.field_titolo }}</label>
+    <input id="c-title" name="title" value="{{ work.title }}">
+    {% if 'title' in work.corretto %}<p class="aiuto">{{ t.card_was.format(valore=originale.title) }}</p>{% endif %}
+
+    <label for="c-authors">{{ t.field_autori }}</label>
+    <input id="c-authors" name="authors" value="{{ work.authors|join('; ') }}">
+    {% if 'authors' in work.corretto %}<p class="aiuto">{{ t.card_was.format(valore=originale.authors|join('; ')) }}</p>{% endif %}
+
+    <div class="scheda-colonne">
+      <div>
+        <label for="c-year">{{ t.field_anno }}</label>
+        <input id="c-year" name="year" value="{{ work.year or '' }}" inputmode="numeric">
+        {% if 'year' in work.corretto %}<p class="aiuto">{{ t.card_was.format(valore=originale.year) }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="c-venue">{{ t.field_sede }}</label>
+        <input id="c-venue" name="venue" value="{{ work.venue or '' }}">
+        {% if 'venue' in work.corretto %}<p class="aiuto">{{ t.card_was.format(valore=originale.venue) }}</p>{% endif %}
+      </div>
+    </div>
+
+    <label for="c-doi">{{ t.field_doi }}</label>
+    <input id="c-doi" name="doi" value="{{ work.doi or '' }}">
+    {% if 'doi' in work.corretto %}<p class="aiuto">{{ t.card_was.format(valore=originale.doi) }}</p>{% endif %}
+
+    <div class="azioni"><button type="submit" class="primario">{{ t.card_save }}</button></div>
+  </form>
+</div>

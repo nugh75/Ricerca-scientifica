@@ -482,3 +482,34 @@ form.comandi {
 .pagine { display: flex; align-items: center; gap: var(--u2); margin: var(--u3) 0; }
 
 tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px; background: var(--accento-tenue); }
+
+/* ── scheda del record ─────────────────────────────────────── */
+#scheda {
+  width: min(94vw, 60rem); max-height: 92dvh; padding: 0;
+  border: 1px solid var(--bordo); border-radius: var(--raggio);
+  background: var(--scheda); color: var(--testo); box-shadow: var(--ombra-rilievo);
+}
+#scheda::backdrop { background: rgba(26, 29, 33, .55); }
+.scheda-testa {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--u2);
+  flex-wrap: wrap; padding: var(--u2) var(--u3); border-bottom: 1px solid var(--riga);
+  position: sticky; top: 0; background: var(--scheda); z-index: 1;
+}
+.scheda-provenienza { font: 400 .8125rem/1.6 var(--mono); color: var(--testo-tenue); }
+.scheda-navigazione { display: inline-flex; align-items: center; gap: var(--u1); }
+.scheda-contenuto { padding: var(--u3); overflow-y: auto; max-height: calc(92dvh - 3.5rem); }
+.scheda-titolo { font-size: 1.5rem; font-weight: 700; line-height: 1.25; margin: 0 0 var(--u1); }
+.scheda-autori { font-size: 1rem; margin: 0 0 var(--u1); }
+.scheda-abstract { max-width: 72ch; }
+.scheda-riquadro { border: 1px solid var(--riga); border-radius: var(--raggio); padding: var(--u2) var(--u3); margin: var(--u2) 0; }
+.scheda-riquadro h3 { margin-top: 0; }
+.scheda-colonne { display: grid; grid-template-columns: 1fr 1fr; gap: var(--u2) var(--u3); }
+@media (max-width: 44rem) { .scheda-colonne { grid-template-columns: 1fr; } }
+.scheda-riferimento { padding-left: var(--u4); text-indent: calc(var(--u4) * -1); max-width: 72ch; }
+.titolo-record {
+  background: none; border: 0; padding: 0; text-align: left; font: inherit;
+  color: var(--testo); text-decoration: underline; text-decoration-color: var(--bordo);
+  text-underline-offset: 3px; cursor: pointer;
+}
+.titolo-record:hover { background: none; text-decoration-color: var(--accento); }
+.marchio.piccolo { font-size: .6875rem; padding: .1rem .3rem; margin-left: var(--u1); }

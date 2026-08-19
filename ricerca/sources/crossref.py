@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import re
-
 import httpx
 
 from ..config import Config
 from ..models import Strategy, Work
 from ..strategy import flat_terms
-from .base import Source, clean
+from .base import Source, clean, testo
 
 API = "https://api.crossref.org/works"
-_TAG = re.compile(r"<[^>]+>")
 
 
 class Crossref(Source):
@@ -59,6 +56,6 @@ def _work(item: dict) -> Work:
         doi=clean(item.get("DOI")),
         venue=clean(sede[0] if sede else None),
         url=clean(item.get("URL")),
-        abstract=clean(_TAG.sub("", abstract)) if abstract else None,
+        abstract=testo(abstract),
         sources=["crossref"],
     )

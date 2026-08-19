@@ -180,3 +180,30 @@ async def test_europepmc_sede_di_un_preprint_non_stampa_un_dizionario():
     async with httpx.AsyncClient() as client:
         works = await sources.BY_ID["europepmc"].search(client, "q", 5, Config())
     assert works[0].venue == "Research Square"
+
+
+def test_gli_abstract_arrivano_senza_marcatura():
+    """Europe PMC li manda con tag JATS dentro: a schermo si leggevano
+    «<h4>Introduction</h4>This study…»."""
+
+    from ricerca.sources.base import testo
+
+    assert testo("<h4>Introduction</h4>This study presents…") == "Introduction This study presents…"
+    assert testo("<jats:p>Testo</jats:p>") == "Testo"
+    assert testo("  spazi   ripetuti  ") == "spazi ripetuti"
+    assert testo(None) is None
+    assert testo("<p></p>") is None
+
+
+@respx.mock
+async def test_europepmc_ripulisce_l_abstract():
+    respx.get(url__startswith="https://www.ebi.ac.uk/europepmc").mock(
+        return_value=httpx.Response(200, json={"resultList": {"result": [{
+            "id": "1", "source": "MED", "title": "Uno", "pubYear": "2026",
+            "abstractText": "<h4>Introduction</h4>Questo studio…",
+        }]}})
+    )
+    async with httpx.AsyncClient() as client:
+        works = await sources.BY_ID["europepmc"].search(client, "q", 5, Config())
+    assert works[0].abstract == "Introduction Questo studio…"
+    assert "<" not in works[0].abstract

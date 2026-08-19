@@ -7,7 +7,7 @@ import httpx
 from ..config import Config
 from ..models import Strategy, Work
 from ..strategy import or_group
-from .base import Source, clean
+from .base import Source, clean, testo
 
 API = "https://export.arxiv.org/api/query"
 ATOM = "{http://www.w3.org/2005/Atom}"
@@ -59,7 +59,7 @@ def _work(entry) -> Work:
         doi=clean(doi),
         venue="arXiv",
         url=clean(link),
-        abstract=" ".join((entry.findtext(f"{ATOM}summary") or "").split()) or None,
+        abstract=testo(entry.findtext(f"{ATOM}summary")),
         oa_url=clean(pdf),
         sources=["arxiv"],
     )

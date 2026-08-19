@@ -57,7 +57,11 @@ configure later, and reopen it any time from Settings.
    become editable boolean blocks and one query string per engine. Year limits
    and “journal articles only” apply to every source, each in its own syntax.
    No search runs until you start it.
-3. **Results** — sources are queried in parallel, duplicates merged by DOI or
+3. **Results** — clicking a title opens the **record card**: all the authors,
+   the whole abstract, which databases found it, the file on disk, the APA and
+   BibTeX citation ready to copy, and the link to the publisher. Metadata that
+   arrived wrong can be **corrected by hand** there — the original stays in the
+   history, the exports use the corrected version. Sources are queried in parallel, duplicates merged by DOI or
    title (even when one title is truncated or punctuated differently), the list
    ranked by relevance. A panel shows **what each database did**: the query as
    it was sent, records found, how many survived deduplication, how many only
@@ -131,7 +135,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 283 tests, none touches the network
+.venv/bin/pytest -q                       # 296 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -217,7 +221,11 @@ vuole da Impostazioni.
    nascono i blocchi booleani, modificabili, e le stringhe per ogni motore.
    Limiti di anno e «solo articoli di rivista» valgono per tutte le fonti,
    ognuna con la sua sintassi. Nessuna ricerca parte finché non la avvii tu.
-3. **Risultati** — fonti interrogate in parallelo, duplicati uniti per DOI o
+3. **Risultati** — un clic sul titolo apre la **scheda del record**: tutti gli
+   autori, l'abstract intero, da quali banche dati arriva, il file su disco, la
+   citazione APA e BibTeX pronte da copiare, il collegamento all'editore. I
+   metadati arrivati storti si **correggono a mano** lì: l'originale resta nella
+   cronologia, negli export va la versione corretta. Fonti interrogate in parallelo, duplicati uniti per DOI o
    titolo (anche quando un titolo è troncato o punteggiato diversamente),
    elenco ordinato per pertinenza. Un pannello mostra **che cosa ha fatto ogni
    banca dati**: la stringa come è stata inviata, i record trovati, quanti ne
@@ -293,7 +301,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 283 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 296 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

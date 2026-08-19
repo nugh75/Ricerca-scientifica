@@ -4,7 +4,7 @@ import httpx
 
 from ..config import Config
 from ..models import Work
-from .base import Source, clean
+from .base import Source, clean, testo
 
 API = "https://api.core.ac.uk/v3/search/works"
 
@@ -37,7 +37,7 @@ def _work(item: dict) -> Work:
         doi=clean(item.get("doi")),
         venue=clean(item.get("publisher")),
         url=clean(item.get("doi") and f"https://doi.org/{item['doi']}") or clean(item.get("id")),
-        abstract=clean(item.get("abstract")),
+        abstract=testo(item.get("abstract")),
         oa_url=clean(item.get("downloadUrl")),
         sources=["core"],
     )

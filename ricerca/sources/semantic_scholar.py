@@ -6,7 +6,7 @@ from ..config import Config
 from ..i18n import strings
 from ..models import Strategy, Work
 from ..strategy import flat_terms
-from .base import Source, clean
+from .base import Source, clean, testo
 
 API = "https://api.semanticscholar.org/graph/v1/paper/search"
 FIELDS = "title,year,abstract,venue,externalIds,openAccessPdf,authors,url"
@@ -52,7 +52,7 @@ def _work(item: dict) -> Work:
         doi=clean(external.get("DOI")),
         venue=clean(item.get("venue")),
         url=clean(item.get("url")),
-        abstract=clean(item.get("abstract")),
+        abstract=testo(item.get("abstract")),
         oa_url=clean(pdf),
         sources=["semanticscholar"],
     )
