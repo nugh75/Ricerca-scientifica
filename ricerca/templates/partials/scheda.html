@@ -30,6 +30,39 @@
     {% with fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}
   </div>
 
+  <div class="scheda-riquadro sintesi"
+       {% if sintesi_in_corso %}hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/sintesi"
+       hx-trigger="load delay:3s" hx-target="#scheda-corpo"{% endif %}>
+    <h3>{{ t.summary_title }}</h3>
+
+    {% if sintesi %}
+    <p class="aiuto">{{ t.summary_made_with.format(modello=sintesi.modello, quando=sintesi.quando,
+        fonte=(t.summary_from_pdf if sintesi.fonte == 'pdf' else t.summary_from_abstract)) }}</p>
+    {% for chiave, etichetta in (('metodo', t.summary_method), ('risultati', t.summary_results),
+                                 ('discussione', t.summary_discussion), ('conclusione', t.summary_conclusion)) %}
+      {% if sintesi[chiave] %}
+      <p class="sintesi-parte"><b>{{ etichetta }}.</b> {{ sintesi[chiave] }}</p>
+      {% endif %}
+    {% endfor %}
+    <p class="nota">{{ t.summary_caution }}</p>
+    {% endif %}
+
+    {% if sintesi_in_corso %}
+    <p class="attesa"><span class="barra"></span> {{ t.summary_running }}</p>
+    {% elif not config.llm_enabled %}
+    <p class="aiuto">{{ t.summary_no_llm }}</p>
+    {% elif not ha_testo %}
+    <p class="aiuto">{{ t.summary_no_text }}</p>
+    {% else %}
+    <div class="azioni">
+      <button type="button" class="copia" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/sintesi"
+              hx-vals='{"lingua": "it"}' hx-target="#scheda-corpo">{{ t.summary_ask_it }}</button>
+      <button type="button" class="copia" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/sintesi"
+              hx-vals='{"lingua": "en"}' hx-target="#scheda-corpo">{{ t.summary_ask_en }}</button>
+    </div>
+    {% endif %}
+  </div>
+
   <h3>{{ t.card_abstract }}</h3>
   {% if work.abstract %}<p class="scheda-abstract">{{ work.abstract }}</p>
   {% else %}<p class="aiuto">{{ t.card_no_abstract }}</p>{% endif %}

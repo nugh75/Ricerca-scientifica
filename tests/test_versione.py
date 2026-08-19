@@ -32,7 +32,7 @@ def test_i_file_statici_portano_la_versione():
 
 
 def test_i_lanciatori_reinstallano_quando_la_versione_cambia():
-    for nome in ("avvia.sh", "packaging/macos/avvio"):
+    for nome in ("start.sh", "packaging/macos/launch"):
         testo = (RADICE / nome).read_text()
         assert 'INSTALLATA=' in testo, nome
         assert '!= "$VERSIONE"' in testo, nome
@@ -47,14 +47,14 @@ def test_il_bundle_dichiara_la_stessa_versione():
 def test_i_lanciatori_ricreano_l_ambiente_senza_inciampare():
     """`uv venv` fallisce su un ambiente esistente: serve --clear."""
 
-    for nome in ("avvia.sh", "packaging/macos/avvio"):
+    for nome in ("start.sh", "packaging/macos/launch"):
         testo = (RADICE / nome).read_text()
         assert "venv --quiet --clear" in testo or "venv --clear" in testo, nome
-    assert "venv --quiet --clear" in (RADICE / "avvia.bat").read_text()
+    assert "venv --quiet --clear" in (RADICE / "start.bat").read_text()
 
 
 def test_anche_windows_confronta_la_versione():
-    testo = (RADICE / "avvia.bat").read_text()
+    testo = (RADICE / "start.bat").read_text()
     assert "INSTALLATA" in testo
     assert '.versione' in testo
 
@@ -94,7 +94,7 @@ def test_il_comando_versione_stampa_i_percorsi(capsys):
 
 
 def test_il_bundle_registra_quale_copia_parte():
-    testo = (RADICE / "packaging/macos/avvio").read_text()
+    testo = (RADICE / "packaging/macos/launch").read_text()
     assert 'echo "bundle: $BUNDLE"' in testo
 
 
@@ -103,10 +103,10 @@ def test_esiste_un_solo_lanciatore_per_unix():
     accorga: è già successo con avvia.command, rimasto senza il confronto di
     versione per otto rilasci."""
 
-    assert (RADICE / "avvia.sh").exists()
-    assert not (RADICE / "avvia.command").exists()
+    assert (RADICE / "start.sh").exists()
+    assert not (RADICE / "start.command").exists()
     costruzione = (RADICE / "scripts/crea-release.sh").read_text()
-    assert 'cp avvia.sh "$MAC/avvia-da-terminale.command"' in costruzione
+    assert 'cp start.sh "$MAC/start-from-terminal.command"' in costruzione
 
 
 def test_il_repository_non_porta_file_altrui():
@@ -140,3 +140,67 @@ def test_la_costruzione_rifa_gli_archivi_invece_di_aggiungerci():
     costruzione = (RADICE / "scripts/crea-release.sh").read_text()
     assert 'rm -f "$DIST/ricerca-$VERSIONE"-*.tar.gz "$DIST/ricerca-$VERSIONE"-*.zip' in costruzione
     assert "cp -r docs/screenshot" not in costruzione   # le schermate non si distribuiscono
+
+
+def test_i_nomi_dei_file_che_l_utente_vede_sono_in_inglese():
+    """L'interfaccia parte in inglese: i file scaricati devono seguirla."""
+
+    import re
+
+    app = (RADICE / "ricerca/app.py").read_text()
+    scaricati = set(re.findall(r'filename="([^"{]+)"', app))
+    assert scaricati == {
+        "references.bib", "records.csv", "apa-references.txt",
+        "search-protocol.md", "search-protocol.txt",
+        "article-pdfs.zip", "activity.log",
+    }
+
+
+def test_i_lanciatori_hanno_nomi_inglesi():
+    for nome in ("start.sh", "start.bat"):
+        assert (RADICE / nome).exists(), nome
+    for vecchio in ("avvia.sh", "avvia.bat", "avvia.command"):
+        assert not (RADICE / vecchio).exists(), vecchio
+    assert (RADICE / "packaging/install-shortcut-linux.sh").exists()
+    assert (RADICE / "packaging/create-shortcut-windows.bat").exists()
+
+
+def test_l_archivio_non_contiene_nomi_italiani():
+    """Solo i nomi dei file copiati: i commenti dello script restano in
+    italiano come tutto il codice."""
+
+    import re
+
+    costruzione = (RADICE / "scripts/crea-release.sh").read_text()
+    copiati = re.findall(r'(?:cp|cat >) [^\n]*?"\$(?:LINUX|MAC|WIN|BASE)/([A-Za-z0-9._-]+)"', costruzione)
+    for nome in copiati:
+        assert not any(p in nome.lower() for p in ("avvia", "leggimi", "scorciatoia")), nome
+    assert "READ-ME-FIRST.txt" in costruzione
+    assert "start-from-terminal.command" in costruzione
+
+
+def test_i_file_nella_cartella_dati_hanno_nomi_inglesi(isolated_config):
+    from ricerca import history, registro
+
+    registro.annota("prova")
+    history.salva("t", __import__("ricerca.models", fromlist=["m"]).Strategy(), [], [])
+
+    nomi = {p.name for p in isolated_config.iterdir()}
+    assert "activity.log" in nomi and "attivita.log" not in nomi
+    assert "history.json" in nomi and "cronologia.json" not in nomi
+
+
+def test_i_file_vecchi_vengono_traslocati_non_persi(isolated_config):
+    """Chi aggiorna non deve perdere cronologia e registro."""
+
+    from ricerca import history, registro
+
+    (isolated_config / "cronologia.json").write_text('[{"id": "vecchia", "topic": "prima"}]')
+    (isolated_config / "attivita.log").write_text("riga di ieri\n")
+
+    assert history.elenco()[0]["topic"] == "prima"
+    registro.annota("oggi")
+
+    assert (isolated_config / "history.json").exists()
+    assert not (isolated_config / "cronologia.json").exists()
+    assert "riga di ieri" in (isolated_config / "activity.log").read_text()

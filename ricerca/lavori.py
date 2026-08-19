@@ -106,6 +106,15 @@ def prendi(id_lavoro: str) -> Lavoro | None:
     return _lavori.get(id_lavoro)
 
 
+def per_descrizione(descrizione: str) -> Lavoro | None:
+    """Il lavoro in corso su questa cosa, se c'è: evita di avviarlo due volte."""
+
+    for lavoro in _lavori.values():
+        if lavoro.descrizione == descrizione and not lavoro.finito:
+            return lavoro
+    return None
+
+
 def in_corso() -> list[Lavoro]:
     return [lavoro for lavoro in _lavori.values() if not lavoro.finito]
 

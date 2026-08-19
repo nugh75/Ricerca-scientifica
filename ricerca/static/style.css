@@ -513,3 +513,7 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 }
 .titolo-record:hover { background: none; text-decoration-color: var(--accento); }
 .marchio.piccolo { font-size: .6875rem; padding: .1rem .3rem; margin-left: var(--u1); }
+
+.sintesi .attesa { display: flex; align-items: center; gap: var(--u2); font-size: .9375rem; color: var(--testo-tenue); margin: var(--u1) 0 0; }
+.sintesi-parte { max-width: 72ch; margin: var(--u1) 0; }
+.sintesi-parte b { color: var(--accento); }

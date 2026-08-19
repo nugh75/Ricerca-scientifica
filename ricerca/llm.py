@@ -45,6 +45,26 @@ Rispondi con la sola traduzione, senza virgolette e senza spiegazioni.
 Argomento: {topic}"""
 
 
+_SINTESI = """Sei un ricercatore che legge un articolo scientifico per un collega.
+Riassumilo {lingua}, in modo asciutto e verificabile: nessun aggettivo di
+lode, nessuna frase di circostanza, nessuna informazione che non sia nel testo.
+Se il testo non dice qualcosa, scrivi che non è riportato.
+
+Quattro parti, ognuna di due o tre frasi:
+- metodo: come è stato condotto lo studio, su chi o su che cosa, con quali strumenti;
+- risultati: che cosa è stato trovato, con i numeri quando ci sono;
+- discussione: come gli autori leggono quei risultati, e quali limiti dichiarano;
+- conclusione: che cosa se ne ricava, in una frase.
+
+Rispondi SOLO con JSON in questa forma:
+{{"metodo": "…", "risultati": "…", "discussione": "…", "conclusione": "…"}}
+
+Titolo: {titolo}
+
+Testo:
+{testo}"""
+
+
 class LLMClient:
     def __init__(self, config: Config, client: httpx.AsyncClient | None = None):
         self.base_url = config.llm_base_url.rstrip("/")
@@ -121,6 +141,38 @@ class LLMClient:
             raise LLMError(f"risposta inattesa dall'LLM: {data}") from exc
         return " ".join(testo.strip().strip('"').split())[:200]
 
+    async def sintesi(self, titolo: str, testo: str, lingua: str = "it") -> dict:
+        """Riassunto in quattro parti. Solleva se il modello non collabora."""
+
+        in_lingua = "in italiano" if lingua == "it" else "in inglese"
+        payload = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": _SINTESI.format(
+                        lingua=in_lingua, titolo=titolo[:300], testo=testo[:12000]
+                    ),
+                }
+            ],
+            "temperature": 0.1,
+            "stream": False,
+        }
+        async with self._session() as client:
+            risposta = await client.post(
+                f"{self.base_url}/chat/completions",
+                json=payload,
+                headers=self._headers(),
+                timeout=300,
+            )
+            risposta.raise_for_status()
+            dati = risposta.json()
+        try:
+            contenuto = dati["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise LLMError(f"risposta inattesa dall'LLM: {dati}") from exc
+        return _parse_sintesi(contenuto)
+
     def _session(self):
         if self._client is not None:
             return _Borrowed(self._client)
@@ -138,6 +190,27 @@ class _Borrowed:
 
     async def __aexit__(self, *exc_info) -> bool:
         return False
+
+
+def _parse_sintesi(contenuto: str) -> dict:
+    """Le quattro parti del riassunto, da una risposta che può essere sporca."""
+
+    testo = re.sub(r"^```(?:json)?|```$", "", contenuto.strip(), flags=re.MULTILINE).strip()
+    trovato = re.search(r"\{.*\}", testo, re.DOTALL)
+    if not trovato:
+        raise LLMError("il modello non ha restituito JSON")
+    try:
+        dati = json.loads(trovato.group(0))
+    except json.JSONDecodeError as exc:
+        raise LLMError(f"JSON non valido dal modello: {exc}") from exc
+
+    parti = {}
+    for chiave in ("metodo", "risultati", "discussione", "conclusione"):
+        valore = dati.get(chiave)
+        parti[chiave] = " ".join(str(valore).split()) if valore else ""
+    if not any(parti.values()):
+        raise LLMError("il modello non ha prodotto un riassunto utilizzabile")
+    return parti
 
 
 def _parse_blocks(content: str) -> list[Block]:

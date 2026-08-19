@@ -37,8 +37,8 @@ jobs:
           | System | File | How to start |
           |---|---|---|
           | macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → Open |
-          | Windows | `ricerca-*-windows.zip` | double-click `avvia.bat`; `crea-scorciatoia-windows.bat` puts an icon on the Desktop |
-          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` adds it to the menu |
+          | Windows | `ricerca-*-windows.zip` | double-click `start.bat`; `create-shortcut-windows.bat` puts an icon on the Desktop |
+          | Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` adds it to the menu |
 
           Python is not required: on first run the launcher downloads `uv` into
           the app folder, with no system changes and no admin rights. Only an
@@ -57,8 +57,8 @@ jobs:
           | Sistema | File | Come si avvia |
           |---|---|---|
           | macOS | `ricerca-*-macos.tar.gz` | trascina `Ricerca.app` in Applicazioni; la prima volta clic destro → Apri |
-          | Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat`; `crea-scorciatoia-windows.bat` mette l'icona sul Desktop |
-          | Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` la mette nel menu |
+          | Windows | `ricerca-*-windows.zip` | doppio clic su `start.bat`; `create-shortcut-windows.bat` mette l'icona sul Desktop |
+          | Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` la mette nel menu |
 
           Non serve installare Python: al primo avvio il lanciatore scarica
           `uv` nella cartella dell'app, senza toccare il sistema e senza

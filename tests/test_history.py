@@ -67,5 +67,5 @@ def test_il_file_della_cronologia_e_privato(isolated_config):
     import stat
 
     ricerca_finta()
-    modo = (isolated_config / "cronologia.json").stat().st_mode
+    modo = (isolated_config / "history.json").stat().st_mode
     assert stat.S_IMODE(modo) == 0o600

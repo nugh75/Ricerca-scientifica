@@ -57,7 +57,9 @@ async def run(
     grezzi = [w for result in results for w in result.works]
     works = merge(grezzi)
     etichette = strings(config.lang)
-    if results and all(r.error == SENZA_RETE for r in results):
+    # Con una fonte sola non si può concludere che manchi la rete: potrebbe
+    # essere quella banca dati a non rispondere.
+    if len(results) > 1 and all(r.error == SENZA_RETE for r in results):
         # Otto errori identici non aggiungono nulla: uno solo, chiaro.
         for risultato in results:
             risultato.error = etichette["err_senza_rete"]
@@ -120,10 +122,16 @@ async def _one(
         except Exception as exc:  # una fonte rotta non deve fermare le altre
             result.error = _message(exc, t)
             if attempt == 1:
-                annota(t["log_source_retry"].format(fonte=source.label), result.error)
+                annota(
+                    t["log_source_retry"].format(fonte=source.label),
+                    t["err_rete_fonte"] if result.error == SENZA_RETE else result.error,
+                )
                 await asyncio.sleep(1)
     result.secondi = round(time.monotonic() - inizio, 2)
-    errore(t["log_source_failed"].format(fonte=source.label), result.error or "?")
+    errore(
+        t["log_source_failed"].format(fonte=source.label),
+        t["err_rete_fonte"] if result.error == SENZA_RETE else (result.error or "?"),
+    )
     return result
 
 

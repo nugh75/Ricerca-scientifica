@@ -17,8 +17,8 @@ extract it and start it:
 | System | Archive | How to start |
 |---|---|---|
 | macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → *Open* |
-| Windows | `ricerca-*-windows.zip` | double-click `avvia.bat`; `crea-scorciatoia-windows.bat` puts an icon on the Desktop |
-| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` adds it to the menu |
+| Windows | `ricerca-*-windows.zip` | double-click `start.bat`; `create-shortcut-windows.bat` puts an icon on the Desktop |
+| Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` adds it to the menu |
 
 **Python is not required.** On first run the launcher downloads `uv` into the
 app folder and lets it fetch the interpreter and the libraries: no admin
@@ -92,7 +92,7 @@ each record becomes a card, on a wide monitor the tables use the room. `roomy`
 At the foot of every page there is a **log of what the app is doing**: one line
 per database with the query sent, the records found and the time, and in red
 whatever failed. Nothing fails silently — unexpected faults land there too, and
-in `~/.ricerca/attivita.log`. Searches and downloads **carry on server-side**:
+in `~/.ricerca/activity.log`. Searches and downloads **carry on server-side**:
 change page and come back, the work does not stop.
 
 Sources queried: OpenAlex, Crossref, PubMed, Europe PMC, arXiv, DOAJ, Semantic
@@ -122,9 +122,10 @@ paths.
 ## LLM (optional)
 
 Any endpoint compatible with the OpenAI API — Ollama
-(`http://localhost:11434/v1`), DeepSeek, OpenAI. It does two things: reorganise
-the terms into conceptual blocks, and translate an Italian topic into English
-before querying PubMed, which finds no MeSH terms in Italian. Without it, blocks
+(`http://localhost:11434/v1`), DeepSeek, OpenAI. It does three things: reorganise the
+terms into conceptual blocks, translate an Italian topic into English before
+querying PubMed (which finds no MeSH terms in Italian), and summarise an
+article in four parts from the record card. Without it, blocks
 are built from the data alone and everything else works the same. With Ollama
 nothing leaves your computer; with a networked service, the topic and the terms
 are sent to it.
@@ -139,7 +140,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 305 tests, none touches the network
+.venv/bin/pytest -q                       # 320 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -159,6 +160,7 @@ fragments. No Node, no build step, no binaries to sign.
 | `ricerca/pdf.py`, `biblioteca.py` | open-access PDFs and their text |
 | `ricerca/cache.py` | SQLite response cache, as an httpx transport |
 | `ricerca/unpaywall.py` | missing metadata and open copies, from the DOI |
+| `ricerca/llm.py` | blocks, translation, four-part summary |
 | `ricerca/zotero.py` | sends the included records to Zotero |
 | `ricerca/macchina.py` | what the computer can run, which model to suggest |
 | `ricerca/finestra.py`, `watchdog.py` | its own window; quits when closed |
@@ -186,8 +188,8 @@ scarica l'archivio del tuo sistema, estrailo e avvia:
 | Sistema | Archivio | Avvio |
 |---|---|---|
 | macOS | `ricerca-*-macos.tar.gz` | trascina `Ricerca.app` in Applicazioni; la prima volta clic destro → *Apri* |
-| Windows | `ricerca-*-windows.zip` | doppio clic su `avvia.bat`; `crea-scorciatoia-windows.bat` mette l'icona sul Desktop |
-| Linux | `ricerca-*-linux.tar.gz` | `./avvia.sh`; `installa-scorciatoia-linux.sh` la mette nel menu |
+| Windows | `ricerca-*-windows.zip` | doppio clic su `start.bat`; `create-shortcut-windows.bat` mette l'icona sul Desktop |
+| Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` la mette nel menu |
 
 **Non serve installare Python.** Al primo avvio il lanciatore scarica `uv`
 nella cartella dell'app e con esso l'interprete e le librerie: nessun permesso
@@ -230,7 +232,10 @@ vuole da Impostazioni.
    autori, l'abstract intero, da quali banche dati arriva, il file su disco, la
    citazione APA e BibTeX pronte da copiare, il collegamento all'editore. I
    metadati arrivati storti si **correggono a mano** lì: l'originale resta nella
-   cronologia, negli export va la versione corretta. Fonti interrogate in parallelo, duplicati uniti per DOI o
+   cronologia, negli export va la versione corretta. Dalla scheda si chiede
+   anche al modello un **riassunto in quattro parti** — metodo, risultati,
+   discussione, conclusione, in italiano o in inglese — costruito sul testo del
+   PDF quando c'è, altrimenti sull'abstract; resta salvato col record. Fonti interrogate in parallelo, duplicati uniti per DOI o
    titolo (anche quando un titolo è troncato o punteggiato diversamente),
    elenco ordinato per pertinenza. Un pannello mostra **che cosa ha fatto ogni
    banca dati**: la stringa come è stata inviata, i record trovati, quanti ne
@@ -262,7 +267,7 @@ le scelte restano memorizzate.
 In fondo a ogni pagina c'è **il registro di quel che l'app sta facendo**: una
 riga per banca dati con la stringa inviata, i record trovati e il tempo, in
 rosso ciò che non ha funzionato. Nessun errore resta muto: anche i guasti
-imprevisti finiscono lì e in `~/.ricerca/attivita.log`. Ricerche e scaricamenti
+imprevisti finiscono lì e in `~/.ricerca/activity.log`. Ricerche e scaricamenti
 **proseguono sul server**: si può cambiare pagina e tornare, il lavoro non si
 ferma.
 
@@ -293,9 +298,10 @@ percorsi esatti.
 ## LLM (facoltativo)
 
 Qualsiasi endpoint compatibile con l'API OpenAI — Ollama
-(`http://localhost:11434/v1`), DeepSeek, OpenAI. Fa due cose: riorganizza i
-termini in blocchi concettuali e traduce in inglese un argomento italiano prima
-di interrogare PubMed, che in italiano non trova i MeSH. Senza, i blocchi si
+(`http://localhost:11434/v1`), DeepSeek, OpenAI. Fa tre cose: riorganizza i termini
+in blocchi concettuali, traduce in inglese un argomento italiano prima di
+interrogare PubMed (che in italiano non trova i MeSH) e riassume un articolo in
+quattro parti dalla scheda del record. Senza, i blocchi si
 costruiscono dai soli dati e tutto il resto funziona identico. Con Ollama non
 esce nulla dal computer; con un servizio in rete, argomento e termini vengono
 inviati a quel servizio.
@@ -310,7 +316,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 305 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 320 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

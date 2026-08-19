@@ -166,6 +166,24 @@ def completa(id_voce: str, indice: int, campi: dict) -> dict:
     return {}
 
 
+def salva_sintesi(id_voce: str, indice: int, sintesi: dict) -> dict:
+    """Il riassunto resta con il record: si scrive una volta e si rilegge."""
+
+    voci = _leggi()
+    for voce_corrente in voci:
+        if voce_corrente.get("id") != id_voce:
+            continue
+        sintesi_voce = voce_corrente.setdefault("sintesi", {})
+        sintesi_voce[str(indice)] = sintesi
+        _scrivi(voci)
+        return sintesi
+    return {}
+
+
+def sintesi(id_voce: str, indice: int) -> dict:
+    return (voce(id_voce) or {}).get("sintesi", {}).get(str(indice), {})
+
+
 def originale(id_voce: str, indice: int) -> Work | None:
     """Il record come è arrivato dalle banche dati, senza correzioni."""
 

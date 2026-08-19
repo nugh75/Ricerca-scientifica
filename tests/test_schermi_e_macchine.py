@@ -142,3 +142,31 @@ def test_le_righe_sono_raggiungibili_da_tastiera():
     base = (RADICE / "ricerca/templates/base.html").read_text()
     assert "SCORCIATOIE" in base
     assert '"ArrowDown"' in base
+
+
+@respx.mock
+async def test_una_fonte_sola_irraggiungibile_non_diventa_un_allarme_di_rete():
+    """Con una banca dati sola non si può dire che manchi internet."""
+
+    respx.get(url__startswith="https://export.arxiv.org").mock(
+        side_effect=httpx.ConnectError("giù"))
+
+    risultati, _ = await search.run(Strategy([Block("C", ["x"])]), ["arxiv"], 5, Config())
+
+    assert risultati[0].error == "unreachable"
+    assert "connection" not in risultati[0].error
+
+
+@respx.mock
+async def test_il_marcatore_interno_non_finisce_nel_registro():
+    from ricerca import registro
+
+    registro.svuota()
+    respx.get(url__startswith="https://export.arxiv.org").mock(
+        side_effect=httpx.ConnectError("giù"))
+
+    await search.run(Strategy([Block("C", ["x"])]), ["arxiv"], 5, Config())
+
+    righe = " ".join(f"{v.azione} {v.dettaglio}" for v in registro.ultime())
+    assert search.SENZA_RETE not in righe
+    assert "unreachable" in righe

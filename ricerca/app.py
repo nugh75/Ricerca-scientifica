@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import traceback
+from datetime import datetime
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -598,6 +599,9 @@ def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = Fals
             nome_pdf=(pdf.gia_scaricato(work).name if pdf.gia_scaricato(work) else ""),
             cartella_pdf=str(config_module.CONFIG_DIR / "pdf"),
             salvato=salvato,
+            sintesi=history.sintesi(id_ricerca, indice),
+            sintesi_in_corso=lavori.per_descrizione(f"sintesi:{id_ricerca}:{indice}") is not None,
+            ha_testo=bool(_testo_da_riassumere(work).strip()),
         ),
     )
 
@@ -774,6 +778,58 @@ async def completa_da_unpaywall(
     messaggio = etichette["unpaywall_done"].format(**esito)
     registro.annota("Unpaywall", messaggio)
     return _elenco(request, id_ricerca, campo, vista, esito_pdf=messaggio)
+
+
+def _testo_da_riassumere(work: Work) -> str:
+    """Il testo pieno del PDF se c'è, altrimenti l'abstract.
+
+    Riassumere un abstract dà poco, ma è meglio di niente; con il PDF
+    scaricato il riassunto diventa davvero informativo.
+    """
+
+    percorso = pdf.gia_scaricato(work)
+    if percorso is not None:
+        testo = biblioteca.percorso_testo(percorso)
+        if testo.exists():
+            return testo.read_text(encoding="utf-8", errors="replace")
+    return work.abstract or ""
+
+
+@app.post("/scheda/{id_ricerca}/{indice}/sintesi", response_class=HTMLResponse)
+async def chiedi_sintesi(request: Request, id_ricerca: str, indice: int, lingua: str = Form(default="")):
+    """Avvia il riassunto e torna subito: un modello locale può metterci un minuto."""
+
+    config = current_config()
+    works = history.record(id_ricerca)
+    if indice >= len(works) or not config.llm_enabled:
+        return _scheda(request, id_ricerca, indice)
+
+    work = works[indice]
+    testo = _testo_da_riassumere(work)
+    if not testo.strip():
+        return _scheda(request, id_ricerca, indice)
+
+    scelta = "it" if lingua == "it" else "en"
+    descrizione = f"sintesi:{id_ricerca}:{indice}"
+    if lavori.per_descrizione(descrizione) is None:
+
+        async def esegui():
+            async with httpx.AsyncClient() as client:
+                parti = await LLMClient(config, client).sintesi(work.title, testo, scelta)
+            parti.update(
+                {
+                    "lingua": scelta,
+                    "modello": config.llm_model,
+                    "quando": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "fonte": "pdf" if len(testo) > 4000 else "abstract",
+                }
+            )
+            history.salva_sintesi(id_ricerca, indice, parti)
+            return parti
+
+        lavori.avvia(esegui(), descrizione)
+
+    return _scheda(request, id_ricerca, indice)
 
 
 @app.post("/scheda/{id_ricerca}/{indice}/unpaywall", response_class=HTMLResponse)

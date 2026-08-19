@@ -25,7 +25,7 @@ def test_il_registro_tiene_le_ultime_voci_e_conta_gli_errori():
 
 def test_il_registro_finisce_anche_su_file(isolated_config):
     registro.annota("prova", "riga da conservare")
-    testo = (isolated_config / "attivita.log").read_text(encoding="utf-8")
+    testo = (isolated_config / "activity.log").read_text(encoding="utf-8")
     assert "riga da conservare" in testo
 
 
