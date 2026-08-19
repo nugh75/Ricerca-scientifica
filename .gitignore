@@ -6,3 +6,11 @@ dist/
 build/
 *.egg-info/
 dist/
+
+# Roba locale dell'ambiente ai4educ: non appartiene al progetto e i
+# collegamenti puntano fuori dal repository.
+PROJECTS.md
+PROJECT-INFO.md
+.agents/
+.claude/
+.ai4educ/

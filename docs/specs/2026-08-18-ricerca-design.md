@@ -246,7 +246,7 @@ un `400` spiega da sé che cosa non va invece di restare un codice muto.
 
 ## Sistema visivo
 
-Derivato da `design.md` («Zero Interface»), con quattro scelte fatte in
+Derivato da `docs/design.md` («Zero Interface»), con quattro scelte fatte in
 accordo con chi commissiona:
 
 - **un solo accento**, grafite desaturato `#3a4a5c` su fondo `#fafafa`; il

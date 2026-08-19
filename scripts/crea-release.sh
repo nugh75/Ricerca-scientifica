@@ -10,13 +10,17 @@ VERSIONE="$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
 DIST="dist"
 LAVORO="$DIST/lavoro"
 rm -rf "$LAVORO" && mkdir -p "$LAVORO"
+# `zip` aggiunge a un archivio esistente invece di rifarlo: senza questa
+# pulizia un archivio vecchio si porterebbe dentro i file di ieri.
+rm -f "$DIST/ricerca-$VERSIONE"-*.tar.gz "$DIST/ricerca-$VERSIONE"-*.zip
 
 sorgente_in() {
   # Copia il sorgente dell'app dentro la cartella indicata.
   local destinazione="$1"
   mkdir -p "$destinazione"
+  # Le schermate pesano più dell'app: restano nel repository, dove si
+  # guardano, e non nell'archivio che ognuno scarica.
   cp -r ricerca pyproject.toml README.md "$destinazione/"
-  mkdir -p "$destinazione/docs" && cp -r docs/screenshot "$destinazione/docs/"
   find "$destinazione" -name '__pycache__' -type d -prune -exec rm -rf {} +
 }
 
@@ -36,7 +40,9 @@ cp packaging/macos/avvio "$BUNDLE/MacOS/Ricerca"
 chmod +x "$BUNDLE/MacOS/Ricerca"
 cp packaging/Ricerca.icns "$BUNDLE/Resources/Ricerca.icns"
 sed "s/1\.3\.0/$VERSIONE/g" packaging/macos/Info.plist > "$BUNDLE/Info.plist"
-cp avvia.command "$MAC/avvia-da-terminale.command"
+# Copia dell'unico lanciatore: un secondo file resterebbe indietro.
+cp avvia.sh "$MAC/avvia-da-terminale.command"
+chmod +x "$MAC/avvia-da-terminale.command"
 cat > "$MAC/LEGGIMI.txt" <<'FINE'
 Ricerca — installazione su macOS
 

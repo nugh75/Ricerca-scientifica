@@ -6,7 +6,7 @@ strategy, the numbers and the PDFs where you can find them again.
 
 **English** · [Italiano](#italiano)
 
-![Suggested searches](docs/screenshot/2-ricerche-suggerite.png)
+![Suggested searches](https://raw.githubusercontent.com/nugh75/Ricerca-scientifica/main/docs/screenshot/2-ricerche-suggerite.png)
 
 ## Download and run
 
@@ -131,7 +131,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 279 tests, none touches the network
+.venv/bin/pytest -q                       # 283 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -157,7 +157,9 @@ fragments. No Node, no build step, no binaries to sign.
 | `docs/specs/` | the design document (Italian) |
 
 Building the archives: `./scripts/crea-release.sh` (they end up in `dist/`); in
-CI, `.github/workflows/release.yml` on every `v*` tag.
+CI, `.github/workflows/release.yml` on every `v*` tag. The archives carry the
+source and the launcher only — around 200 KB; the screenshots stay here, where
+they are read.
 
 ---
 
@@ -291,7 +293,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 279 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 283 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

@@ -96,3 +96,47 @@ def test_il_comando_versione_stampa_i_percorsi(capsys):
 def test_il_bundle_registra_quale_copia_parte():
     testo = (RADICE / "packaging/macos/avvio").read_text()
     assert 'echo "bundle: $BUNDLE"' in testo
+
+
+def test_esiste_un_solo_lanciatore_per_unix():
+    """Una copia del lanciatore resterebbe indietro senza che nessuno se ne
+    accorga: è già successo con avvia.command, rimasto senza il confronto di
+    versione per otto rilasci."""
+
+    assert (RADICE / "avvia.sh").exists()
+    assert not (RADICE / "avvia.command").exists()
+    costruzione = (RADICE / "scripts/crea-release.sh").read_text()
+    assert 'cp avvia.sh "$MAC/avvia-da-terminale.command"' in costruzione
+
+
+def test_il_repository_non_porta_file_altrui():
+    """Mappa dei progetti dell'utente e collegamenti alle skill locali non
+    appartengono a un'app che altri scaricano."""
+
+    import subprocess
+
+    tracciati = subprocess.run(
+        ["git", "ls-files"], cwd=RADICE, capture_output=True, text=True, check=True
+    ).stdout.split()
+
+    assert "PROJECTS.md" not in tracciati
+    assert not [f for f in tracciati if f.startswith((".claude/", ".agents/", ".ai4educ/"))]
+
+
+def test_nessun_collegamento_simbolico_esce_dal_repository():
+    import subprocess
+
+    righe = subprocess.run(
+        ["git", "ls-files", "-s"], cwd=RADICE, capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    simbolici = [r.split("\t")[1] for r in righe if r.startswith("120000")]
+    assert simbolici == []
+
+
+def test_la_costruzione_rifa_gli_archivi_invece_di_aggiungerci():
+    """`zip` aggiunge a un archivio esistente: senza pulizia lo zip di oggi
+    conteneva ancora i file di ieri."""
+
+    costruzione = (RADICE / "scripts/crea-release.sh").read_text()
+    assert 'rm -f "$DIST/ricerca-$VERSIONE"-*.tar.gz "$DIST/ricerca-$VERSIONE"-*.zip' in costruzione
+    assert "cp -r docs/screenshot" not in costruzione   # le schermate non si distribuiscono
