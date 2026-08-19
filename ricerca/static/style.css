@@ -96,6 +96,13 @@ nav { display: flex; align-items: center; gap: var(--u2); flex-wrap: wrap; font-
 nav a { color: var(--testo-tenue); text-decoration: none; font-weight: 500; padding: var(--u1) 0; border-bottom: 2px solid transparent; transition: color var(--transizione), border-color var(--transizione); }
 nav a:hover { color: var(--testo); border-bottom-color: var(--accento); }
 
+a {
+  color: var(--accento);
+  text-decoration-color: color-mix(in srgb, var(--accento) 45%, transparent);
+  text-underline-offset: 3px;
+}
+a:hover { text-decoration-color: var(--accento); }
+
 main { max-width: 1280px; margin: 0 auto; padding: 0 var(--u3) var(--u6); }
 footer {
   max-width: 1280px; margin: 0 auto; padding: 0 var(--u3) var(--u4);
@@ -156,7 +163,7 @@ textarea { resize: vertical; font-family: var(--mono); font-size: .875rem; }
 :focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
 ::placeholder { color: var(--testo-tenue); opacity: .8; }
 
-button, a.tasto {
+button, a.tasto, a.copia {
   font: 500 .9375rem/1 var(--testo-famiglia); cursor: pointer; text-decoration: none;
   display: inline-flex; align-items: center; gap: var(--u1);
   background: var(--scheda); color: var(--testo);
@@ -164,8 +171,8 @@ button, a.tasto {
   padding: .625rem .875rem;
   transition: background var(--transizione), border-color var(--transizione), transform 120ms ease-out;
 }
-button:hover, a.tasto:hover { background: var(--accento-tenue); border-color: var(--accento); }
-button:active, a.tasto:active { transform: translateY(1px); }
+button:hover, a.tasto:hover, a.copia:hover { background: var(--accento-tenue); border-color: var(--accento); text-decoration: none; }
+button:active, a.tasto:active, a.copia:active { transform: translateY(1px); }
 button.primario {
   background: var(--accento); border-color: var(--accento); color: #fff; font-weight: 600;
 }
@@ -233,6 +240,7 @@ button.chip:hover { border-color: var(--accento); }
 }
 .riga-query.incolla code { background: transparent; border: 1px dashed var(--bordo); }
 .copia { font-size: .8125rem; padding: .375rem .625rem; }
+a.copia { text-decoration: none; color: var(--testo); }
 @media (max-width: 44rem) { .riga-query { grid-template-columns: 1fr; } }
 
 /* ── tabelle ──────────────────────────────────────────────── */

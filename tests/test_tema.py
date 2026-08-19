@@ -46,3 +46,30 @@ def test_il_cambio_lingua_non_azzera_il_tema():
     client.post("/lingua/it")
     assert config_module.load().tema == "chiaro"
     assert config_module.load().lang == "it"
+
+
+def test_nessun_collegamento_resta_al_blu_del_browser():
+    """Il blu predefinito è illeggibile sul tema scuro: serve una regola."""
+
+    import re
+    from pathlib import Path
+
+    foglio = (Path(__file__).resolve().parent.parent / "ricerca/static/style.css").read_text()
+    regola = re.search(r"\na \{(.*?)\}", foglio, re.S)
+    assert regola, "manca la regola generale per i collegamenti"
+    assert "var(--accento)" in regola.group(1)
+    # e i collegamenti travestiti da tasto seguono i tasti
+    assert "button, a.tasto, a.copia {" in foglio
+
+
+def test_l_accento_del_tema_scuro_e_chiaro_abbastanza():
+    """Su fondo #17191c serve un accento chiaro, non il blu di sistema."""
+
+    from pathlib import Path
+
+    foglio = (Path(__file__).resolve().parent.parent / "ricerca/static/style.css").read_text()
+    scuro = foglio[foglio.index('html[data-tema="scuro"]'):]
+    accento = scuro[scuro.index("--accento:"):].split(";")[0]
+    canali = [int(accento.strip()[-6:][i:i + 2], 16) for i in (0, 2, 4)]
+    luminosita = (0.299 * canali[0] + 0.587 * canali[1] + 0.114 * canali[2]) / 255
+    assert luminosita > 0.55, f"accento troppo scuro sul fondo scuro: {accento}"
