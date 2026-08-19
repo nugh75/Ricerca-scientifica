@@ -22,7 +22,7 @@ async def test_scarica_salva_il_file_e_lo_ritrova():
         percorso = await pdf.scarica(lavoro, client)
 
     assert percorso.read_bytes() == PDF_FINTO
-    assert percorso.name.startswith("long2020ai")
+    assert percorso.name == "2020_long_ai-literacy.pdf"
     assert pdf.gia_scaricato(lavoro) == percorso
 
 
@@ -54,7 +54,22 @@ async def test_senza_link_aperto_non_si_scarica_nulla():
             await pdf.scarica(articolo(oa=None), client)
 
 
-def test_il_nome_del_file_distingue_record_diversi():
-    uno = pdf.nome_file(Work(title="Stesso titolo", authors=["Rossi M"], year=2020, doi="10.1/a"))
-    due = pdf.nome_file(Work(title="Stesso titolo", authors=["Rossi M"], year=2020, doi="10.1/b"))
-    assert uno != due
+@respx.mock
+async def test_due_lavori_omonimi_non_si_sovrascrivono():
+    """Stesso anno, stesso autore, stesso titolo, DOI diversi: due file."""
+
+    respx.get(url__startswith="https://esempio.org/").mock(
+        return_value=httpx.Response(200, content=PDF_FINTO))
+    uno = Work(title="Stesso titolo", authors=["Rossi M"], year=2020, doi="10.1/a",
+               oa_url="https://esempio.org/a.pdf")
+    due = Work(title="Stesso titolo", authors=["Rossi M"], year=2020, doi="10.1/b",
+               oa_url="https://esempio.org/b.pdf")
+
+    async with httpx.AsyncClient() as client:
+        primo = await pdf.scarica(uno, client)
+        secondo = await pdf.scarica(due, client)
+
+    assert primo.name == "2020_rossi_stesso-titolo.pdf"
+    assert secondo.name == "2020_rossi_stesso-titolo-2.pdf"
+    assert pdf.gia_scaricato(uno) == primo
+    assert pdf.gia_scaricato(due) == secondo

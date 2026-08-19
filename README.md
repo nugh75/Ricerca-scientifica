@@ -147,7 +147,8 @@ Dalla pagina **Impostazioni**:
 Le chiavi restano in `~/.ricerca/config.toml` con permessi `600`, non
 vengono mai rimandate al browser e si cancellano con la spunta *rimuovi*.
 Nella stessa cartella stanno la cronologia (`cronologia.json`) e i PDF
-scaricati (`pdf/`).
+scaricati in `pdf/`, nominati `anno_autori_titolo.pdf`. Impostazioni mostra
+il percorso esatto e quanti file ci sono.
 
 ## LLM (facoltativo)
 
@@ -166,7 +167,7 @@ L'interfaccia parte in inglese e si porta in italiano con i pulsanti
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                     # 242 test, nessuno tocca la rete
+.venv/bin/pytest -q                     # 251 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -312,7 +313,10 @@ limits with it; without it, it often answers `429`), the Semantic Scholar,
 CORE and NCBI keys, and an optional LLM endpoint and model.
 
 Keys are stored in `~/.ricerca/config.toml` with `600` permissions, are never
-sent back to the browser, and can be deleted with the *remove* checkbox.
+sent back to the browser, and can be deleted with the *remove* checkbox. The
+same folder holds the history and the PDFs in `pdf/`, named
+`year_authors_title.pdf`; Settings shows the exact path and how many files are
+there.
 
 ## LLM (optional)
 
@@ -340,7 +344,7 @@ system. Both choices are remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 242 tests, none touches the network
+.venv/bin/pytest -q                       # 251 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

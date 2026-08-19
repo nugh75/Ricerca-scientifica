@@ -71,13 +71,13 @@ def test_il_tasto_zip_compare_solo_con_i_pdf_sul_disco():
 
 
 @respx.mock
-def test_il_nome_dentro_lo_zip_e_la_chiave_di_citazione():
+def test_il_nome_dentro_lo_zip_e_leggibile():
     respx.get("https://esempio.org/0.pdf").mock(return_value=httpx.Response(200, content=PDF_FINTO))
     id_ricerca = ricerca_con_pdf(quanti=1)
     client.post(f"/pdf-massa/{id_ricerca}", data={})
 
     with zipfile.ZipFile(io.BytesIO(client.get(f"/pdf/{id_ricerca}.zip").content)) as archivio:
-        assert archivio.namelist()[0].startswith("rossi2024studio")
+        assert archivio.namelist()[0] == "2024_rossi_studio-0.pdf"
 
 
 @respx.mock
@@ -119,3 +119,50 @@ def test_il_lettore_offre_comunque_la_via_d_uscita():
     pagina = client.get("/", follow_redirects=True).text
     assert 'id="lettore-fuori"' in pagina
     assert "open outside the app" in pagina
+
+
+def test_il_nome_del_file_e_anno_autori_titolo():
+    nome = pdf.nome_file(Work(
+        title="Teaching Students to Question the Machine",
+        authors=["Olivier Clerc", "Rania Abdelghani"], year=2026,
+    ))
+    assert nome == "2026_clerc-abdelghani_teaching-students-to-question-the-machine.pdf"
+
+
+def test_oltre_tre_autori_si_abbrevia():
+    nome = pdf.nome_file(Work(title="Studio", year=2024,
+                              authors=["Rossi M", "Bianchi L", "Verdi G", "Neri P"]))
+    assert nome.startswith("2024_rossi-bianchi-verdi-et-al_studio")
+
+
+def test_accenti_e_apostrofi_non_finiscono_nel_nome():
+    nome = pdf.nome_file(Work(title="Perché l'IA è in classe", authors=["Rossi M"], year=2024))
+    assert nome == "2024_rossi_perche-l-ia-e-in-classe.pdf"
+    assert all(carattere.isascii() for carattere in nome)
+
+
+def test_senza_anno_e_senza_autori_il_nome_regge():
+    assert pdf.nome_file(Work(title="Senza dati")) == "sd_anon_senza-dati.pdf"
+
+
+@respx.mock
+async def test_un_pdf_scaricato_col_vecchio_nome_viene_rinominato():
+    lavoro = Work(title="AI literacy", authors=["Duri Long"], year=2020,
+                  doi="10.1/x", oa_url="https://esempio.org/f.pdf")
+    vecchio = pdf.cartella() / pdf._nome_storico(lavoro)
+    vecchio.write_bytes(PDF_FINTO)
+    (vecchio.with_suffix(".txt")).write_text("testo estratto")
+
+    trovato = pdf.gia_scaricato(lavoro)
+
+    assert trovato.name == "2020_long_ai-literacy.pdf"
+    assert trovato.read_bytes() == PDF_FINTO
+    assert trovato.with_suffix(".txt").read_text() == "testo estratto"
+    assert not vecchio.exists()          # niente doppioni
+
+
+def test_le_impostazioni_dicono_dove_stanno_i_pdf():
+    pagina = client.get("/impostazioni").text
+    assert "PDF folder" in pagina
+    assert "/pdf" in pagina
+    assert "named year_authors_title" in pagina

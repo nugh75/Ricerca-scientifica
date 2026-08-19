@@ -120,3 +120,36 @@ def test_i_motivi_dei_modelli_seguono_la_lingua():
 def test_la_guida_e_raggiungibile_anche_dopo_la_prima_volta():
     config_module.save(Config(configurato="1"))
     assert client.get("/benvenuto").status_code == 200
+
+
+def dati_guida(**extra):
+    dati = {"mailto": "", "llm_base_url": "", "llm_model": "", "llm_api_key": "",
+            "core_api_key": "", "s2_api_key": "", "ncbi_api_key": "", "openalex_api_key": "",
+            "zotero_api_key": "", "zotero_library_id": "", "lingua": "en", "tema": "auto"}
+    dati.update(extra)
+    return dati
+
+
+def test_salvare_una_sezione_resta_sulla_guida_e_lo_dice():
+    risposta = client.post("/benvenuto", data=dati_guida(azione="continua", s2_api_key="k-s2"),
+                           follow_redirects=False)
+
+    assert risposta.status_code == 303
+    assert risposta.headers["location"] == "/benvenuto?salvato=1"
+    assert config_module.load().s2_api_key == "k-s2"
+    # e la guida non si considera ancora conclusa
+    assert config_module.load().configurato == ""
+
+    pagina = client.get("/benvenuto?salvato=1").text
+    assert "Saved to" in pagina and "config.toml" in pagina
+
+
+def test_ogni_sezione_con_campi_ha_il_suo_tasto_salva():
+    pagina = client.get("/benvenuto").text
+    assert pagina.count('name="azione" value="continua"') == 3   # email, LLM, chiavi
+    assert 'name="azione" value="fine"' in pagina
+
+
+def test_il_tasto_finale_conclude_la_guida():
+    client.post("/benvenuto", data=dati_guida(azione="fine"), follow_redirects=False)
+    assert config_module.load().configurato == "1"

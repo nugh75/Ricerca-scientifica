@@ -83,6 +83,7 @@ def base_context(config: Config, **extra) -> dict:
         "tema": config.tema if config.tema in ("chiaro", "scuro") else "auto",
         "t": i18n.strings(config.lang),
         "versione": __version__,
+        "config_percorso": str(config_module.CONFIG_FILE),
     }
     context.update(extra)
     return context
@@ -107,7 +108,7 @@ async def cambia_lingua(lang: str):
 
 
 @app.get("/benvenuto", response_class=HTMLResponse)
-async def benvenuto(request: Request):
+async def benvenuto(request: Request, salvato: int = 0):
     """La configurazione guidata: ogni voce spiega che cosa cambia."""
 
     config = current_config()
@@ -120,6 +121,7 @@ async def benvenuto(request: Request):
             macchina=macchina.descrizione(),
             modelli=macchina.consiglio(),
             sources=sources_registry.ALL,
+            salvato=bool(salvato),
         ),
     )
 
@@ -138,6 +140,7 @@ async def salva_benvenuto(
     zotero_library_id: str = Form(default=""),
     lingua: str = Form(default="en"),
     tema: str = Form(default="auto"),
+    azione: str = Form(default="fine"),
 ):
     config = current_config()
     config.mailto = mailto.strip()
@@ -156,6 +159,12 @@ async def salva_benvenuto(
     ):
         if valore.strip():
             setattr(config, campo, valore.strip())
+    if azione == "continua":
+        # Salva e resta sulla guida: chi inserisce le chiavi deve vedere
+        # che sono state prese, senza uscire dalla pagina.
+        config_module.save(config)
+        return RedirectResponse("/benvenuto?salvato=1", status_code=303)
+
     config.configurato = "1"
     config_module.save(config)
     return RedirectResponse("/", status_code=303)

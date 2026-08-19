@@ -5,8 +5,8 @@
   <key>CFBundleName</key><string>Ricerca</string>
   <key>CFBundleDisplayName</key><string>Ricerca</string>
   <key>CFBundleIdentifier</key><string>org.ai4educ.ricerca</string>
-  <key>CFBundleVersion</key><string>1.14.0</string>
-  <key>CFBundleShortVersionString</key><string>1.14.0</string>
+  <key>CFBundleVersion</key><string>1.15.0</string>
+  <key>CFBundleShortVersionString</key><string>1.15.0</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleExecutable</key><string>Ricerca</string>
   <key>CFBundleIconFile</key><string>Ricerca</string>

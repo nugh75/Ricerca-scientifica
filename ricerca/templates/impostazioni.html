@@ -81,6 +81,8 @@
       <tr><th>{{ t.diag_app }}</th><td><code>{{ diagnosi.app }}</code></td></tr>
       <tr><th>{{ t.diag_venv }}</th><td><code>{{ diagnosi.venv_versione or '—' }}</code></td></tr>
       <tr><th>{{ t.diag_config }}</th><td><code>{{ diagnosi.configurazione }}</code></td></tr>
+      <tr><th>{{ t.diag_pdf }}</th><td><code>{{ diagnosi.cartella_pdf }}</code>
+          <span class="conteggi">{{ t.diag_pdf_count.format(quanti=diagnosi.quanti_pdf) }}</span></td></tr>
       <tr><th>{{ t.diag_system }}</th><td>{{ diagnosi.sistema }}</td></tr>
     </table>
     {% if not diagnosi.allineata %}<p class="nota errore">{{ t.diag_stale }}</p>{% endif %}

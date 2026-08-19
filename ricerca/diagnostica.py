@@ -27,9 +27,16 @@ def dati() -> dict:
         if marcatore.exists()
         else "",
         "configurazione": str(config_module.CONFIG_FILE),
+        "cartella_pdf": str(config_module.CONFIG_DIR / "pdf"),
+        "quanti_pdf": _quanti_pdf(),
         "sistema": f"{platform.system()} {platform.release()}",
         "allineata": _allineata(marcatore),
     }
+
+
+def _quanti_pdf() -> int:
+    cartella = config_module.CONFIG_DIR / "pdf"
+    return len(list(cartella.glob("*.pdf"))) if cartella.exists() else 0
 
 
 def _cartella_app(pacchetto: Path) -> Path:
