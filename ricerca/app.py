@@ -332,12 +332,12 @@ async def cerca(
     return templates.TemplateResponse(
         request,
         "partials/in-corso.html",
-        base_context(config, lavoro=lavoro, bersaglio="#passo-tre"),
+        base_context(config, lavoro=lavoro),
     )
 
 
 @app.get("/lavoro/{id_lavoro}", response_class=HTMLResponse)
-async def stato_lavoro(request: Request, id_lavoro: str, bersaglio: str = "#passo-tre"):
+async def stato_lavoro(request: Request, id_lavoro: str):
     """La pagina chiede come va: finché dura mostra l'attesa, poi il risultato.
 
     Il lavoro va avanti sul server: cambiare pagina non lo ferma, e tornando
@@ -354,7 +354,7 @@ async def stato_lavoro(request: Request, id_lavoro: str, bersaglio: str = "#pass
         return templates.TemplateResponse(
             request,
             "partials/in-corso.html",
-            base_context(config, lavoro=lavoro, bersaglio=bersaglio),
+            base_context(config, lavoro=lavoro),
         )
     if lavoro.stato == "fallito":
         return templates.TemplateResponse(

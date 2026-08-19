@@ -2,9 +2,9 @@
   <p class="occhiello">{{ t.job_running }}</p>
   <h2>{{ lavoro.descrizione }}</h2>
   <div class="scheda in-corso"
-       hx-get="/lavoro/{{ lavoro.id }}?bersaglio={{ bersaglio }}"
+       hx-get="/lavoro/{{ lavoro.id }}"
        hx-trigger="load delay:1s"
-       hx-target="{{ bersaglio }}">
+       hx-target="#passo-tre">
     <p class="attesa"><span class="barra"></span> {{ t.job_wait.format(secondi=lavoro.secondi) }}</p>
     <p class="aiuto">{{ t.job_background }}</p>
   </div>

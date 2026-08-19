@@ -1,3 +1,5 @@
+import re
+
 import httpx
 import respx
 from fastapi.testclient import TestClient
@@ -107,7 +109,7 @@ def test_la_ricerca_parte_in_background_e_si_puo_lasciare_la_pagina():
 
     assert "Running" in risposta.text          # la pagina non aspetta
     assert "/lavoro/" in risposta.text
-    id_lavoro = risposta.text.split("/lavoro/")[1].split("?")[0]
+    id_lavoro = re.search(r"/lavoro/([A-Za-z0-9_-]+)", risposta.text).group(1)
 
     client.get("/cronologia")                  # l'utente cambia pagina
     lavoro = lavori.attendi(id_lavoro, timeout=30)
@@ -148,3 +150,33 @@ def test_il_silenzio_tollerato_regge_le_finestre_in_secondo_piano():
     """I browser rallentano i timer a un battito al minuto."""
 
     assert watchdog.SILENZIO_MASSIMO >= 70
+
+
+def test_l_attesa_punta_sempre_al_contenitore_giusto():
+    """Un bersaglio vuoto faceva ripiegare htmx sull'elemento stesso, e ogni
+    giro di attesa annidava una copia dentro la precedente."""
+
+    async def lento():
+        import asyncio
+
+        await asyncio.sleep(5)
+
+    lavoro = lavori.avvia(lento(), "prova lenta")
+    frammento = client.get(f"/lavoro/{lavoro.id}").text
+
+    assert 'hx-target="#passo-tre"' in frammento
+    assert 'hx-target=""' not in frammento
+    assert "bersaglio" not in frammento          # niente selettori nell'indirizzo
+    assert frammento.count('data-passo="3"') == 1
+
+
+def test_l_attesa_non_si_annida_a_ogni_giro():
+    async def lento():
+        import asyncio
+
+        await asyncio.sleep(5)
+
+    lavoro = lavori.avvia(lento(), "prova lenta")
+    for _ in range(3):
+        frammento = client.get(f"/lavoro/{lavoro.id}").text
+        assert frammento.count("<section") == 1
