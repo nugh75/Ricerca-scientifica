@@ -7,7 +7,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-TOOLS="$PWD/.strumenti"
+TOOLS="$PWD/.tools"
 SCRIVIBILE=1
 
 # Se la cartella dell'app non è scrivibile (per esempio /Applications o una
@@ -15,7 +15,7 @@ SCRIVIBILE=1
 # chiedere. / If the app folder is read-only, everything goes to ~/.ricerca.
 if [ ! -w "$PWD" ]; then
   SCRIVIBILE=0
-  TOOLS="$HOME/.ricerca/strumenti"
+  TOOLS="$HOME/.ricerca/tools"
   mkdir -p "$TOOLS"
 fi
 

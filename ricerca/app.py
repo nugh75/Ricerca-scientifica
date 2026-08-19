@@ -473,7 +473,7 @@ def _campi_da_query(campi: str | None) -> list[str]:
 async def export_bib(id_ricerca: str, campi: str | None = None):
     return PlainTextResponse(
         to_bibtex(history.record(id_ricerca), _campi_da_query(campi)),
-        headers={"Content-Disposition": 'attachment; filename="ricerca.bib"'},
+        headers={"Content-Disposition": 'attachment; filename="references.bib"'},
     )
 
 
@@ -482,7 +482,7 @@ async def export_csv(id_ricerca: str, campi: str | None = None):
     return PlainTextResponse(
         to_csv(history.record(id_ricerca), _campi_da_query(campi)),
         media_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="ricerca.csv"'},
+        headers={"Content-Disposition": 'attachment; filename="records.csv"'},
     )
 
 
@@ -490,7 +490,7 @@ async def export_csv(id_ricerca: str, campi: str | None = None):
 async def export_apa(id_ricerca: str):
     return PlainTextResponse(
         to_apa(history.record(id_ricerca)),
-        headers={"Content-Disposition": 'attachment; filename="riferimenti-apa.txt"'},
+        headers={"Content-Disposition": 'attachment; filename="apa-references.txt"'},
     )
 
 
@@ -535,7 +535,7 @@ async def scarica_archivio_pdf(id_ricerca: str):
     return Response(
         contenuto,
         media_type="application/zip",
-        headers={"Content-Disposition": 'attachment; filename="pdf-della-ricerca.zip"'},
+        headers={"Content-Disposition": 'attachment; filename="article-pdfs.zip"'},
     )
 
 
@@ -688,7 +688,7 @@ async def export_protocollo_testo(id_ricerca: str):
     voce = history.voce(id_ricerca) or {}
     return PlainTextResponse(
         protocollo_testo(voce, history.conteggi(id_ricerca)),
-        headers={"Content-Disposition": 'attachment; filename="protocollo-di-ricerca.txt"'},
+        headers={"Content-Disposition": 'attachment; filename="search-protocol.txt"'},
     )
 
 
@@ -833,7 +833,7 @@ async def export_protocollo(id_ricerca: str):
     voce = history.voce(id_ricerca) or {}
     return PlainTextResponse(
         protocollo(voce, history.conteggi(id_ricerca)),
-        headers={"Content-Disposition": 'attachment; filename="protocollo-di-ricerca.md"'},
+        headers={"Content-Disposition": 'attachment; filename="search-protocol.md"'},
     )
 
 
@@ -917,7 +917,7 @@ async def svuota_registro(request: Request):
 async def registro_testo():
     return PlainTextResponse(
         registro.come_testo(),
-        headers={"Content-Disposition": 'attachment; filename="attivita.log"'},
+        headers={"Content-Disposition": 'attachment; filename="activity.log"'},
     )
 
 

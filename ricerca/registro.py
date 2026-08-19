@@ -16,7 +16,8 @@ from . import config as config_module
 
 MASSIMO_IN_MEMORIA = 200
 MASSIMO_FILE_BYTE = 1_000_000
-NOME_FILE = "attivita.log"
+NOME_FILE = "activity.log"
+NOME_STORICO = "attivita.log"
 
 _serratura = threading.Lock()
 _voci: deque = deque(maxlen=MASSIMO_IN_MEMORIA)
@@ -34,9 +35,20 @@ class Voce:
         return self.livello == "errore"
 
 
+def _percorso_registro():
+    """Il file del registro, traslocando quello col nome vecchio."""
+
+    cartella = config_module.CONFIG_DIR
+    percorso = cartella / NOME_FILE
+    storico = cartella / NOME_STORICO
+    if storico.exists() and not percorso.exists():
+        storico.rename(percorso)
+    return percorso
+
+
 def _scrivi_su_file(voce: Voce) -> None:
     try:
-        percorso = config_module.CONFIG_DIR / NOME_FILE
+        percorso = _percorso_registro()
         percorso.parent.mkdir(parents=True, exist_ok=True)
         if percorso.exists() and percorso.stat().st_size > MASSIMO_FILE_BYTE:
             coda = percorso.read_text(encoding="utf-8", errors="replace")[-MASSIMO_FILE_BYTE // 2 :]

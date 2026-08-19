@@ -6,7 +6,7 @@ set -uo pipefail
 BUNDLE="$(cd "$(dirname "$0")/../.." && pwd)"
 APP="$BUNDLE/Contents/Resources/app"
 CASA="$HOME/.ricerca"
-REGISTRO="$CASA/avvio.log"
+REGISTRO="$CASA/startup.log"
 mkdir -p "$CASA"
 
 {
@@ -15,7 +15,7 @@ mkdir -p "$CASA"
   cd "$APP" || exit 1
   echo "versione nell'archivio: $(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
 
-  TOOLS="$CASA/strumenti"
+  TOOLS="$CASA/tools"
   mkdir -p "$TOOLS"
   export UV_PROJECT_ENVIRONMENT="$CASA/venv"
 

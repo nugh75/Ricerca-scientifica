@@ -5,13 +5,13 @@ setlocal
 cd /d "%~dp0"
 
 REM Se la cartella dell'app non e' scrivibile, uv lavora sotto %USERPROFILE%\.ricerca.
-set "TOOLS=%CD%\.strumenti"
+set "TOOLS=%CD%\.tools"
 set "SCRIVIBILE=1"
 copy /y nul ".prova-scrittura" >nul 2>nul
 if errorlevel 1 (
   set "SCRIVIBILE=0"
-  set "TOOLS=%USERPROFILE%\.ricerca\strumenti"
-  if not exist "%USERPROFILE%\.ricerca\strumenti" mkdir "%USERPROFILE%\.ricerca\strumenti"
+  set "TOOLS=%USERPROFILE%\.ricerca\tools"
+  if not exist "%USERPROFILE%\.ricerca\tools" mkdir "%USERPROFILE%\.ricerca\tools"
 ) else (
   del ".prova-scrittura" >nul 2>nul
 )

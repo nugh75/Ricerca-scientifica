@@ -11,7 +11,7 @@ cat > "$DESTINAZIONE/ricerca.desktop" <<FINE
 Type=Application
 Name=Ricerca
 Comment=Assistente di strategia di ricerca bibliografica
-Exec=$CARTELLA/avvia.sh
+Exec=$CARTELLA/start.sh
 Icon=$CARTELLA/ricerca/static/icona.png
 Terminal=false
 Categories=Education;Science;

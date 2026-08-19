@@ -27,8 +27,8 @@ sorgente_in() {
 # ── Linux: sorgente, lanciatore, scorciatoia per il menu ──────────────
 LINUX="$LAVORO/linux/ricerca"
 sorgente_in "$LINUX"
-cp avvia.sh "$LINUX/"
-cp packaging/installa-scorciatoia-linux.sh "$LINUX/"
+cp start.sh "$LINUX/"
+cp packaging/install-shortcut-linux.sh "$LINUX/"
 tar -czf "$DIST/ricerca-$VERSIONE-linux.tar.gz" -C "$LAVORO/linux" ricerca
 
 # ── macOS: un vero bundle, si apre senza finestra di Terminale ────────
@@ -36,14 +36,26 @@ MAC="$LAVORO/macos"
 BUNDLE="$MAC/Ricerca.app/Contents"
 mkdir -p "$BUNDLE/MacOS" "$BUNDLE/Resources"
 sorgente_in "$BUNDLE/Resources/app"
-cp packaging/macos/avvio "$BUNDLE/MacOS/Ricerca"
+cp packaging/macos/launch "$BUNDLE/MacOS/Ricerca"
 chmod +x "$BUNDLE/MacOS/Ricerca"
 cp packaging/Ricerca.icns "$BUNDLE/Resources/Ricerca.icns"
 sed "s/1\.3\.0/$VERSIONE/g" packaging/macos/Info.plist > "$BUNDLE/Info.plist"
 # Copia dell'unico lanciatore: un secondo file resterebbe indietro.
-cp avvia.sh "$MAC/avvia-da-terminale.command"
-chmod +x "$MAC/avvia-da-terminale.command"
-cat > "$MAC/LEGGIMI.txt" <<'FINE'
+cp start.sh "$MAC/start-from-terminal.command"
+chmod +x "$MAC/start-from-terminal.command"
+cat > "$MAC/READ-ME-FIRST.txt" <<'FINE'
+Ricerca — installing on macOS
+
+1. Drag Ricerca.app into your Applications folder.
+2. First launch: right-click the icon → Open → Open.
+   Needed because the app is not signed with an Apple Developer ID.
+   If macOS calls it “damaged”, run this once in Terminal:
+       xattr -dr com.apple.quarantine /Applications/Ricerca.app
+3. After that a double-click is enough: the browser opens, no Terminal.
+   Closing the page quits the app.
+
+---
+
 Ricerca — installazione su macOS
 
 1. Trascina Ricerca.app nella cartella Applicazioni.
@@ -56,27 +68,15 @@ Ricerca — installazione su macOS
 
 Il primo avvio scarica uv e l'interprete Python in ~/.ricerca
 (serve la connessione a internet). Il registro sta in ~/.ricerca/avvio.log.
-
----
-
-Ricerca — installing on macOS
-
-1. Drag Ricerca.app into your Applications folder.
-2. First launch: right-click the icon → Open → Open.
-   Needed because the app is not signed with an Apple Developer ID.
-   If macOS calls it “damaged”, run this once in Terminal:
-       xattr -dr com.apple.quarantine /Applications/Ricerca.app
-3. After that a double-click is enough: the browser opens, no Terminal.
-   Closing the page quits the app.
 FINE
-tar -czf "$DIST/ricerca-$VERSIONE-macos.tar.gz" -C "$MAC" Ricerca.app avvia-da-terminale.command LEGGIMI.txt
+tar -czf "$DIST/ricerca-$VERSIONE-macos.tar.gz" -C "$MAC" Ricerca.app start-from-terminal.command READ-ME-FIRST.txt
 
 # ── Windows: sorgente, .bat, icona e creatore di collegamento ─────────
 WIN="$LAVORO/windows/ricerca"
 sorgente_in "$WIN"
-cp avvia.bat "$WIN/"
+cp start.bat "$WIN/"
 cp packaging/Ricerca.ico "$WIN/"
-cp packaging/crea-scorciatoia-windows.bat "$WIN/"
+cp packaging/create-shortcut-windows.bat "$WIN/"
 ( cd "$LAVORO/windows" && zip -qr "../../ricerca-$VERSIONE-windows.zip" ricerca )
 
 rm -rf "$LAVORO"

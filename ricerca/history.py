@@ -18,8 +18,18 @@ from .models import SourceResult, Strategy, Work
 MAX_VOCI = 50
 
 
+NOME_FILE = "history.json"
+NOME_STORICO = "cronologia.json"
+
+
 def _percorso() -> Path:
-    return config_module.CONFIG_DIR / "cronologia.json"
+    """Il file della cronologia, traslocando quello col nome vecchio."""
+
+    percorso = config_module.CONFIG_DIR / NOME_FILE
+    storico = config_module.CONFIG_DIR / NOME_STORICO
+    if storico.exists() and not percorso.exists():
+        storico.rename(percorso)
+    return percorso
 
 
 def _leggi() -> list[dict]:

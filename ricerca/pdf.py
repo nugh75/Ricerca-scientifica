@@ -73,8 +73,19 @@ def _firma(work: Work) -> str:
     return f"doi:{doi}" if doi else f"titolo:{normalize_title(work.title)}|{work.year or ''}"
 
 
+def _percorso_indice():
+    """L'indice dei nomi, traslocando quello col nome vecchio."""
+
+    cartella_pdf = config_module.CONFIG_DIR / "pdf"
+    percorso = cartella_pdf / "index.json"
+    storico = cartella_pdf / "indice.json"
+    if storico.exists() and not percorso.exists():
+        storico.rename(percorso)
+    return percorso
+
+
 def _indice() -> dict:
-    percorso = config_module.CONFIG_DIR / "pdf" / "indice.json"
+    percorso = _percorso_indice()
     if not percorso.exists():
         return {}
     try:
@@ -87,7 +98,7 @@ def _indice() -> dict:
 def _annota(work: Work, nome: str) -> None:
     dati = _indice()
     dati[_firma(work)] = nome
-    percorso = cartella() / "indice.json"
+    percorso = _percorso_indice()
     percorso.write_text(json.dumps(dati, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
