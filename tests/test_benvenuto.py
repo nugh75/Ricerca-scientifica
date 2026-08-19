@@ -88,19 +88,20 @@ def test_una_chiave_lasciata_vuota_non_cancella_quella_salvata():
 
 
 def test_i_motivi_dei_modelli_seguono_la_lingua():
+    """Vale qualunque sia la memoria della macchina che esegue il test."""
+
+    import html
+
     from ricerca import i18n
 
-    for modello in macchina.consiglio(memoria=6, silicio_apple=False):
-        assert modello.motivo in i18n.STRINGS["it"]
-        assert modello.motivo in i18n.STRINGS["en"]
-
-    inglese = client.get("/benvenuto").text
-    assert "runs even with little memory" in inglese or "runs comfortably" in inglese
-    assert "gira comodo con questa memoria" not in inglese
+    inglese = html.unescape(client.get("/benvenuto").text)
+    for modello in macchina.consiglio():
+        assert i18n.STRINGS["en"][modello.motivo] in inglese
 
     config_module.save(Config(lang="it"))
-    italiano = client.get("/benvenuto").text
-    assert "gira comodo" in italiano or "gira anche con poca memoria" in italiano
+    italiano = html.unescape(client.get("/benvenuto").text)
+    for modello in macchina.consiglio():
+        assert i18n.STRINGS["it"][modello.motivo] in italiano
 
 
 def test_la_guida_e_raggiungibile_anche_dopo_la_prima_volta():
