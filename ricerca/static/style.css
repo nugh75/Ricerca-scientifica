@@ -500,6 +500,8 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .scheda-contenuto { padding: var(--u3); overflow-y: auto; max-height: calc(92dvh - 3.5rem); }
 .scheda-titolo { font-size: 1.5rem; font-weight: 700; line-height: 1.25; margin: 0 0 var(--u1); }
 .scheda-autori { font-size: 1rem; margin: 0 0 var(--u1); }
+.avviso-forte { font-size: .875rem; font-weight: 600; color: var(--errore); margin: 0 0 var(--u1); }
+.meta { font-size: .875rem; color: var(--testo-tenue); margin: 0 0 var(--u1); }
 .scheda-abstract { max-width: 72ch; }
 .scheda-riquadro { border: 1px solid var(--riga); border-radius: var(--raggio); padding: var(--u2) var(--u3); margin: var(--u2) 0; }
 .scheda-riquadro h3 { margin-top: 0; }

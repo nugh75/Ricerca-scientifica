@@ -356,6 +356,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "s2_hint": "senza chiave il servizio risponde spesso 429",
         "need_opac_cli": "richiede la CLI {binary} nel PATH",
         "needs_key": "richiede una chiave API",
+        "record_ritirato": "Articolo ritirato: non va incluso senza dirlo.",
+        "record_citazioni": "Citazioni",
+        "record_top10": "fra il 10% più citato del suo campo",
     },
     "en": {
         "lang_name": "English",
@@ -703,6 +706,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "s2_hint": "without a key the service often answers 429",
         "need_opac_cli": "needs the {binary} CLI on the PATH",
         "needs_key": "needs an API key",
+        "record_ritirato": "Retracted article: do not include it silently.",
+        "record_citazioni": "Citations",
+        "record_top10": "in the top 10% most cited of its field",
     },
 }
 

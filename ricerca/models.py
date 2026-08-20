@@ -59,6 +59,13 @@ class Work:
     # spesso la prima è una pagina di destinazione, non il file.
     oa_urls: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
+    # Quel che sa OpenAlex e le altre fonti non dicono: serve alle citazioni,
+    # allo screening e all'ultimo tentativo di scaricare il PDF.
+    openalex_id: str = ""
+    ritirato: bool = False
+    citazioni: int | None = None
+    molto_citato: bool = False      # primo dieci per cento del suo campo e anno
+    pdf_archivio: str = ""          # copia nell'archivio OpenAlex, a pagamento
     # Pertinenza: somma dei contributi delle fonti in cui il record compare
     # in alto (reciprocal rank fusion). Non viene mostrata, ordina l'elenco.
     punteggio: float = 0.0

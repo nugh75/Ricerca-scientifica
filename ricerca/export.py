@@ -12,7 +12,7 @@ from .models import Work
 # Campi selezionabili per la tabella e per gli export.
 CAMPI = (
     "anno", "titolo", "autori", "sede", "doi", "url", "abstract", "fonti", "pdf",
-    "decisione", "motivo",
+    "citazioni", "ritirato", "decisione", "motivo",
 )
 CAMPI_PREDEFINITI = ("anno", "titolo", "autori", "sede", "fonti")
 
@@ -26,6 +26,8 @@ _ATTRIBUTI = {
     "abstract": "abstract",
     "fonti": "sources",
     "pdf": "oa_url",
+    "citazioni": "citazioni",
+    "ritirato": "ritirato",
     "decisione": "decisione",
     "motivo": "motivo",
 }

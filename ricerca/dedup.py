@@ -42,9 +42,12 @@ SOMIGLIANZA_MINIMA = 0.92
 
 
 def _unisci(kept: Work, work: Work) -> None:
-    for campo in ("doi", "year", "venue", "url", "abstract", "oa_url"):
+    for campo in ("doi", "year", "venue", "url", "abstract", "oa_url", "openalex_id", "pdf_archivio", "citazioni"):
         if not getattr(kept, campo) and getattr(work, campo):
             setattr(kept, campo, getattr(work, campo))
+    # Un ritiro visto da una fonte sola vale per il record intero.
+    kept.ritirato = kept.ritirato or work.ritirato
+    kept.molto_citato = kept.molto_citato or work.molto_citato
     if len(work.authors) > len(kept.authors):
         kept.authors = work.authors
     for source in work.sources:

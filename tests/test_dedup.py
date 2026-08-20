@@ -66,3 +66,21 @@ def test_la_fusione_somma_i_punteggi():
     uno = Work(title="Uno", doi="10.1/x", punteggio=0.5, sources=["a"])
     due = Work(title="Uno", doi="10.1/x", punteggio=0.3, sources=["b"])
     assert merge([uno, due])[0].punteggio == 0.8
+
+
+def test_la_fusione_tiene_i_campi_di_openalex():
+    from ricerca.dedup import merge
+    from ricerca.models import Work
+
+    da_crossref = Work(title="Stesso lavoro", doi="10.1/x", sources=["crossref"])
+    da_openalex = Work(
+        title="Stesso lavoro", doi="10.1/x", sources=["openalex"],
+        openalex_id="W9", citazioni=12, ritirato=True, molto_citato=True,
+        pdf_archivio="https://content.openalex.org/works/W9.pdf",
+    )
+    unito = merge([da_crossref, da_openalex])[0]
+    assert unito.openalex_id == "W9"
+    assert unito.citazioni == 12
+    assert unito.ritirato is True
+    assert unito.molto_citato is True
+    assert unito.pdf_archivio.endswith("W9.pdf")

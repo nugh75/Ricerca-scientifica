@@ -18,6 +18,10 @@
 
 <div class="scheda-contenuto">
   <h2 class="scheda-titolo">{{ work.title }}</h2>
+  {% if work.ritirato %}<p class="avviso-forte">{{ t.record_ritirato }}</p>{% endif %}
+  {% if work.citazioni is not none %}
+    <p class="meta">{{ t.record_citazioni }}: {{ work.citazioni }}{% if work.molto_citato %} · {{ t.record_top10 }}{% endif %}</p>
+  {% endif %}
   <p class="scheda-autori">{{ work.authors|join('; ') or '—' }}</p>
   <p class="aiuto">
     {{ work.venue or '—' }}{% if work.doi %} · {{ work.doi }}{% endif %}

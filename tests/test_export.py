@@ -87,3 +87,12 @@ def test_la_chiave_di_citazione_usa_il_cognome_non_l_iniziale():
 
     chiave = cite_key(Work(title="Studio sulle competenze", authors=["Rossi M"], year=2024), set())
     assert chiave.startswith("rossi2024")
+
+
+def test_il_csv_esporta_citazioni_e_ritiro():
+    from ricerca.export import to_csv
+    from ricerca.models import Work
+
+    riga = to_csv([Work(title="X", citazioni=7, ritirato=True)], ["titolo", "citazioni", "ritirato"])
+    assert "7" in riga
+    assert "True" in riga or "true" in riga.lower()
