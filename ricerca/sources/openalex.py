@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import httpx
 
+from .. import openalex_api
 from ..config import Config
 from ..i18n import strings
 from ..models import Work
 from .base import Source, clean
 
-API = "https://api.openalex.org/works"
+# Tutto quello che serve al programma, in una sola chiamata: l'abstract, lo
+# stato di ritiro, le citazioni e la copia nell'archivio non costano di più.
+SELECT = (
+    "id,doi,title,publication_year,authorships,primary_location,best_oa_location,"
+    "open_access,locations,abstract_inverted_index,is_retracted,cited_by_count,"
+    "citation_normalized_percentile,has_content,content_urls,language"
+)
 
 
 class OpenAlex(Source):
@@ -20,25 +27,26 @@ class OpenAlex(Source):
         return None if config.openalex_api_key else strings(lang)["openalex_budget"]
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
-        pezzi = [f"title_and_abstract.search:{query}"]
-        if filtri and filtri.anno_da:
-            pezzi.append(f"from_publication_date:{filtri.anno_da}-01-01")
-        if filtri and filtri.anno_a:
-            pezzi.append(f"to_publication_date:{filtri.anno_a}-12-31")
-        if filtri and filtri.solo_articoli:
-            pezzi.append("type:article")
-        params = {
-            "filter": ",".join(pezzi),
-            "per_page": str(min(limit, 50)),
-            "select": "id,doi,title,publication_year,authorships,primary_location,best_oa_location,open_access,locations",
-        }
-        if config.mailto_valido:
-            params["mailto"] = config.mailto_valido
-        if config.openalex_api_key:
-            params["api_key"] = config.openalex_api_key
-        response = await client.get(API, params=params, timeout=25)
-        response.raise_for_status()
-        return [_work(item) for item in response.json().get("results", [])]
+        corpo = await openalex_api.chiama(
+            client,
+            "/works",
+            config,
+            filter=filtro(query, filtri),
+            per_page=str(min(limit, 50)),
+            select=SELECT,
+        )
+        return [work_da(item) for item in corpo.get("results", [])]
+
+
+def filtro(query: str, filtri=None) -> str:
+    pezzi = [f"title_and_abstract.search:{query}"]
+    if filtri and filtri.anno_da:
+        pezzi.append(f"from_publication_date:{filtri.anno_da}-01-01")
+    if filtri and filtri.anno_a:
+        pezzi.append(f"to_publication_date:{filtri.anno_a}-12-31")
+    if filtri and filtri.solo_articoli:
+        pezzi.append("type:article")
+    return ",".join(pezzi)
 
 
 def _pdf_candidati(item: dict) -> list[str]:
@@ -56,10 +64,11 @@ def _pdf_candidati(item: dict) -> list[str]:
     return candidati
 
 
-def _work(item: dict) -> Work:
+def work_da(item: dict) -> Work:
     location = item.get("primary_location") or {}
     venue = (location.get("source") or {}).get("display_name")
     candidati = _pdf_candidati(item)
+    percentile = item.get("citation_normalized_percentile") or {}
     return Work(
         title=clean(item.get("title")) or "(senza titolo)",
         authors=[
@@ -71,7 +80,13 @@ def _work(item: dict) -> Work:
         doi=clean(item.get("doi")),
         venue=clean(venue),
         url=clean(item.get("id")),
+        abstract=openalex_api.abstract_da_indice(item.get("abstract_inverted_index")),
         oa_url=candidati[0] if candidati else None,
         oa_urls=candidati[1:],
         sources=["openalex"],
+        openalex_id=openalex_api.id_breve(item.get("id")),
+        ritirato=bool(item.get("is_retracted")),
+        citazioni=item.get("cited_by_count"),
+        molto_citato=bool(percentile.get("is_in_top_10_percent")),
+        pdf_archivio=str((item.get("content_urls") or {}).get("pdf") or ""),
     )

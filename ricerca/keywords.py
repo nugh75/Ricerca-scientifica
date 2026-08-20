@@ -146,14 +146,12 @@ async def _openalex(topic: str, client: httpx.AsyncClient, config: Config):
     primi cinquanta risultati, che vanno recuperati comunque.
     """
 
-    params = {"search": topic, "per_page": "50", "select": "title,topics,keywords"}
-    if config.mailto_valido:
-        params["mailto"] = config.mailto_valido
-    if config.openalex_api_key:
-        params["api_key"] = config.openalex_api_key
-    response = await client.get(f"{OPENALEX}/works", params=params, timeout=25)
-    response.raise_for_status()
-    risultati = response.json().get("results", [])
+    from . import openalex_api
+
+    corpo = await openalex_api.chiama(
+        client, "/works", config, search=topic, per_page="50", select="title,topics,keywords"
+    )
+    risultati = corpo.get("results", [])
 
     titoli = [w.get("title") or "" for w in risultati]
     concetti = _conta_etichette(risultati, "keywords", len(risultati))
