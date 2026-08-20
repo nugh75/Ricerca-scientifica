@@ -123,6 +123,8 @@ def voce(id_voce: str) -> dict | None:
 
 
 def record(id_voce: str) -> list[Work]:
+    from .sources.base import testo
+
     trovata = voce(id_voce)
     if not trovata:
         return []
@@ -132,6 +134,10 @@ def record(id_voce: str) -> list[Work]:
     lavori = []
     for indice, dati in enumerate(trovata.get("record", [])):
         lavoro = Work(**dati)
+        # Le cronologie precedenti alla pulizia degli abstract possono ancora
+        # contenere tag JATS/HTML. Ripulirli in lettura risana anche quei dati
+        # senza riscrivere il file storico dell'utente.
+        lavoro.abstract = testo(lavoro.abstract)
         decisione = prese.get(str(indice), {})
         lavoro.decisione = decisione.get("stato", "")
         lavoro.motivo = decisione.get("motivo", "")

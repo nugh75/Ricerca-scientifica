@@ -80,6 +80,79 @@ async def test_un_record_senza_identificativo_lo_dice():
             await citazioni.cerca(Work(title="Da Crossref"), "avanti", Config(), client)
 
 
+@respx.mock
+async def test_un_record_non_openalex_si_risolve_dal_doi():
+    risoluzione = respx.get(
+        url__startswith="https://api.openalex.org/works/https://doi.org/10.1186/prova"
+    ).mock(return_value=httpx.Response(200, json={
+        "id": "https://openalex.org/W1", "doi": "https://doi.org/10.1186/prova",
+        "title": "Il seme trovato dal DOI", "authorships": [], "primary_location": {},
+    }))
+    citanti = respx.get(url__startswith="https://api.openalex.org/works?").mock(
+        return_value=httpx.Response(200, json=risultato("W9"))
+    )
+
+    async with httpx.AsyncClient() as client:
+        trovati = await citazioni.cerca(
+            Work(title="Da PubMed", doi="10.1186/prova", sources=["pubmed"]),
+            "avanti", Config(), client,
+        )
+
+    assert risoluzione.called
+    assert "cites%3AW1" in str(citanti.calls[0].request.url)
+    assert [w.openalex_id for w in trovati] == ["W9"]
+
+
+@respx.mock
+async def test_senza_doi_un_titolo_compatibile_si_puo_risolvere():
+    chiamate = respx.get(url__startswith="https://api.openalex.org/works").mock(
+        side_effect=[
+            httpx.Response(200, json=risultato("W1") | {"results": [{
+                "id": "https://openalex.org/W1",
+                "title": "Un titolo abbastanza lungo da identificare senza DOI",
+                "publication_year": 2024,
+                "authorships": [], "primary_location": {},
+            }]}),
+            httpx.Response(200, json=risultato("W9")),
+        ]
+    )
+
+    async with httpx.AsyncClient() as client:
+        trovati = await citazioni.cerca(
+            Work(
+                title="Un titolo abbastanza lungo da identificare senza DOI",
+                year=2024, sources=["crossref"],
+            ),
+            "avanti", Config(), client,
+        )
+
+    assert "search=" in str(chiamate.calls[0].request.url)
+    assert "cites%3AW1" in str(chiamate.calls[1].request.url)
+    assert [w.openalex_id for w in trovati] == ["W9"]
+
+
+@respx.mock
+async def test_senza_doi_non_accetta_un_risultato_solo_vagamente_simile():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=risultato("W2") | {"results": [{
+            "id": "https://openalex.org/W2",
+            "title": "Un altro lavoro che tratta un argomento solo vagamente simile",
+            "publication_year": 2024,
+            "authorships": [], "primary_location": {},
+        }]})
+    )
+
+    async with httpx.AsyncClient() as client:
+        with pytest.raises(ValueError):
+            await citazioni.cerca(
+                Work(
+                    title="Un titolo abbastanza lungo da identificare senza DOI",
+                    year=2024, sources=["crossref"],
+                ),
+                "avanti", Config(), client,
+            )
+
+
 async def test_un_verso_inventato_lo_dice():
     async with httpx.AsyncClient() as client:
         with pytest.raises(ValueError):

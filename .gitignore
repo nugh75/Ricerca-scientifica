@@ -17,3 +17,7 @@ PROJECT-INFO.md
 
 # Scratch dei workflow con subagent (superpowers)
 .superpowers/
+
+# Mappa locale rigenerabile di Graphify: report, cache e visualizzazione non
+# fanno parte dell'applicazione né degli archivi pubblicati.
+/graphify-out/

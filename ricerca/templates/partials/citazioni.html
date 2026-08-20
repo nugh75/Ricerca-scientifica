@@ -4,20 +4,41 @@
   {% elif not trovati %}
     <p class="meta">{{ t.citazioni_nessuna }}</p>
   {% else %}
-    <form hx-post="/citazioni/{{ id_ricerca }}/{{ indice }}/{{ verso }}" hx-target="#scheda-corpo">
+    <form class="citazioni-form" hx-post="/citazioni/{{ id_ricerca }}/{{ indice }}/{{ verso }}" hx-target="#scheda-corpo">
+      <p class="aiuto">{{ t.citazioni_aiuto }}</p>
       <ul class="elenco-citazioni">
         {% for work in trovati %}
-          <li>
-            <label>
+          <li class="citazione-record">
+            <label class="citazione-selettore">
               <input type="checkbox" name="scelti" value="{{ work.openalex_id }}">
-              <b>{{ work.title }}</b>
-              <small>{{ work.authors_short }}{% if work.year %} · {{ work.year }}{% endif %}
-              {% if work.citazioni is not none %} · {{ work.citazioni }} {{ t.record_citazioni|lower }}{% endif %}</small>
+              <span class="solo-lettori">{{ t.citazioni_seleziona.format(titolo=work.title) }}</span>
             </label>
+            <article class="citazione-contenuto">
+              <b class="citazione-titolo">{{ work.title }}</b>
+              <p class="citazione-meta">{{ work.authors_short }}{% if work.year %} · {{ work.year }}{% endif %}
+                {% if work.citazioni is not none %} · {{ work.citazioni }} {{ t.record_citazioni|lower }}{% endif %}</p>
+              <div class="citazione-azioni">
+                {% if work.abstract %}
+                <details class="citazione-abstract">
+                  <summary>{{ t.card_abstract }}</summary>
+                  <p>{{ work.abstract }}</p>
+                </details>
+                {% endif %}
+                {% if work.oa_url %}
+                <a class="tasto copia" href="{{ work.oa_url }}" target="_blank" rel="noopener">{{ t.citazioni_copia }} ↗</a>
+                {% endif %}
+                {% set pagina_articolo = work.doi or work.url %}
+                {% if pagina_articolo and pagina_articolo != work.oa_url %}
+                <a class="tasto copia" href="{{ pagina_articolo }}" target="_blank" rel="noopener">{{ t.citazioni_articolo }} ↗</a>
+                {% endif %}
+              </div>
+            </article>
           </li>
         {% endfor %}
       </ul>
-      <button type="submit">{{ t.citazioni_aggiungi }}</button>
+      <div class="citazioni-piede">
+        <button type="submit">{{ t.citazioni_aggiungi }}</button>
+      </div>
     </form>
   {% endif %}
 </div>

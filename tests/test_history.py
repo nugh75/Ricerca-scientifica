@@ -28,6 +28,16 @@ def test_una_ricerca_salvata_si_rilegge_intera():
     assert strategia.mesh == ["Literacy"]
 
 
+def test_un_abstract_storico_con_marcatura_si_rilegge_pulito():
+    strategy = Strategy([Block("Concetto", ["x"])])
+    id_voce = history.salva(
+        "topic", strategy, [SourceResult("europepmc", "Europe PMC", "q")],
+        [Work(title="Uno", abstract="<h4>Background</h4><p>Testo leggibile.</p>")],
+    )
+
+    assert history.record(id_voce)[0].abstract == "Background Testo leggibile."
+
+
 def test_l_elenco_non_porta_i_record():
     ricerca_finta()
     voce = history.elenco()[0]

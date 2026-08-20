@@ -506,7 +506,29 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .avviso-forte { font-size: .875rem; font-weight: 600; color: var(--errore); margin: 0 0 var(--u1); }
 .azioni-citazioni { display: flex; flex-wrap: wrap; gap: var(--u1); margin: var(--u2) 0; }
 .citazioni { margin: 0 0 var(--u2); }
-.elenco-citazioni { display: grid; gap: var(--u1); margin: 0 0 var(--u2); padding: 0; list-style: none; }
+.citazioni-form > .aiuto { margin-bottom: var(--u2); }
+.elenco-citazioni { display: grid; gap: var(--u2); margin: 0 0 var(--u2); padding: 0; list-style: none; }
+.citazione-record {
+  display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: var(--u2);
+  padding: var(--u2); border: 1px solid var(--riga); border-radius: var(--raggio);
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.citazione-record:has(input:checked) { border-color: var(--accento); background: var(--accento-tenue); }
+.citazione-selettore { display: block; padding-top: .15rem; }
+.citazione-selettore input { width: 1.1rem; height: 1.1rem; margin: 0; }
+.citazione-contenuto { min-width: 0; }
+.citazione-titolo { display: block; line-height: 1.35; }
+.citazione-meta { margin: .25rem 0 0; color: var(--testo-tenue); font-size: .875rem; }
+.citazione-azioni { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--u1); margin-top: var(--u1); }
+.citazione-azioni .tasto { font-size: .8125rem; }
+.citazione-abstract { flex: 1 1 100%; border-top: 1px solid var(--riga); padding-top: var(--u1); }
+.citazione-abstract summary { width: fit-content; cursor: pointer; color: var(--accento); font-weight: 600; }
+.citazione-abstract p { max-width: 72ch; margin: var(--u1) 0 0; line-height: 1.55; }
+.citazioni-piede { position: sticky; bottom: 0; padding-top: var(--u1); background: var(--scheda); }
+.solo-lettori {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 .faccette { margin: var(--u2) 0; }
 .barre { list-style: none; padding: 0; }
 .barre li { display: grid; grid-template-columns: 12rem 1fr 4rem; align-items: center; gap: .5rem; }
