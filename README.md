@@ -55,6 +55,18 @@ configure later, and reopen it any time from Settings.
 
 ## How it works
 
+### New in 1.0.0b3
+
+- Citation chasing now resolves PubMed, Europe PMC and Crossref records in
+  OpenAlex by DOI. When a DOI is unavailable, title and year must provide a
+  strong match before any related records are shown.
+- Related works use a screening-oriented layout: selection starts at the left
+  edge, abstracts expand in place, and available copies and article pages open
+  before a record is added to the search. Selected works remain in the search
+  history.
+- Abstracts already stored with visible JATS or HTML tags are cleaned when the
+  history is read.
+
 ### New in 1.0.0b2
 
 - OpenAlex records now include reconstructed abstracts, retraction status,
@@ -272,6 +284,18 @@ obbligatorio: si può saltare e configurare dopo, e rivedere la guida quando si
 vuole da Impostazioni.
 
 ## Come funziona
+
+### Novità in 1.0.0b3
+
+- Lo snowballing risolve ora in OpenAlex anche i record provenienti da PubMed,
+  Europe PMC e Crossref tramite DOI. In assenza del DOI, titolo e anno devono
+  produrre una corrispondenza forte prima di mostrare lavori collegati.
+- I lavori collegati adottano una vista orientata allo screening: la selezione
+  parte dal margine sinistro, l'abstract si espande nella lista e la copia
+  disponibile o la pagina dell'articolo si aprono prima di aggiungere il record
+  alla ricerca. I lavori scelti restano nella cronologia.
+- Gli abstract già salvati con tag JATS o HTML visibili vengono ripuliti durante
+  la lettura della cronologia.
 
 ### Novità in 1.0.0b2
 
