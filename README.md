@@ -55,6 +55,39 @@ configure later, and reopen it any time from Settings.
 
 ## How it works
 
+### Review workspaces (current source)
+
+- A review project combines multiple saved searches and citation-chasing runs
+  into one stable, deduplicated corpus while retaining every provenance and
+  exact query.
+- The method runs as an actual sequence: versioned PICO/PICOS/PCC protocol,
+  PRISMA-S/PRESS and sentinel-article checks, blinded title/abstract and
+  full-text screening, conflict resolution, full-text retrieval, study/report
+  linking, independent extraction, critical appraisal, GRADE-style Summary of
+  findings, and living-review updates.
+- A dedicated **LLM Wiki Graph** compiles every corpus record into a source
+  page and connects articles, authors, and venues from certain metadata. When
+  an LLM is configured, it adds concept pages and relations from included
+  abstracts; unknown source IDs and quotations absent from those abstracts are
+  rejected locally. The graph remains useful without an LLM.
+- Assisted screening only changes reading order. It explains its score from
+  terms in prior human decisions, never excludes a record, and leaves the
+  corpus order untouched. Complete Markdown and JSON exports preserve the
+  audit trail.
+
+### New in 1.0.0b7
+
+- Review workspaces now cover the whole evidence-synthesis workflow: versioned
+  protocol, reproducible multi-search corpus, blinded dual screening,
+  full-text retrieval, independent extraction and consensus, critical
+  appraisal, GRADE-style evidence tables, and explicit living updates.
+- A navigable literature wiki and interactive graph are generated from corpus
+  metadata and abstracts. LLM concepts keep source IDs and locally validated
+  evidence; metadata-only generation remains available offline.
+- The review stage rail, paginated conflict-first screening, resizable fields,
+  contextual actions, and dedicated wiki page keep long projects readable on
+  desktop and mobile.
+
 ### New in 1.0.0b6
 
 - Saved searches now use three focused workspaces: **Results**, **Field
@@ -230,7 +263,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 433 tests, none touches the network
+.venv/bin/pytest -q                       # 471 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -252,7 +285,8 @@ fragments. No Node, no build step, no binaries to sign.
 | `ricerca/pdf.py`, `biblioteca.py` | open-access PDFs and their text |
 | `ricerca/cache.py` | SQLite response cache, as an httpx transport |
 | `ricerca/unpaywall.py` | missing metadata and open copies, from the DOI |
-| `ricerca/llm.py` | blocks, translation, five-part summary |
+| `ricerca/llm.py` | blocks, translation, summaries, grounded wiki concepts |
+| `ricerca/revisioni.py`, `ricerca/wiki.py` | review workflow, literature wiki and graph |
 | `ricerca/zotero.py` | sends the included records to Zotero |
 | `ricerca/macchina.py` | what the computer can run, which model to suggest |
 | `ricerca/finestra.py`, `watchdog.py` | its own window; quits when closed |
@@ -324,6 +358,38 @@ obbligatorio: si può saltare e configurare dopo, e rivedere la guida quando si
 vuole da Impostazioni.
 
 ## Come funziona
+
+### Workspace di review (sorgente attuale)
+
+- Un progetto riunisce più ricerche salvate e attività di snowballing in un
+  corpus stabile e deduplicato, conservando ogni provenienza e stringa esatta.
+- Il metodo diventa una sequenza reale: protocollo PICO/PICOS/PCC versionato,
+  controlli PRISMA-S/PRESS e articoli sentinella, screening cieco di
+  titolo/abstract e testo completo, risoluzione dei conflitti, reperimento dei
+  full text, collegamento studio–report, estrazione indipendente, valutazione
+  critica, Summary of findings in stile GRADE e aggiornamenti living.
+- Una **LLM Wiki Graph** dedicata compila ogni record del corpus in una
+  pagina-fonte e collega articoli, autori e riviste tramite metadati certi. Se
+  è configurato un LLM, aggiunge pagine concettuali e relazioni dagli abstract
+  inclusi; ID fonte sconosciuti e citazioni assenti dagli abstract vengono
+  scartati localmente. Il grafo resta utile anche senza LLM.
+- Lo screening assistito cambia soltanto l'ordine di lettura: spiega il
+  punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
+  un record e non altera l'ordine del corpus. Gli export Markdown e JSON
+  conservano l'intero audit trail.
+
+### Novità in 1.0.0b7
+
+- I workspace di review coprono l'intero flusso di sintesi delle evidenze:
+  protocollo versionato, corpus riproducibile da più ricerche, doppio screening
+  cieco, reperimento dei full text, estrazione indipendente e consenso,
+  valutazione critica, tabelle GRADE e aggiornamenti espliciti.
+- Una wiki navigabile e un grafo interattivo della letteratura sono generati da
+  metadati e abstract. I concetti LLM conservano ID fonte ed evidenze validate
+  localmente; la generazione dai soli metadati funziona anche offline.
+- La traccia delle fasi, lo screening paginato con conflitti in testa, i campi
+  ridimensionabili, le azioni contestuali e la pagina wiki dedicata mantengono
+  leggibili anche i progetti lunghi su desktop e mobile.
 
 ### Novità in 1.0.0b6
 
@@ -506,7 +572,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 433 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 471 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

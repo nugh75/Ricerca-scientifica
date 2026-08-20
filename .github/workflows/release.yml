@@ -40,14 +40,15 @@ jobs:
           and stored formats can still change between versions. Problems and
           suggestions: open an issue.
 
-          ### New in 1.0.0b6
+          ### New in 1.0.0b7
 
-          - Results, Field profile and Protocol are separate workspaces, with
-            clearer navigation, menus, preferences and notifications.
-          - A PRISMA progress rail and explicit bulk-action scope make screening
-            safer; reasons use full-width, resizable multiline boxes.
-          - Author and journal profiles reveal the articles citing each
-            most-cited work and provide contextual back navigation.
+          - Review workspaces now cover protocol, multi-search provenance,
+            blinded dual screening, extraction and consensus, appraisal,
+            GRADE-style synthesis, and explicit living updates.
+          - A navigable literature wiki and interactive graph compile metadata
+            and abstracts; LLM concepts retain locally validated source evidence.
+          - Conflict-first pagination, contextual actions, and the nine-stage
+            rail keep long reviews clear on desktop and mobile.
 
           Download the archive for your system, extract it and start it.
 
@@ -73,14 +74,15 @@ jobs:
           file e formati salvati possono ancora cambiare da una versione
           all'altra. Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 1.0.0b6
+          ### Novità in 1.0.0b7
 
-          - Risultati, Profilo del campo e Protocollo sono spazi separati, con
-            navigazione, menu, preferenze e notifiche più chiari.
-          - Una barra PRISMA e un ambito esplicito rendono lo screening più
-            sicuro; le motivazioni usano box multilinea larghi ed espandibili.
-          - I profili di autori e riviste mostrano su richiesta gli articoli che
-            citano ciascun lavoro e offrono un ritorno contestuale a Esplora.
+          - I workspace di review coprono protocollo, provenienze da più
+            ricerche, doppio screening cieco, estrazione e consenso,
+            valutazione, sintesi GRADE e aggiornamenti espliciti.
+          - Una wiki navigabile e un grafo interattivo compilano metadati e
+            abstract; i concetti LLM conservano evidenze validate localmente.
+          - Paginazione con conflitti in testa, azioni contestuali e traccia in
+            nove fasi mantengono chiare le review lunghe su desktop e mobile.
 
           Scarica l'archivio del tuo sistema, estrailo e avvia.
 

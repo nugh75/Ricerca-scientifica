@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ progetto.titolo }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo workspace-revisione">
+  <div class="pagina-testa revisione-testa">
+    <div>
+      <p class="occhiello">{{ t.reviews_workspace }} · {{ t['review_type_' ~ progetto.tipo] }}</p>
+      <h1>{{ progetto.titolo }}</h1>
+      <p>{{ t.review_team }}: {{ progetto.revisori|join(', ') }}</p>
+    </div>
+    <div class="azioni">
+      <a class="tasto" href="/revisioni/{{ progetto.id }}.md">{{ t.review_export_md }}</a>
+      <a class="tasto" href="/revisioni/{{ progetto.id }}.json">{{ t.review_export_json }}</a>
+    </div>
+  </div>
+
+  {% include "partials/revisione_fasi.html" %}
+
+  <div class="revisione-corpo">
+    {% include "partials/revisione_protocollo.html" %}
+    {% include "partials/revisione_ricerche.html" %}
+    {% with fase='abstract', ancora='screening-abstract', titolo=t.review_phase_abstract %}
+      {% include "partials/revisione_screening.html" %}
+    {% endwith %}
+    {% with fase='fulltext', ancora='fulltext', titolo=t.review_phase_fulltext %}
+      {% include "partials/revisione_screening.html" %}
+    {% endwith %}
+    {% include "partials/revisione_estrazione.html" %}
+    {% include "partials/revisione_qualita.html" %}
+    {% include "partials/revisione_sintesi.html" %}
+    {% include "partials/revisione_wiki.html" %}
+    {% include "partials/revisione_aggiornamenti.html" %}
+  </div>
+</section>
+{% endblock %}

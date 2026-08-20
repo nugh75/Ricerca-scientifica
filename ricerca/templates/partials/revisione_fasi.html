@@ -1,0 +1,15 @@
+<nav class="traccia-review" aria-label="{{ t.review_phases }}">
+  {% for ancora, etichetta, valore in [
+    ('protocollo', t.review_phase_protocol, riepilogo_revisione.protocollo_mancanti),
+    ('ricerche', t.review_phase_searches, riepilogo_revisione.ricerche),
+    ('screening-abstract', t.review_phase_abstract, riepilogo_revisione.abstract.da_valutare),
+    ('fulltext', t.review_phase_fulltext, riepilogo_revisione.fulltext.da_valutare),
+    ('estrazione', t.review_phase_extraction, riepilogo_revisione.estratti),
+    ('qualita', t.review_phase_quality, riepilogo_revisione.bias),
+    ('sintesi', t.review_phase_synthesis, riepilogo_revisione.evidenze),
+    ('wiki', t.review_phase_wiki, wiki_statistiche.concetti),
+    ('aggiornamenti', t.review_phase_updates, progetto.aggiornamenti|length)
+  ] %}
+  <a href="#{{ ancora }}"><span>{{ etichetta }}</span><b>{{ valore }}</b></a>
+  {% endfor %}
+</nav>

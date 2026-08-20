@@ -1,0 +1,43 @@
+<section id="{{ ancora }}" class="fase-review">
+  {% set conteggi_fase = riepilogo_revisione[fase] %}
+  {% set record_screening = record_screening_abstract if fase == 'abstract' else record_screening_fulltext %}
+  {% set pagina_corrente = pagina_abstract if fase == 'abstract' else pagina_fulltext %}
+  {% set pagine_correnti = pagine_abstract if fase == 'abstract' else pagine_fulltext %}
+  <div class="fase-testa"><div><p class="occhiello">{{ t.review_selection }}</p><h2>{{ titolo }}</h2><p>{{ t.review_screening_help }}</p></div><span class="stato-fase {% if conteggi_fase.conflitti %}attenzione{% endif %}">{{ conteggi_fase.da_valutare }} {{ t.review_to_screen }} · {{ conteggi_fase.conflitti }} {{ t.review_conflicts }}</span></div>
+  <div class="selettore-revisore" aria-label="{{ t.review_active_reviewer }}">
+    <span>{{ t.review_active_reviewer }}</span>
+    {% for revisore in progetto.revisori %}<a href="/revisioni/{{ progetto.id }}?revisore={{ revisore|urlencode }}&pagina_abstract={{ pagina_abstract }}&pagina_fulltext={{ pagina_fulltext }}#{{ ancora }}" class="{% if revisore == revisore_attivo %}attivo{% endif %}" aria-current="{{ 'true' if revisore == revisore_attivo else 'false' }}">{{ revisore }}</a>{% endfor %}
+    <small>{{ t.review_blind_help }}</small>
+  </div>
+  <div class="metriche-fase"><span><b>{{ conteggi_fase.incluso }}</b>{{ t.screening_include }}</span><span><b>{{ conteggi_fase.forse }}</b>{{ t.screening_maybe }}</span><span><b>{{ conteggi_fase.escluso }}</b>{{ t.screening_exclude }}</span><span><b>{{ conteggi_fase.conflitti }}</b>{{ t.review_conflicts }}</span></div>
+
+  {% if fase == 'abstract' and priorita_assistita %}
+  <details class="assistenza-screening"><summary>{{ t.review_assisted_priority }} <span>{{ t.review_assisted_count.format(quanti=priorita_assistita|length) }}</span></summary>
+    <p class="aiuto">{{ t.review_assisted_help }}</p>
+    <ol>{% for item in priorita_assistita[:8] %}<li>{{ item.work.title }}<small>{{ t.review_score }} {{ '%.3f'|format(item.punteggio) }}{% if item.termini %} · {{ item.termini|join(', ') }}{% endif %}</small></li>{% endfor %}</ol>
+  </details>
+  {% endif %}
+
+  {% if record_screening %}<div class="record-screening-review">
+    {% for item in record_screening %}
+    {% set decisioni = item['decisioni_' ~ fase] %}{% set conflitto = item['conflitto_' ~ fase] %}{% set stato_finale = item['stato_' ~ fase] %}
+    <article id="item-{{ fase }}-{{ item.id }}" class="record-review {% if conflitto %}conflitto{% elif stato_finale %}deciso{% endif %}">
+      <div class="record-review-testo"><h3>{{ item.work.title }}</h3><p class="meta">{{ item.work.authors_short }}{% if item.work.year %} · {{ item.work.year }}{% endif %}{% if item.work.venue %} · {{ item.work.venue }}{% endif %}</p>{% if item.work.abstract %}<details><summary>{{ t.card_abstract }}</summary><p>{{ item.work.abstract }}</p></details>{% endif %}</div>
+      {% if fase == 'fulltext' %}<form method="post" action="/revisioni/{{ progetto.id }}/testo-completo/{{ item.id }}" class="stato-fulltext"><input type="hidden" name="revisore" value="{{ revisore_attivo }}"><input type="hidden" name="pagina_abstract" value="{{ pagina_abstract }}"><input type="hidden" name="pagina_fulltext" value="{{ pagina_fulltext }}"><label>{{ t.review_fulltext_status }}<select name="stato">{% for stato_testo in ('da_reperire', 'richiesto', 'disponibile', 'non_disponibile') %}<option value="{{ stato_testo }}" {% if item.testo_completo.stato|default('da_reperire') == stato_testo %}selected{% endif %}>{{ t['review_fulltext_' ~ stato_testo] }}</option>{% endfor %}</select></label><label>{{ t.review_fulltext_note }}<input name="nota" value="{{ item.testo_completo.nota|default('') }}"></label><button type="submit">{{ t.btn_save }}</button></form>{% endif %}
+      <div class="decisioni-revisori">
+        {% set decisione = decisioni.get(revisore_attivo, {}) %}
+        <form method="post" action="/revisioni/{{ progetto.id }}/screening/{{ item.id }}" class="decisione-revisore">
+          <input type="hidden" name="fase" value="{{ fase }}"><input type="hidden" name="revisore" value="{{ revisore_attivo }}"><input type="hidden" name="pagina_abstract" value="{{ pagina_abstract }}"><input type="hidden" name="pagina_fulltext" value="{{ pagina_fulltext }}">
+          <strong>{{ revisore_attivo }}</strong>{% if decisione %}<span class="marchio">{{ t['screening_' ~ decisione.stato] }}</span>{% endif %}
+          <div class="scelte-screening-review">{% for stato in ('incluso', 'forse', 'escluso') %}<label><input type="radio" name="stato" value="{{ stato }}" {% if decisione.stato == stato %}checked{% endif %} required>{{ t['screening_' ~ stato] }}</label>{% endfor %}</div>
+          <textarea name="motivo" rows="2" placeholder="{{ t.screening_reason }}">{{ decisione.motivo|default('') }}</textarea>
+          <button type="submit">{{ t.review_save_decision }}</button>
+        </form>
+      </div>
+      {% if conflitto %}<div class="confronto-decisioni" aria-label="{{ t.review_conflict_comparison }}">{% for nome, scelta in decisioni.items() %}<div><strong>{{ nome }}</strong><span class="marchio">{{ t['screening_' ~ scelta.stato] }}</span>{% if scelta.motivo %}<p>{{ scelta.motivo }}</p>{% endif %}</div>{% endfor %}</div><form method="post" action="/revisioni/{{ progetto.id }}/consenso/{{ item.id }}" class="risolvi-conflitto"><input type="hidden" name="fase" value="{{ fase }}"><input type="hidden" name="revisore" value="{{ revisore_attivo }}"><input type="hidden" name="pagina_abstract" value="{{ pagina_abstract }}"><input type="hidden" name="pagina_fulltext" value="{{ pagina_fulltext }}"><strong>{{ t.review_resolve_conflict }}</strong><select name="stato" required>{% for stato in ('incluso', 'forse', 'escluso') %}<option value="{{ stato }}">{{ t['screening_' ~ stato] }}</option>{% endfor %}</select><textarea name="motivo" rows="2" required placeholder="{{ t.review_consensus_reason }}"></textarea><button class="primario" type="submit">{{ t.review_save_consensus }}</button></form>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% if pagine_correnti > 1 %}<nav class="pagine pagine-review" aria-label="{{ t.page_of.format(pagina=pagina_corrente, pagine=pagine_correnti) }}">{% if pagina_corrente > 1 %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}&pagina_abstract={{ pagina_corrente - 1 if fase == 'abstract' else pagina_abstract }}&pagina_fulltext={{ pagina_corrente - 1 if fase == 'fulltext' else pagina_fulltext }}#{{ ancora }}">{{ t.page_previous }}</a>{% endif %}<span>{{ t.page_of.format(pagina=pagina_corrente, pagine=pagine_correnti) }}</span>{% if pagina_corrente < pagine_correnti %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}&pagina_abstract={{ pagina_corrente + 1 if fase == 'abstract' else pagina_abstract }}&pagina_fulltext={{ pagina_corrente + 1 if fase == 'fulltext' else pagina_fulltext }}#{{ ancora }}">{{ t.page_next }}</a>{% endif %}</nav>{% endif %}
+  {% else %}<p class="nota">{{ t.review_empty_corpus if fase == 'abstract' else t.review_no_fulltext_candidates }}</p>{% endif %}
+</section>

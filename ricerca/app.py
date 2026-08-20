@@ -9,6 +9,7 @@ import unicodedata
 from datetime import datetime
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import quote
 
 import httpx
 from fastapi import FastAPI, File, Form, Request, UploadFile
@@ -24,7 +25,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, search, unpaywall, watchdog
+from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, revisioni, search, unpaywall, watchdog, wiki
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -144,6 +145,87 @@ def base_context(config: Config, **extra) -> dict:
     }
     context.update(extra)
     return context
+
+
+def _contesto_revisione(
+    id_progetto: str,
+    revisore: str = "",
+    pagina_abstract: int = 1,
+    pagina_fulltext: int = 1,
+) -> dict:
+    """Dati derivati del workspace, raccolti una volta per tutte le sezioni."""
+
+    progetto = revisioni.progetto(id_progetto) or {}
+    revisori = progetto.get("revisori", [])
+    revisore_attivo = revisore if revisore in revisori else (revisori[0] if revisori else "")
+    record = []
+    conflitti_abstract = set(revisioni.conflitti(id_progetto, "abstract"))
+    conflitti_fulltext = set(revisioni.conflitti(id_progetto, "fulltext"))
+    titoli = {
+        item.get("id", ""): item.get("record", {}).get("title", "")
+        for item in progetto.get("record", [])
+    }
+    for item in revisioni.lavori(progetto):
+        id_item = item.get("id", "")
+        record.append({
+            **item,
+            "decisioni_abstract": revisioni.decisioni_item(progetto, id_item, "abstract"),
+            "decisioni_fulltext": revisioni.decisioni_item(progetto, id_item, "fulltext"),
+            "stato_abstract": revisioni.stato_finale(progetto, id_item, "abstract"),
+            "stato_fulltext": revisioni.stato_finale(progetto, id_item, "fulltext"),
+            "conflitto_abstract": id_item in conflitti_abstract,
+            "conflitto_fulltext": id_item in conflitti_fulltext,
+            "conflitto_estrazione": revisioni.conflitto_estrazione(progetto, id_item),
+            "testo_completo": progetto.get("testi_completi", {}).get(id_item, {}),
+            "studio_principale": titoli.get(
+                progetto.get("gruppi_studio", {}).get(id_item, ""), ""
+            ),
+        })
+    per_pagina = 25
+
+    def pagina_screening(
+        candidati: list[dict], pagina: int, fase: str
+    ) -> tuple[list[dict], int, int]:
+        candidati = sorted(
+            candidati,
+            key=lambda voce: (
+                not voce.get(f"conflitto_{fase}"),
+                bool(voce.get(f"stato_{fase}")),
+            ),
+        )
+        pagine = max(1, -(-len(candidati) // per_pagina))
+        pagina = min(max(1, pagina), pagine)
+        inizio = (pagina - 1) * per_pagina
+        return candidati[inizio : inizio + per_pagina], pagina, pagine
+
+    record_abstract, pagina_abstract, pagine_abstract = pagina_screening(
+        record, pagina_abstract, "abstract"
+    )
+    candidati_fulltext = [voce for voce in record if voce.get("stato_abstract") == "incluso"]
+    record_fulltext, pagina_fulltext, pagine_fulltext = pagina_screening(
+        candidati_fulltext, pagina_fulltext, "fulltext"
+    )
+    collegate = {r.get("id") for r in progetto.get("ricerche", [])}
+    return {
+        "progetto": progetto,
+        "record_revisione": record,
+        "riepilogo_revisione": revisioni.riepilogo(progetto),
+        "checklist_prisma_s": revisioni.checklist_prisma_s(progetto),
+        "articoli_sentinella": revisioni.controlla_sentinelle(progetto),
+        "protocollo_mancanti": revisioni.campi_protocollo_mancanti(progetto),
+        "ricerche_disponibili": [r for r in history.elenco() if r.get("id") not in collegate],
+        "priorita_assistita": revisioni.priorita_assistita(progetto),
+        "aggiornamento_dovuto": revisioni.aggiornamento_dovuto(progetto),
+        "wiki_statistiche": wiki.statistiche(progetto.get("wiki", {})),
+        "wiki_obsoleta": wiki.obsoleta(progetto),
+        "revisore_attivo": revisore_attivo,
+        "record_screening_abstract": record_abstract,
+        "record_screening_fulltext": record_fulltext,
+        "pagina_abstract": pagina_abstract,
+        "pagine_abstract": pagine_abstract,
+        "pagina_fulltext": pagina_fulltext,
+        "pagine_fulltext": pagine_fulltext,
+    }
 
 
 @app.post("/tema/{tema}")
@@ -1561,6 +1643,384 @@ async def registro_testo():
         registro.come_testo(),
         headers={"Content-Disposition": 'attachment; filename="activity.log"'},
     )
+
+
+@app.get("/revisioni", response_class=HTMLResponse)
+async def revisioni_pagina(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "revisioni.html",
+        base_context(current_config(), progetti=revisioni.elenco(), tipi=revisioni.TIPI),
+    )
+
+
+@app.post("/revisioni")
+async def crea_revisione(
+    titolo: str = Form(...),
+    tipo: str = Form(default="sistematica"),
+    revisori: str = Form(default=""),
+):
+    id_progetto = revisioni.crea(
+        titolo,
+        tipo,
+        [nome.strip() for nome in revisori.split(",") if nome.strip()],
+    )
+    return RedirectResponse(f"/revisioni/{id_progetto}", status_code=303)
+
+
+@app.get("/revisioni/{id_progetto}.md", response_class=PlainTextResponse)
+async def esporta_revisione_markdown(id_progetto: str):
+    progetto = revisioni.progetto(id_progetto)
+    if progetto is None:
+        return PlainTextResponse("", status_code=404)
+    return PlainTextResponse(
+        revisioni.esporta_markdown(progetto),
+        headers={"Content-Disposition": 'attachment; filename="review-workspace.md"'},
+    )
+
+
+@app.get("/revisioni/{id_progetto}.json")
+async def esporta_revisione_json(id_progetto: str):
+    progetto = revisioni.progetto(id_progetto)
+    if progetto is None:
+        return Response(status_code=404)
+    return Response(
+        json.dumps(progetto, ensure_ascii=False, indent=2),
+        media_type="application/json",
+        headers={"Content-Disposition": 'attachment; filename="review-workspace.json"'},
+    )
+
+
+@app.get("/revisioni/{id_progetto}", response_class=HTMLResponse)
+async def revisione_pagina(
+    request: Request,
+    id_progetto: str,
+    revisore: str = "",
+    pagina_abstract: int = 1,
+    pagina_fulltext: int = 1,
+):
+    if revisioni.progetto(id_progetto) is None:
+        return RedirectResponse("/revisioni", status_code=303)
+    return templates.TemplateResponse(
+        request,
+        "revisione.html",
+        base_context(
+            current_config(),
+            **_contesto_revisione(
+                id_progetto, revisore, pagina_abstract, pagina_fulltext
+            ),
+        ),
+    )
+
+
+@app.post("/revisioni/{id_progetto}/protocollo")
+async def salva_protocollo_revisione(request: Request, id_progetto: str):
+    modulo = await request.form()
+    revisioni.salva_protocollo(
+        id_progetto,
+        {campo: modulo.get(campo, "") for campo in revisioni.CAMPI_PROTOCOLLO},
+        str(modulo.get("motivo_emendamento", "")),
+    )
+    return RedirectResponse(f"/revisioni/{id_progetto}#protocollo", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/ricerche")
+async def collega_ricerca_revisione(
+    id_progetto: str,
+    id_ricerca: str = Form(...),
+):
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    return RedirectResponse(f"/revisioni/{id_progetto}#ricerche", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/screening/{id_item}")
+async def screening_revisione(
+    id_progetto: str,
+    id_item: str,
+    fase: str = Form(...),
+    revisore: str = Form(...),
+    stato: str = Form(...),
+    motivo: str = Form(default=""),
+    pagina_abstract: int = Form(default=1),
+    pagina_fulltext: int = Form(default=1),
+):
+    revisioni.decidi(id_progetto, id_item, fase, revisore, stato, motivo)
+    ancora = "screening-abstract" if fase == "abstract" else "fulltext"
+    return RedirectResponse(
+        f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
+        f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#{ancora}",
+        status_code=303,
+    )
+
+
+@app.post("/revisioni/{id_progetto}/consenso/{id_item}")
+async def consenso_revisione(
+    id_progetto: str,
+    id_item: str,
+    fase: str = Form(...),
+    stato: str = Form(...),
+    motivo: str = Form(default=""),
+    revisore: str = Form(default=""),
+    pagina_abstract: int = Form(default=1),
+    pagina_fulltext: int = Form(default=1),
+):
+    revisioni.risolvi(id_progetto, id_item, fase, stato, motivo)
+    ancora = "screening-abstract" if fase == "abstract" else "fulltext"
+    return RedirectResponse(
+        f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
+        f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#{ancora}",
+        status_code=303,
+    )
+
+
+@app.post("/revisioni/{id_progetto}/testo-completo/{id_item}")
+async def testo_completo_revisione(
+    id_progetto: str,
+    id_item: str,
+    stato: str = Form(...),
+    nota: str = Form(default=""),
+    revisore: str = Form(default=""),
+    pagina_abstract: int = Form(default=1),
+    pagina_fulltext: int = Form(default=1),
+):
+    revisioni.salva_testo_completo(id_progetto, id_item, stato, nota)
+    return RedirectResponse(
+        f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
+        f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#fulltext",
+        status_code=303,
+    )
+
+
+@app.post("/revisioni/{id_progetto}/report/{id_item}")
+async def collega_report_revisione(
+    id_progetto: str,
+    id_item: str,
+    id_studio: str = Form(...),
+):
+    revisioni.collega_report(id_progetto, id_item, id_studio)
+    return RedirectResponse(f"/revisioni/{id_progetto}#estrazione", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/estrazione/{id_item}")
+async def estrazione_revisione(request: Request, id_progetto: str, id_item: str):
+    modulo = await request.form()
+    revisore = str(modulo.get("revisore", ""))
+    revisioni.salva_estrazione(
+        id_progetto,
+        id_item,
+        revisore,
+        {campo: modulo.get(campo, "") for campo in revisioni.CAMPI_ESTRAZIONE},
+    )
+    return RedirectResponse(
+        f"/revisioni/{id_progetto}?revisore={quote(revisore)}#estrazione",
+        status_code=303,
+    )
+
+
+@app.post("/revisioni/{id_progetto}/estrazione/{id_item}/consenso")
+async def consenso_estrazione_revisione(request: Request, id_progetto: str, id_item: str):
+    modulo = await request.form()
+    revisioni.salva_consenso_estrazione(
+        id_progetto,
+        id_item,
+        {campo: modulo.get(campo, "") for campo in revisioni.CAMPI_ESTRAZIONE},
+    )
+    return RedirectResponse(f"/revisioni/{id_progetto}#estrazione", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/bias/{id_item}")
+async def bias_revisione(request: Request, id_progetto: str, id_item: str):
+    modulo = await request.form()
+    revisioni.salva_bias(
+        id_progetto,
+        id_item,
+        {campo: modulo.get(campo, "") for campo in revisioni.CAMPI_BIAS},
+    )
+    return RedirectResponse(f"/revisioni/{id_progetto}#qualita", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/evidenze")
+async def evidenza_revisione(request: Request, id_progetto: str):
+    modulo = await request.form()
+    revisioni.salva_evidenza(
+        id_progetto,
+        {campo: modulo.get(campo, "") for campo in revisioni.CAMPI_EVIDENZA},
+    )
+    return RedirectResponse(f"/revisioni/{id_progetto}#sintesi", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/evidenze/{id_evidenza}/elimina")
+async def elimina_evidenza_revisione(id_progetto: str, id_evidenza: str):
+    revisioni.elimina_evidenza(id_progetto, id_evidenza)
+    return RedirectResponse(f"/revisioni/{id_progetto}#sintesi", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/aggiornamenti")
+async def registra_aggiornamento_revisione(
+    id_progetto: str,
+    nuovi: int = Form(default=0),
+    modificati: int = Form(default=0),
+    ritirati: int = Form(default=0),
+    nota: str = Form(default=""),
+):
+    revisioni.registra_aggiornamento(id_progetto, nuovi, modificati, ritirati, nota)
+    return RedirectResponse(f"/revisioni/{id_progetto}#aggiornamenti", status_code=303)
+
+
+async def _genera_wiki_revisione(id_progetto: str) -> dict:
+    """Compila la base certa e, se configurato, la arricchisce lotto per lotto."""
+
+    progetto = revisioni.progetto(id_progetto) or {}
+    base = wiki.crea_base(progetto)
+    documenti = wiki.documenti_per_llm(progetto)
+    config = current_config()
+    risultati, errori = [], []
+    if config.llm_enabled:
+        for inizio in range(0, len(documenti), 12):
+            try:
+                risultati.append(
+                    await LLMClient(config).wiki_graph(
+                        documenti[inizio : inizio + 12], config.lang
+                    )
+                )
+            except (LLMError, httpx.HTTPError, OSError) as exc:
+                errori.append(str(exc)[:180])
+        if risultati:
+            base = wiki.arricchisci(base, risultati, documenti, config.llm_model)
+    if errori:
+        base["errore_llm"] = errori[0]
+    revisioni.salva_wiki(id_progetto, base)
+    return {
+        **wiki.statistiche(base),
+        "llm_usato": base.get("llm_usato", False),
+        "errore_llm": bool(errori),
+    }
+
+
+@app.post("/revisioni/{id_progetto}/wiki/genera", response_class=HTMLResponse)
+async def avvia_wiki_revisione(request: Request, id_progetto: str):
+    descrizione = f"review-wiki:{id_progetto}"
+    lavoro = lavori.per_descrizione(descrizione) or lavori.avvia(
+        _genera_wiki_revisione(id_progetto), descrizione
+    )
+    return templates.TemplateResponse(
+        request,
+        "partials/revisione_wiki_lavoro.html",
+        base_context(current_config(), lavoro=lavoro, id_progetto=id_progetto),
+    )
+
+
+@app.get("/revisioni-wiki-lavoro/{id_lavoro}", response_class=HTMLResponse)
+async def stato_wiki_revisione(request: Request, id_lavoro: str):
+    lavoro = lavori.prendi(id_lavoro)
+    if lavoro is None:
+        return HTMLResponse("")
+    id_progetto = lavoro.descrizione.removeprefix("review-wiki:")
+    return templates.TemplateResponse(
+        request,
+        "partials/revisione_wiki_lavoro.html",
+        base_context(current_config(), lavoro=lavoro, id_progetto=id_progetto),
+    )
+
+
+@app.get("/revisioni/{id_progetto}/wiki", response_class=HTMLResponse)
+async def wiki_revisione_pagina(request: Request, id_progetto: str):
+    progetto = revisioni.progetto(id_progetto)
+    if progetto is None:
+        return RedirectResponse("/revisioni", status_code=303)
+    artefatto = progetto.get("wiki", {})
+    return templates.TemplateResponse(
+        request,
+        "revisione_wiki.html",
+        base_context(
+            current_config(), progetto=progetto, wiki=artefatto,
+            wiki_statistiche=wiki.statistiche(artefatto),
+            wiki_obsoleta=wiki.obsoleta(progetto),
+            titoli_fonti={
+                voce.get("id", ""): voce.get("record", {}).get("title", "")
+                for voce in progetto.get("record", [])
+            },
+        ),
+    )
+
+
+async def _aggiorna_revisione(id_progetto: str) -> dict:
+    """Riesegue le ricerche originarie e integra soltanto le differenze."""
+
+    progetto = revisioni.progetto(id_progetto) or {}
+    originali, visti = [], set()
+    for collegata in progetto.get("ricerche", []):
+        id_ricerca = collegata.get("id", "")
+        if collegata.get("aggiornamento") or not id_ricerca or id_ricerca in visti:
+            continue
+        visti.add(id_ricerca)
+        originali.append(id_ricerca)
+
+    totale = {"nuovi": 0, "modificati": 0, "ritirati": 0, "esecuzioni": 0}
+    config = current_config()
+    for id_ricerca in originali:
+        voce = history.voce(id_ricerca)
+        if not voce:
+            continue
+        strategia = history.strategia(id_ricerca)
+        strategia.filtri = history.filtri(id_ricerca)
+        fonti = [
+            fonte.get("id", "") for fonte in voce.get("fonti", [])
+            if fonte.get("id") in sources_registry.BY_ID
+            and sources_registry.BY_ID[fonte.get("id")].executable
+        ]
+        limite = max(
+            [min(200, max(25, int(fonte.get("trovati", 0) or 0))) for fonte in voce.get("fonti", [])]
+            or [50]
+        )
+        risultati, nuovi_lavori = await search.run(strategia, fonti, limite, config)
+        id_esecuzione = history.salva(
+            f"{voce.get('topic', '')} — aggiornamento",
+            strategia,
+            risultati,
+            nuovi_lavori,
+        )
+        esito = revisioni.integra_aggiornamento(id_progetto, id_esecuzione, nuovi_lavori)
+        for campo in ("nuovi", "modificati", "ritirati"):
+            totale[campo] += esito[campo]
+        totale["esecuzioni"] += 1
+    if not originali:
+        revisioni.registra_aggiornamento(
+            id_progetto, 0, nota="Nessuna ricerca collegata da rieseguire"
+        )
+    return totale
+
+
+@app.post("/revisioni/{id_progetto}/aggiorna", response_class=HTMLResponse)
+async def avvia_aggiornamento_revisione(request: Request, id_progetto: str):
+    descrizione = f"living-review:{id_progetto}"
+    lavoro = lavori.per_descrizione(descrizione) or lavori.avvia(
+        _aggiorna_revisione(id_progetto), descrizione
+    )
+    return templates.TemplateResponse(
+        request,
+        "partials/revisione_aggiornamento_lavoro.html",
+        base_context(current_config(), lavoro=lavoro, id_progetto=id_progetto),
+    )
+
+
+@app.get("/revisioni-lavoro/{id_lavoro}", response_class=HTMLResponse)
+async def stato_aggiornamento_revisione(request: Request, id_lavoro: str):
+    lavoro = lavori.prendi(id_lavoro)
+    if lavoro is None:
+        return HTMLResponse("")
+    id_progetto = lavoro.descrizione.removeprefix("living-review:")
+    return templates.TemplateResponse(
+        request,
+        "partials/revisione_aggiornamento_lavoro.html",
+        base_context(current_config(), lavoro=lavoro, id_progetto=id_progetto),
+    )
+
+
+@app.post("/revisioni/{id_progetto}/elimina")
+async def elimina_revisione(id_progetto: str):
+    revisioni.elimina(id_progetto)
+    return RedirectResponse("/revisioni", status_code=303)
 
 
 @app.get("/cronologia", response_class=HTMLResponse)

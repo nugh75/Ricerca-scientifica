@@ -162,6 +162,7 @@ def test_i_nomi_dei_file_che_l_utente_vede_sono_in_inglese():
         "references.bib", "records.csv", "apa-references.txt",
         "search-protocol.md", "search-protocol.txt",
         "article-pdfs.zip", "activity.log",
+        "review-workspace.md", "review-workspace.json",
     }
 
 

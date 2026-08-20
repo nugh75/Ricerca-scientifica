@@ -66,6 +66,28 @@ Testo:
 {testo}"""
 
 
+_WIKI_GRAPH = """Sei un analista di letteratura scientifica. Costruisci una piccola
+wiki concettuale usando ESCLUSIVAMENTE i metadati e gli abstract forniti.
+Non aggiungere conoscenze esterne e non dedurre risultati non dichiarati.
+
+Estrai da 3 a 10 concetti sostanziali condivisi dagli studi. Per ogni concetto:
+- usa un id breve e unico nella risposta;
+- scrivi etichetta e riassunto {lingua};
+- cita soltanto gli id fonte forniti;
+- l'evidenza deve essere una breve sequenza testuale copiata esattamente da uno
+  degli abstract citati. Se non esiste una citazione precisa, lasciala vuota.
+
+Collega i concetti solo quando gli abstract sostengono davvero una relazione.
+I tipi ammessi sono: supporta, contrasta, estende, applica, associato_a.
+
+Rispondi SOLO con JSON:
+{{"concetti":[{{"id":"c1","etichetta":"...","riassunto":"...","fonti":["id"],"evidenza":"..."}}],
+"relazioni":[{{"origine":"c1","destinazione":"c2","tipo":"associato_a","fonti":["id"],"evidenza":"..."}}]}}
+
+FONTI:
+{fonti}"""
+
+
 class LLMClient:
     def __init__(self, config: Config, client: httpx.AsyncClient | None = None):
         self.base_url = config.llm_base_url.rstrip("/")
@@ -174,6 +196,35 @@ class LLMClient:
             raise LLMError(f"risposta inattesa dall'LLM: {dati}") from exc
         return _parse_sintesi(contenuto)
 
+    async def wiki_graph(self, documenti: list[dict], lingua: str = "it") -> dict:
+        """Concetti e relazioni fondati su un piccolo lotto di abstract."""
+
+        in_lingua = "in italiano" if lingua == "it" else "in English"
+        fonti = json.dumps(documenti, ensure_ascii=False)
+        payload = {
+            "model": self.model,
+            "messages": [{
+                "role": "user",
+                "content": _WIKI_GRAPH.format(lingua=in_lingua, fonti=fonti),
+            }],
+            "temperature": 0.1,
+            "stream": False,
+        }
+        async with self._session() as client:
+            risposta = await client.post(
+                f"{self.base_url}/chat/completions",
+                json=payload,
+                headers=self._headers(),
+                timeout=300,
+            )
+            risposta.raise_for_status()
+            dati = risposta.json()
+        try:
+            contenuto = dati["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise LLMError(f"risposta inattesa dall'LLM: {dati}") from exc
+        return _parse_wiki_graph(contenuto)
+
     def _session(self):
         if self._client is not None:
             return _Borrowed(self._client)
@@ -232,3 +283,22 @@ def _parse_blocks(content: str) -> list[Block]:
     if not blocks:
         raise LLMError("l'LLM non ha prodotto blocchi utilizzabili")
     return blocks
+
+
+def _parse_wiki_graph(contenuto: str) -> dict:
+    testo = re.sub(r"^```(?:json)?|```$", "", contenuto.strip(), flags=re.MULTILINE).strip()
+    trovato = re.search(r"\{.*\}", testo, re.DOTALL)
+    if not trovato:
+        raise LLMError("il modello non ha restituito JSON")
+    try:
+        dati = json.loads(trovato.group(0))
+    except json.JSONDecodeError as exc:
+        raise LLMError(f"JSON non valido dal modello: {exc}") from exc
+    concetti = dati.get("concetti", [])
+    relazioni = dati.get("relazioni", [])
+    if not isinstance(concetti, list) or not isinstance(relazioni, list):
+        raise LLMError("il grafo restituito dal modello non è utilizzabile")
+    return {
+        "concetti": [voce for voce in concetti if isinstance(voce, dict)],
+        "relazioni": [voce for voce in relazioni if isinstance(voce, dict)],
+    }

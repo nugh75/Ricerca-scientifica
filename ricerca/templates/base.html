@@ -21,6 +21,7 @@
   <nav class="navigazione-principale">
     <span class="navigazione-pagine">
       <a href="/" {% if request.url.path == '/' %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_strategy }}</a>
+      <a href="/revisioni" {% if request.url.path.startswith('/revisioni') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_reviews }}</a>
       <a href="/esplora" {% if request.url.path.startswith('/esplora') or request.url.path.startswith('/autori/') or request.url.path.startswith('/riviste/') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_explore }}</a>
       <a href="/cronologia" {% if request.url.path.startswith('/cronologia') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_history }}</a>
       <a href="/biblioteca" {% if request.url.path.startswith('/biblioteca') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_library }}</a>

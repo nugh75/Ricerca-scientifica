@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ t.review_phase_wiki }} · {{ progetto.titolo }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo pagina-wiki">
+  <div class="pagina-testa wiki-testa">
+    <div><p class="occhiello">{{ t.review_wiki_eyebrow }}</p><h1>{{ t.review_phase_wiki }}</h1><p>{{ progetto.titolo }}</p></div>
+    <div class="azioni"><a class="tasto" href="/revisioni/{{ progetto.id }}#wiki">{{ t.review_wiki_back }}</a></div>
+  </div>
+
+  {% if not wiki %}
+  <div class="wiki-invito"><div><strong>{{ t.review_wiki_empty }}</strong><p class="aiuto">{{ t.review_wiki_help }}</p></div><button type="button" hx-post="/revisioni/{{ progetto.id }}/wiki/genera" hx-target="#wiki-lavoro" hx-swap="innerHTML" {% if not progetto.record %}disabled{% endif %}>{{ t.review_wiki_generate }}</button></div>
+  <div id="wiki-lavoro"></div>
+  {% else %}
+  <div class="wiki-metriche"><span><b>{{ wiki_statistiche.pagine }}</b>{{ t.review_wiki_pages }}</span><span><b>{{ wiki_statistiche.concetti }}</b>{{ t.review_wiki_concepts }}</span><span><b>{{ wiki_statistiche.nodi }}</b>{{ t.review_wiki_nodes }}</span><span><b>{{ wiki_statistiche.archi }}</b>{{ t.review_wiki_relations }}</span></div>
+  {% if wiki_obsoleta %}<p class="wiki-avviso">{{ t.review_wiki_stale_help }}</p>{% endif %}
+  <p class="aiuto">{{ t.review_wiki_provenance.format(quanti=wiki.record_semantici, ambito=t['review_wiki_scope_' ~ wiki.ambito]) }} {% if wiki.llm_usato %}{{ t.review_wiki_generated_with.format(modello=wiki.modello) }}{% else %}{{ t.review_wiki_metadata_only }}{% endif %}</p>
+
+  <div class="wiki-layout">
+    <section class="wiki-grafo-pannello" aria-labelledby="wiki-grafo-titolo">
+      <div class="wiki-controlli"><div><h2 id="wiki-grafo-titolo">{{ t.review_wiki_graph }}</h2><p>{{ t.review_wiki_graph_help }}</p></div><div class="wiki-filtri" aria-label="{{ t.review_wiki_filters }}">{% for tipo in ('concetto', 'fonte', 'autore', 'sede') %}<label><input type="checkbox" value="{{ tipo }}" {% if tipo in ('concetto', 'fonte') %}checked{% endif %}>{{ t['review_wiki_type_' ~ tipo] }}</label>{% endfor %}<button type="button" data-wiki-reset>{{ t.review_wiki_reset }}</button></div></div>
+      <div class="wiki-telaio"><svg id="wiki-grafo" class="wiki-grafo" viewBox="0 0 1000 700" role="img" aria-label="{{ t.review_wiki_graph_alt }}"></svg><aside id="wiki-dettaglio" class="wiki-dettaglio" aria-live="polite">{{ t.review_wiki_select_node }}</aside></div>
+    </section>
+
+    <section class="wiki-pagine" aria-labelledby="wiki-pagine-titolo">
+      <div class="wiki-pagine-testa"><div><h2 id="wiki-pagine-titolo">{{ t.review_wiki_pages }}</h2><p>{{ t.review_wiki_pages_help }}</p></div><label>{{ t.review_wiki_search }}<input type="search" id="wiki-cerca" placeholder="{{ t.review_wiki_search_placeholder }}"></label></div>
+      <div id="wiki-elenco" class="wiki-elenco">
+        {% for pagina in wiki.pagine %}
+        <article id="pagina-{{ pagina.id }}" class="wiki-pagina" data-tipo="{{ pagina.tipo }}" data-cerca="{{ (pagina.titolo ~ ' ' ~ pagina.riassunto)|lower }}">
+          <p class="occhiello">{{ t['review_wiki_type_' ~ pagina.tipo] }}</p><h3>{{ pagina.titolo }}</h3>
+          {% if pagina.tipo == 'fonte' %}<p class="wiki-pagina-meta">{{ pagina.autori|join(', ') }}{% if pagina.anno %} · {{ pagina.anno }}{% endif %}{% if pagina.sede %} · {{ pagina.sede }}{% endif %}{% if pagina.stato %} · {{ t.get('screening_' ~ pagina.stato, pagina.stato) }}{% endif %}</p>{% endif %}
+          {% if pagina.riassunto %}<p>{{ pagina.riassunto }}</p>{% else %}<p class="nota">{{ t.review_wiki_no_abstract }}</p>{% endif %}
+          {% if pagina.evidenze %}{% for evidenza in pagina.evidenze %}<blockquote class="wiki-evidenza">{{ evidenza.testo }}</blockquote>{% endfor %}{% endif %}
+          {% if pagina.fonti %}<details class="wiki-fonti"><summary>{{ t.review_wiki_supporting_sources }} · {{ pagina.fonti|length }}</summary><ul>{% for id_fonte in pagina.fonti %}<li><a href="#pagina-fonte:{{ id_fonte }}">{{ titoli_fonti.get(id_fonte, id_fonte) }}</a></li>{% endfor %}</ul></details>{% endif %}
+          {% if pagina.doi or pagina.url %}<p class="wiki-pagina-meta">{% if pagina.doi %}DOI: {{ pagina.doi }}{% endif %}{% if pagina.url %} · <a href="{{ pagina.url }}" target="_blank" rel="noreferrer">{{ t.card_open }}</a>{% endif %}</p>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+  <script id="wiki-dati" type="application/json">{{ {'nodi': wiki.nodi, 'archi': wiki.archi}|tojson }}</script>
+  <script src="/static/wiki.js?v={{ versione }}" defer></script>
+  {% endif %}
+</section>
+{% endblock %}

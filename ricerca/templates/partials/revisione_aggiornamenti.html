@@ -1,0 +1,13 @@
+<section id="aggiornamenti" class="fase-review">
+  <div class="fase-testa"><div><p class="occhiello">{{ t.review_surveillance }}</p><h2>{{ t.review_phase_updates }}</h2><p>{{ t.review_updates_help }}</p></div>{% if aggiornamento_dovuto %}<span class="stato-fase attenzione">{{ t.review_update_due }}</span>{% else %}<span class="stato-fase completo">{{ t.review_up_to_date }}</span>{% endif %}</div>
+  {% if riepilogo_revisione.ritirati %}<p class="avviso-forte">{{ t.review_retracted_alert.format(quanti=riepilogo_revisione.ritirati) }}</p>{% endif %}
+  <div class="aggiornamento-automatico">
+    <div><strong>{{ t.review_rerun_title }}</strong><p class="aiuto">{{ t.review_rerun_help }}</p></div>
+    <button type="button" hx-post="/revisioni/{{ progetto.id }}/aggiorna" hx-target="#aggiornamento-lavoro" hx-swap="innerHTML" {% if not progetto.ricerche %}disabled{% endif %}>{{ t.review_rerun_action }}</button>
+  </div>
+  <div id="aggiornamento-lavoro"></div>
+  <form method="post" action="/revisioni/{{ progetto.id }}/aggiornamenti" class="form-revisione aggiornamento-form"><label>{{ t.review_new_records }}<input type="number" min="0" name="nuovi" value="0"></label><label>{{ t.review_changed_records }}<input type="number" min="0" name="modificati" value="0"></label><label>{{ t.review_retracted_records }}<input type="number" min="0" name="ritirati" value="0"></label><label class="campo-largo">{{ t.review_update_note }}<textarea name="nota" rows="3"></textarea></label><div class="campo-largo azioni"><button type="submit">{{ t.review_log_update }}</button></div></form>
+  {% if progetto.aggiornamenti %}<ol class="timeline-aggiornamenti">{% for voce in progetto.aggiornamenti|reverse %}<li><time>{{ voce.quando|replace('T', ' ') }}</time><strong>{{ voce.nuovi }} {{ t.review_new_records|lower }}</strong><span>{{ voce.modificati }} {{ t.review_changed_records|lower }} · {{ voce.ritirati }} {{ t.review_retracted_records|lower }}</span>{% if voce.nota %}<p>{{ voce.nota }}</p>{% endif %}</li>{% endfor %}</ol>{% endif %}
+  <details class="registro-emendamenti"><summary>{{ t.review_audit_log }} · {{ progetto.registro|length }}</summary><ol>{% for voce in progetto.registro|reverse %}<li><time>{{ voce.quando|replace('T', ' ') }}</time><strong>{{ voce.azione }}</strong><small>{{ voce.dettaglio }}</small></li>{% endfor %}</ol></details>
+  <form method="post" action="/revisioni/{{ progetto.id }}/elimina" class="zona-pericolo"><button type="submit">{{ t.review_delete }}</button></form>
+</section>

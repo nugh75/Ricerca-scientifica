@@ -1,0 +1,14 @@
+{% if not lavoro.finito %}
+<div class="scheda in-corso aggiornamento-stato" hx-get="/revisioni-lavoro/{{ lavoro.id }}" hx-trigger="load delay:1s" hx-target="this" hx-swap="outerHTML">
+  <p class="attesa"><span class="barra"></span> {{ t.review_rerun_running }}</p>
+  <p class="aiuto">{{ t.job_background }}</p>
+</div>
+{% elif lavoro.stato == 'fallito' %}
+<div class="nota errore">{{ t.job_failed }} · {{ lavoro.errore }}</div>
+{% else %}
+<div class="scheda aggiornamento-stato">
+  <strong>{{ t.review_rerun_done }}</strong>
+  <p>{{ t.review_rerun_result.format(**lavoro.risultato) }}</p>
+  <a class="tasto" href="/revisioni/{{ id_progetto }}#aggiornamenti">{{ t.review_open_updated }}</a>
+</div>
+{% endif %}

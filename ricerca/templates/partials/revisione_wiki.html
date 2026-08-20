@@ -1,0 +1,17 @@
+<section id="wiki" class="fase-review">
+  <div class="fase-testa">
+    <div><p class="occhiello">{{ t.review_wiki_eyebrow }}</p><h2>{{ t.review_phase_wiki }}</h2><p>{{ t.review_wiki_help }}</p></div>
+    {% if progetto.wiki %}<span class="stato-fase {% if wiki_obsoleta %}attenzione{% else %}completo{% endif %}">{{ t.review_wiki_stale if wiki_obsoleta else t.review_wiki_ready }}</span>{% endif %}
+  </div>
+  <div class="wiki-invito">
+    <div>
+      {% if progetto.wiki %}<strong>{{ t.review_wiki_summary.format(pagine=wiki_statistiche.pagine, nodi=wiki_statistiche.nodi, relazioni=wiki_statistiche.archi) }}</strong>{% else %}<strong>{{ t.review_wiki_empty }}</strong>{% endif %}
+      <p class="aiuto">{{ t.review_wiki_scope }} {% if config.llm_enabled %}{{ t.review_wiki_llm_on.format(modello=config.llm_model) }}{% else %}{{ t.review_wiki_llm_off }}{% endif %}</p>
+    </div>
+    <div class="wiki-azioni">
+      {% if progetto.wiki %}<a class="tasto" href="/revisioni/{{ progetto.id }}/wiki">{{ t.review_wiki_open }}</a>{% endif %}
+      <button type="button" hx-post="/revisioni/{{ progetto.id }}/wiki/genera" hx-target="#wiki-lavoro" hx-swap="innerHTML" {% if not progetto.record %}disabled{% endif %}>{{ t.review_wiki_refresh if progetto.wiki else t.review_wiki_generate }}</button>
+    </div>
+  </div>
+  <div id="wiki-lavoro"></div>
+</section>

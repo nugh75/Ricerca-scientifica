@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ t.reviews_title }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo revisioni-indice">
+  <div class="pagina-testa">
+    <p class="occhiello">{{ t.reviews_eyebrow }}</p>
+    <h1>{{ t.reviews_title }}</h1>
+    <p>{{ t.reviews_intro }}</p>
+  </div>
+
+  <div class="revisioni-layout">
+    <section class="sezione-revisione">
+      <h2>{{ t.reviews_existing }}</h2>
+      {% if progetti %}
+      <div class="elenco-progetti">
+        {% for progetto in progetti %}
+        <a class="progetto-riga" href="/revisioni/{{ progetto.id }}">
+          <span><strong>{{ progetto.titolo }}</strong><small>{{ t['review_type_' ~ progetto.tipo] }} · {{ progetto.revisori|join(', ') }}</small></span>
+          <span class="progetto-misure"><b>{{ progetto.ricerche|length }}</b> {{ t.review_searches_short }} · <b>{{ progetto.totale_record }}</b> {{ t.review_records_short }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="nota">{{ t.reviews_empty }}</p>
+      {% endif %}
+    </section>
+
+    <aside class="scheda crea-revisione">
+      <h2>{{ t.review_create }}</h2>
+      <p class="aiuto">{{ t.review_create_help }}</p>
+      <form method="post" action="/revisioni">
+        <label>{{ t.review_title_label }}<input name="titolo" required placeholder="{{ t.review_title_placeholder }}"></label>
+        <label>{{ t.review_type_label }}
+          <select name="tipo">
+            {% for tipo in tipi %}<option value="{{ tipo }}">{{ t['review_type_' ~ tipo] }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>{{ t.review_reviewers }}<input name="revisori" placeholder="{{ t.review_reviewers_placeholder }}"></label>
+        <button class="primario" type="submit">{{ t.review_create_action }}</button>
+      </form>
+    </aside>
+  </div>
+</section>
+{% endblock %}
