@@ -55,6 +55,23 @@ configure later, and reopen it any time from Settings.
 
 ## How it works
 
+### New in 1.0.0b2
+
+- OpenAlex records now include reconstructed abstracts, retraction status,
+  citation counts, top-10%-cited markers and archive availability. The card
+  can chase references backwards, citing works forwards and related works
+  sideways, adding only the records you choose to the end of the search.
+- OpenAlex-only filters cover language, retractions, open access, archive PDF,
+  journal, institution and funder. There is also an optional meaning-based
+  source, term autocomplete, a reproducible random sample and cursor paging up
+  to 200 records.
+- The field profile groups the complete OpenAlex result set by year, document
+  type, open access, topic and author country. The protocol retains filters and
+  OpenAlex OQL, while Settings shows the credit spent and left for the day.
+- After declared open links and Unpaywall have failed, an explicitly enabled
+  option can try the OpenAlex PDF archive. It requires a key, costs $0.01 per
+  file and does not change the work's original copyright.
+
 1. **Topic** — write it in English or Italian.
 2. **Suggested searches** — concepts and keywords from OpenAlex, MeSH terms
    from PubMed, terms recurring in the titles of the first results. These
@@ -115,9 +132,10 @@ whatever failed. Nothing fails silently — unexpected faults land there too, an
 in `~/.ricerca/activity.log`. Searches and downloads **carry on server-side**:
 change page and come back, the work does not stop.
 
-Sources queried: OpenAlex, Crossref, PubMed, Europe PMC, arXiv, DOAJ, Semantic
-Scholar, CORE, and OPAC SBN for Italian books. For Scopus and Web of Science the
-app produces the string to paste into their own interface.
+Sources queried: OpenAlex (keyword and optional meaning-based search),
+Crossref, PubMed, Europe PMC, arXiv, DOAJ, Semantic Scholar, CORE, and OPAC SBN
+for Italian books. For Scopus and Web of Science the app produces the string
+to paste into their own interface.
 
 ## Keys and email: all from the interface
 
@@ -160,7 +178,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 343 tests, none touches the network
+.venv/bin/pytest -q                       # 421 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -171,6 +189,8 @@ fragments. No Node, no build step, no binaries to sign.
 | File | What it holds |
 |---|---|
 | `ricerca/keywords.py` | pulls the terms out of the databases |
+| `ricerca/openalex_api.py`, `costo.py` | the single OpenAlex gateway and its daily credit ledger |
+| `ricerca/citazioni.py`, `faccette.py` | citation chasing and the OpenAlex field profile |
 | `ricerca/strategy.py` | boolean blocks and per-engine rendering |
 | `ricerca/sources/` | one module per engine, one interface |
 | `ricerca/search.py` | parallel execution, per-source error isolation |
@@ -253,6 +273,23 @@ vuole da Impostazioni.
 
 ## Come funziona
 
+### Novità in 1.0.0b2
+
+- I record OpenAlex portano abstract ricostruito, stato di ritiro, numero di
+  citazioni, indicatore del 10% più citato e disponibilità nell'archivio. Dalla
+  scheda si inseguono bibliografia, lavori citanti e lavori vicini, aggiungendo
+  in coda solo quelli scelti.
+- I filtri solo OpenAlex coprono lingua, ritiri, accesso aperto, PDF in
+  archivio, rivista, ateneo e finanziatore. Si aggiungono una fonte semantica
+  facoltativa, l'autocomplete dei termini, il campione casuale riproducibile e
+  la paginazione a cursore fino a 200 record.
+- Il profilo del campo raggruppa l'intero risultato OpenAlex per anno, tipo,
+  accesso aperto, tema e paese degli autori. Il protocollo conserva filtri e
+  OQL; Impostazioni mostra il credito giornaliero speso e quello rimasto.
+- Dopo il fallimento dei link aperti e di Unpaywall, un'opzione da accendere a
+  mano può provare l'archivio PDF OpenAlex. Richiede la chiave, costa $0.01 a
+  file e non cambia il copyright originale del lavoro.
+
 1. **Argomento** — in italiano o in inglese.
 2. **Ricerche suggerite** — concetti e parole chiave da OpenAlex, termini MeSH
    da PubMed, termini che ricorrono nei titoli dei primi risultati. Da questi
@@ -317,9 +354,10 @@ imprevisti finiscono lì e in `~/.ricerca/activity.log`. Ricerche e scaricamenti
 **proseguono sul server**: si può cambiare pagina e tornare, il lavoro non si
 ferma.
 
-Motori interrogati: OpenAlex, Crossref, PubMed, Europe PMC, arXiv, DOAJ,
-Semantic Scholar, CORE e OPAC SBN per i libri italiani. Per Scopus e Web of
-Science l'app produce la stringa da incollare nella loro interfaccia.
+Motori interrogati: OpenAlex (per parole e, facoltativamente, per
+significato), Crossref, PubMed, Europe PMC, arXiv, DOAJ, Semantic Scholar, CORE
+e OPAC SBN per i libri italiani. Per Scopus e Web of Science l'app produce la
+stringa da incollare nella loro interfaccia.
 
 ## Chiavi ed email: tutto dall'interfaccia
 
@@ -362,7 +400,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 343 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 421 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

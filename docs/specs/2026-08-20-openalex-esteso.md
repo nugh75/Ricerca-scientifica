@@ -1,7 +1,7 @@
 # OpenAlex esteso — specifica
 
 **Data:** 2026-08-20
-**Stato:** proposta
+**Stato:** implementata in 1.0.0b2
 
 ## Perché
 

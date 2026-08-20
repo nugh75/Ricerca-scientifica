@@ -25,6 +25,20 @@ components:
     padding: 12px
 ---
 
+## Application architecture
+
+`ricerca/openalex_api.py` is the only gateway to OpenAlex. It adds the API key
+and courtesy email, applies timeouts, records `meta.cost_usd`, ignores cached
+responses when accounting for credit, reconstructs abstracts and keeps each
+async task's OQL in a `ContextVar`. The explicitly enabled PDF archive also
+passes through this module, where its fixed per-file cost is recorded.
+
+The regular and meaning-based sources, keyword collection, autocomplete,
+citation chasing and field facets build on that gateway. This keeps transport,
+authentication and cost policy out of feature modules; `sources/openalex.py`
+owns work parsing and filter syntax, while `citazioni.py` and `faccette.py`
+only orchestrate their specific OpenAlex operations.
+
 ## Overview
 
 Voice-first, gesture-based, AI-driven interface with minimal visible UI, progressive disclosure, voice recognition UI, gesture detection, AI predictions, smart suggestions, context-aware actions. Ideal for landing pages, saas. AI-ready template. Golden Krishna's 'The Best Interface Is No Interface' landed in 2015 and felt radical. The argument was simple: we'd become so obsessed with screens that we forgot most problems don't need one. A car should unlock when you walk up to it. A prescription should refill itself. The screen is the bottleneck, not the solution. Designers mostly nodded and kept making screens anyway.
