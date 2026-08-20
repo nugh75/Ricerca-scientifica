@@ -40,6 +40,15 @@ jobs:
           and stored formats can still change between versions. Problems and
           suggestions: open an issue.
 
+          ### New in 1.0.0b5
+
+          - Separate Results and Protocol tabs, clearer SVG controls and
+            lighter notifications.
+          - Citation counts in results and exports, with OpenAlex author and
+            journal identities preserved through history and deduplication.
+          - Searchable author and journal profiles with bibliometric trends and
+            most-cited works.
+
           Download the archive for your system, extract it and start it.
 
           | System | File | How to start |
@@ -63,6 +72,15 @@ jobs:
           **Beta.** Funziona e si usa tutti i giorni, ma interfaccia, nomi dei
           file e formati salvati possono ancora cambiare da una versione
           all'altra. Problemi e proposte: apri una segnalazione.
+
+          ### Novità in 1.0.0b5
+
+          - Tab separati per Risultati e Protocollo, controlli SVG più chiari e
+            notifiche più leggere.
+          - Conteggi delle citazioni nei risultati e negli export, con identità
+            OpenAlex di autori e riviste conservate in cronologia e deduplica.
+          - Profili ricercabili di autori e riviste con andamento bibliometrico
+            e lavori più citati.
 
           Scarica l'archivio del tuo sistema, estrailo e avvia.
 

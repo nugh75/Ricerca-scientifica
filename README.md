@@ -55,6 +55,21 @@ configure later, and reopen it any time from Settings.
 
 ## How it works
 
+### New in 1.0.0b5
+
+- Every search now separates the operational **Results** from the reproducible
+  **Protocol** in two keyboard-accessible tabs. Compact controls use local SVG
+  icons with full tooltips, while notifications no longer carry a heavy
+  vertical rule.
+- Citation counts are shown by default in results and CSV exports, including a
+  real zero. OpenAlex author and journal identities are retained through
+  history and deduplication, so names link to the right entity; older records
+  without an ID open a name search instead of guessing.
+- **Explore** adds searchable author and journal pages with OpenAlex identity,
+  output, citations, h-index, i10-index, yearly trend and most-cited works.
+  Counts are labelled as an OpenAlex snapshot and should not be read as a
+  stand-alone measure of research quality.
+
 ### New in 1.0.0b4
 
 - Saved results can now be filtered across the complete search, before the
@@ -295,6 +310,21 @@ obbligatorio: si può saltare e configurare dopo, e rivedere la guida quando si
 vuole da Impostazioni.
 
 ## Come funziona
+
+### Novità in 1.0.0b5
+
+- Ogni ricerca separa ora i **Risultati** operativi dal **Protocollo**
+  riproducibile in due tab accessibili anche da tastiera. I controlli compatti
+  usano icone SVG locali con tooltip completi; le notifiche non hanno più una
+  pesante barra verticale.
+- Le citazioni compaiono per impostazione predefinita nei risultati e nel CSV,
+  compreso lo zero reale. Le identità OpenAlex di autori e riviste restano in
+  cronologia e nella deduplica, quindi i nomi portano all'entità corretta; i
+  vecchi record senza ID aprono una ricerca per nome, senza indovinare.
+- **Esplora** aggiunge pagine ricercabili per autori e riviste con identità
+  OpenAlex, produzione, citazioni, indice h, indice i10, andamento annuale e
+  lavori più citati. I conteggi sono dichiarati come fotografia OpenAlex e non
+  come misura autonoma della qualità della ricerca.
 
 ### Novità in 1.0.0b4
 

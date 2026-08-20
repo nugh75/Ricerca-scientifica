@@ -1,7 +1,7 @@
 # OpenAlex esteso — specifica
 
 **Data:** 2026-08-20
-**Stato:** implementata in 1.0.0b2
+**Stato:** implementata in 1.0.0b2, estesa in 1.0.0b5
 
 ## Perché
 
@@ -88,13 +88,28 @@ protocollo: è la strategia riproducibile che una revisione deve pubblicare.
 `sample=N&seed=S` per il pilota di screening; il cursore per superare i 100
 record per chiamata fino a un tetto di 200, che tiene il costo prevedibile.
 
+### 12. Identità, citazioni e profili bibliometrici
+I record conservano gli identificativi OpenAlex degli autori e della rivista,
+se la fonte li dichiara con certezza. Il conteggio `cited_by_count` compare nei
+risultati e negli export distinguendo lo zero dal dato assente; proviene da
+OpenAlex e non è una misura assoluta.
+
+La sezione **Esplora** cerca autori e riviste e mostra identità, produzione,
+citazioni, indice h, indice i10, andamento annuale e lavori più citati. I
+conteggi aggregati sono presentati come una fotografia OpenAlex, con la data di
+consultazione: possono aggiornarsi con tempi diversi e non costituiscono da
+soli un giudizio di qualità. Le cronologie precedenti, prive di identificativi,
+restano leggibili e aprono una ricerca per nome senza associare omonimi in modo
+automatico.
+
 ## Che cosa resta fuori
 
 - Snapshot, CLI e sincronizzazione S3 di OpenAlex: sono per corpora interi.
 - `corpus=expansion|all`: raddoppia il rumore, serve a casi che l'app non ha.
 - `grobid_xml`: il testo pieno strutturato è interessante per l'estrazione
   dati, ma senza un uso già definito è codice speculativo.
-- Pagine di navigazione per autori, riviste e atenei: l'app cerca lavori.
+- Pagine di navigazione per atenei: l'app conserva questo filtro ma non espone
+  ancora un profilo istituzionale.
 - OQL come linguaggio di input: si esporta, non si fa scrivere.
 
 ## Vincoli
