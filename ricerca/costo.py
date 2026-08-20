@@ -58,7 +58,7 @@ def aggiungi(usd: float, quando: str = "") -> float:
         percorso.write_text(json.dumps(recenti, indent=1), encoding="utf-8")
     except OSError:
         pass
-    return recenti[giorno]
+    return recenti.get(giorno, dati[giorno])
 
 
 def speso(quando: str = "") -> float:

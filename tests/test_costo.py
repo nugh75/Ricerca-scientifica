@@ -35,3 +35,15 @@ def test_un_file_illeggibile_non_ferma_il_programma(isolated_config):
     (isolated_config / "openalex-costo.json").write_text("{rotto", encoding="utf-8")
     assert costo.speso("2026-08-20") == 0.0
     assert costo.aggiungi(0.001, "2026-08-20") == 0.001
+
+
+def test_una_giornata_potata_torna_comunque_il_suo_totale():
+    # Popola il registro con più di GIORNI_TENUTI giorni recenti
+    for i in range(costo.GIORNI_TENUTI + 10):
+        giorno = f"2026-08-{20 + i:02d}"
+        costo.aggiungi(0.01, giorno)
+
+    # Aggiunge una spesa a un giorno vecchio (potato dalla cache)
+    # Senza il fix solleva KeyError; con il fix torna il totale (0.005)
+    risultato = costo.aggiungi(0.005, "2026-08-20")
+    assert risultato == 0.005
