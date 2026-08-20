@@ -392,6 +392,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "filtro_ateneo": "Ateneo",
         "filtro_finanziatore": "Finanziatore",
         "filtro_entita_aiuto": "scrivi il nome e scegli dall'elenco",
+        "campione": "Campione casuale",
+        "campione_vuoto": "tutti",
+        "seme": "Seme",
     },
     "en": {
         "lang_name": "English",
@@ -775,6 +778,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "filtro_ateneo": "Institution",
         "filtro_finanziatore": "Funder",
         "filtro_entita_aiuto": "type the name and pick from the list",
+        "campione": "Random sample",
+        "campione_vuoto": "all",
+        "seme": "Seed",
     },
 }
 

@@ -35,6 +35,9 @@ class Filtri:
     rivista_id: str = ""
     ateneo_id: str = ""
     finanziatore_id: str = ""
+    # Pilota di screening riproducibile: stesso seme, stesso campione.
+    campione: int | None = None
+    seme: int | None = None
 
     def attivi(self) -> bool:
         return bool(

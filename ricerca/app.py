@@ -336,6 +336,8 @@ async def query(
     rivista: str = Form(default=""),
     ateneo: str = Form(default=""),
     finanziatore: str = Form(default=""),
+    campione: str = Form(default=""),
+    seme: str = Form(default=""),
 ):
     strategy = strategy_from_form(
         label, terms, mesh, anno_da, anno_a, solo_articoli,
@@ -346,6 +348,8 @@ async def query(
         rivista=rivista,
         ateneo=ateneo,
         finanziatore=finanziatore,
+        campione=campione,
+        seme=seme,
     )
     return templates.TemplateResponse(
         request,
@@ -397,6 +401,8 @@ async def cerca(
     rivista: str = Form(default=""),
     ateneo: str = Form(default=""),
     finanziatore: str = Form(default=""),
+    campione: str = Form(default=""),
+    seme: str = Form(default=""),
 ):
     config = current_config()
     strategy = strategy_from_form(
@@ -408,8 +414,10 @@ async def cerca(
         rivista=rivista,
         ateneo=ateneo,
         finanziatore=finanziatore,
+        campione=campione,
+        seme=seme,
     )
-    limite = max(1, min(limite, 100))
+    limite = max(1, min(limite, 200))
 
     async def esegui():
         results, works = await search.run(strategy, fonte, limite, config)

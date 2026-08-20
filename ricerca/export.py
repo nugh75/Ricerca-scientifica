@@ -194,6 +194,10 @@ def protocollo(voce: dict, conteggi: dict) -> str:
         "## Blocchi concettuali",
         "",
     ]
+    campione = (voce.get("filtri") or {}).get("campione")
+    if campione:
+        seme = (voce.get("filtri") or {}).get("seme") or "—"
+        righe[3:3] = [f"Campione casuale: {campione} record, seme {seme}"]
     for blocco in voce.get("blocchi", []):
         righe.append(f"- **{blocco.get('label', '')}**: " + ", ".join(blocco.get("terms", [])))
     if voce.get("mesh"):
@@ -201,7 +205,7 @@ def protocollo(voce: dict, conteggi: dict) -> str:
 
     attivi = [
         f"{k}: {v}" for k, v in (voce.get("filtri") or {}).items()
-        if v not in (None, False, "")
+        if k not in ("campione", "seme") and v not in (None, False, "")
     ]
     if attivi:
         righe += ["", "## Filtri", ""] + [f"- {riga}" for riga in attivi]
@@ -243,6 +247,10 @@ def protocollo_testo(voce: dict, conteggi: dict) -> str:
         "",
         "BLOCCHI CONCETTUALI",
     ]
+    campione = (voce.get("filtri") or {}).get("campione")
+    if campione:
+        seme = (voce.get("filtri") or {}).get("seme") or "—"
+        righe[3:3] = [f"Campione casuale: {campione} record, seme {seme}"]
     for blocco in voce.get("blocchi", []):
         righe.append(f"  {blocco.get('label', '')}: " + ", ".join(blocco.get("terms", [])))
     if voce.get("mesh"):
@@ -250,7 +258,7 @@ def protocollo_testo(voce: dict, conteggi: dict) -> str:
 
     attivi = [
         f"{k}: {v}" for k, v in (voce.get("filtri") or {}).items()
-        if v not in (None, False, "")
+        if k not in ("campione", "seme") and v not in (None, False, "")
     ]
     if attivi:
         righe += ["", "FILTRI"] + [f"  {riga}" for riga in attivi]

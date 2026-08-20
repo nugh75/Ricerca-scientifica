@@ -16,6 +16,9 @@ SELECT = (
     "citation_normalized_percentile,has_content,content_urls,language"
 )
 
+TETTO = 200          # oltre non si va: il costo deve restare prevedibile
+PER_PAGINA = 100     # il massimo per chiamata
+
 
 class OpenAlex(Source):
     id = "openalex"
@@ -27,15 +30,37 @@ class OpenAlex(Source):
         return None if config.openalex_api_key else strings(lang)["openalex_budget"]
 
     async def search(self, client: httpx.AsyncClient, query: str, limit: int, config: Config, filtri=None):
-        corpo = await openalex_api.chiama(
-            client,
-            "/works",
-            config,
-            filter=filtro(query, filtri),
-            per_page=str(min(limit, 50)),
-            select=SELECT,
-        )
-        return [work_da(item) for item in corpo.get("results", [])]
+        quanti = min(limit, TETTO)
+        stringa = filtro(query, filtri)
+
+        if filtri and filtri.campione:
+            corpo = await openalex_api.chiama(
+                client,
+                "/works",
+                config,
+                filter=stringa,
+                sample=str(min(filtri.campione, quanti)),
+                seed=str(filtri.seme) if filtri.seme is not None else "",
+                per_page=str(min(filtri.campione, quanti, PER_PAGINA)),
+                select=SELECT,
+            )
+            return [work_da(item) for item in corpo.get("results", [])]
+
+        works, cursore = [], "*"
+        while cursore and len(works) < quanti:
+            corpo = await openalex_api.chiama(
+                client,
+                "/works",
+                config,
+                filter=stringa,
+                per_page=str(min(quanti - len(works), PER_PAGINA)),
+                cursor=cursore,
+                select=SELECT,
+            )
+            risultati = corpo.get("results", [])
+            works.extend(work_da(item) for item in risultati)
+            cursore = (corpo.get("meta") or {}).get("next_cursor") if risultati else None
+        return works[:quanti]
 
 
 def filtro_testo(query: str) -> str:

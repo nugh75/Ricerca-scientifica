@@ -115,6 +115,8 @@ def strategy_from_form(
     rivista: str = "",
     ateneo: str = "",
     finanziatore: str = "",
+    campione: str = "",
+    seme: str = "",
 ) -> Strategy:
     """Ricostruisce la strategia dai campi di testo della pagina."""
 
@@ -138,6 +140,8 @@ def strategy_from_form(
             rivista_id=identificativo(rivista, "S"),
             ateneo_id=identificativo(ateneo, "I"),
             finanziatore_id=identificativo(finanziatore, "F"),
+            campione=_numero(campione, massimo=100),
+            seme=_numero(seme, massimo=999999),
         ),
     )
 
@@ -145,3 +149,10 @@ def strategy_from_form(
 def _anno(valore: str) -> int | None:
     valore = str(valore).strip()
     return int(valore) if valore.isdigit() and 1000 <= int(valore) <= 2999 else None
+
+
+def _numero(valore: str, massimo: int) -> int | None:
+    valore = str(valore).strip()
+    if not valore.isdigit() or not 1 <= int(valore) <= massimo:
+        return None
+    return int(valore)
