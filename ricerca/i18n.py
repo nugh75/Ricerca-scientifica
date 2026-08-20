@@ -372,6 +372,13 @@ STRINGS: dict[str, dict[str, str]] = {
         "record_ritirato": "Articolo ritirato: non va incluso senza dirlo.",
         "record_citazioni": "Citazioni",
         "record_top10": "fra il 10% più citato del suo campo",
+        "citazioni_indietro": "La sua bibliografia",
+        "citazioni_avanti": "Chi lo cita",
+        "citazioni_lato": "Lavori vicini",
+        "citazioni_aggiungi": "Aggiungi alla ricerca",
+        "citazioni_nessuna": "Nessun lavoro nuovo da questa parte.",
+        "citazioni_senza_id": "Questo record non viene da OpenAlex: le citazioni partono solo dai record OpenAlex.",
+        "log_citazioni_aggiunte": "{quanti} record aggiunti dalle citazioni",
     },
     "en": {
         "lang_name": "English",
@@ -735,6 +742,13 @@ STRINGS: dict[str, dict[str, str]] = {
         "record_ritirato": "Retracted article: do not include it silently.",
         "record_citazioni": "Citations",
         "record_top10": "in the top 10% most cited of its field",
+        "citazioni_indietro": "Its bibliography",
+        "citazioni_avanti": "Citing works",
+        "citazioni_lato": "Related works",
+        "citazioni_aggiungi": "Add to the search",
+        "citazioni_nessuna": "Nothing new on this side.",
+        "citazioni_senza_id": "This record is not from OpenAlex: citation chasing starts from OpenAlex records only.",
+        "log_citazioni_aggiunte": "{quanti} records added from citation chasing",
     },
 }
 

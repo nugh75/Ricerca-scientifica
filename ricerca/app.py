@@ -23,7 +23,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, costo, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
+from . import biblioteca, cache, citazioni, costo, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -619,6 +619,71 @@ def _posizioni_per_fonte(voce: dict, work: Work) -> list[dict]:
         if fonte.get("id") in work.sources:
             righe.append({"etichetta": fonte.get("etichetta", ""), "trovati": fonte.get("trovati", 0)})
     return righe
+
+
+@app.get("/citazioni/{id_ricerca}/{indice}/{verso}", response_class=HTMLResponse)
+async def citazioni_elenco(request: Request, id_ricerca: str, indice: int, verso: str):
+    """I lavori intorno a questo: chi lo cita, chi cita lui, chi gli somiglia."""
+
+    config = current_config()
+    works = history.record(id_ricerca)
+    if not works or indice >= len(works):
+        return HTMLResponse("")
+    t = i18n.strings(config.lang)
+    trovati, problema = [], ""
+    async with cache.client(
+        headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+    ) as http:
+        try:
+            trovati = await citazioni.cerca(works[indice], verso, config, http)
+        except ValueError:
+            problema = t["citazioni_senza_id"]
+        except (httpx.HTTPError, OSError) as exc:
+            problema = keywords.messaggio_api(exc.response) if isinstance(
+                exc, httpx.HTTPStatusError
+            ) else t["err_rete_fonte"]
+
+    presenti = {(w.openalex_id or w.doi or w.title) for w in works}
+    return templates.TemplateResponse(
+        request,
+        "partials/citazioni.html",
+        base_context(
+            config,
+            id_ricerca=id_ricerca,
+            indice=indice,
+            verso=verso,
+            trovati=[
+                w for w in trovati
+                if (w.openalex_id or w.doi or w.title) not in presenti
+            ],
+            problema=problema,
+        ),
+    )
+
+
+@app.post("/citazioni/{id_ricerca}/{indice}/{verso}", response_class=HTMLResponse)
+async def citazioni_aggiungi(
+    request: Request,
+    id_ricerca: str,
+    indice: int,
+    verso: str,
+    scelti: list[str] = Form(default=[]),
+):
+    """Porta nella ricerca i record spuntati, in coda e con la provenienza."""
+
+    config = current_config()
+    if not scelti:
+        return HTMLResponse("")
+    async with cache.client(
+        headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+    ) as http:
+        nuovi = await citazioni.per_id(scelti, config, http)
+    entrati = history.aggiungi(id_ricerca, nuovi, "citazioni")
+    registro.annota(
+        i18n.strings(config.lang)["log_citazioni_aggiunte"].format(quanti=entrati),
+        f"{id_ricerca} · {verso}",
+    )
+    return _scheda(request, id_ricerca, indice)
 
 
 @app.get("/scheda/{id_ricerca}/{indice}", response_class=HTMLResponse)

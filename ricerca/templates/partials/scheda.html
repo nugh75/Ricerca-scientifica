@@ -29,6 +29,14 @@
     {% if work.completato %}<span class="marchio">{{ t.unpaywall_source }}</span>{% endif %}
   </p>
 
+  <div class="azioni-citazioni">
+    {% for verso, etichetta in [("indietro", t.citazioni_indietro), ("avanti", t.citazioni_avanti), ("lato", t.citazioni_lato)] %}
+      <button hx-get="/citazioni/{{ id_ricerca }}/{{ indice }}/{{ verso }}"
+              hx-target="#citazioni-{{ indice }}">{{ etichetta }}</button>
+    {% endfor %}
+  </div>
+  <div id="citazioni-{{ indice }}"></div>
+
   <div class="scheda-riquadro">
     <h3>{{ t.screening_title }}</h3>
     {% with fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}

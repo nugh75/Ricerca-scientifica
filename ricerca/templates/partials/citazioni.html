@@ -1,0 +1,23 @@
+<div class="citazioni">
+  {% if problema %}
+    <p class="avviso">{{ problema }}</p>
+  {% elif not trovati %}
+    <p class="meta">{{ t.citazioni_nessuna }}</p>
+  {% else %}
+    <form hx-post="/citazioni/{{ id_ricerca }}/{{ indice }}/{{ verso }}" hx-target="#scheda-corpo">
+      <ul class="elenco-citazioni">
+        {% for work in trovati %}
+          <li>
+            <label>
+              <input type="checkbox" name="scelti" value="{{ work.openalex_id }}">
+              <b>{{ work.title }}</b>
+              <small>{{ work.authors_short }}{% if work.year %} · {{ work.year }}{% endif %}
+              {% if work.citazioni is not none %} · {{ work.citazioni }} {{ t.record_citazioni|lower }}{% endif %}</small>
+            </label>
+          </li>
+        {% endfor %}
+      </ul>
+      <button type="submit">{{ t.citazioni_aggiungi }}</button>
+    </form>
+  {% endif %}
+</div>

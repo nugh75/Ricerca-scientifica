@@ -67,6 +67,44 @@ def salva(
     return voce["id"]
 
 
+def aggiungi(id_voce: str, nuovi: list[Work], etichetta: str) -> int:
+    """Attacca record nuovi a una ricerca già fatta, in coda e senza doppioni.
+
+    In coda perché le decisioni di screening sono indicizzate per posizione:
+    inserire in mezzo le sposterebbe tutte sul record sbagliato. La
+    provenienza sostituisce quella della fonte, così nel protocollo si vede
+    che sono arrivati dallo snowballing e non dalla query.
+    """
+
+    from .dedup import _key
+
+    voci = _leggi()
+    for voce_corrente in voci:
+        if voce_corrente.get("id") != id_voce:
+            continue
+        presenti = {_key(Work(**_campi(r))) for r in voce_corrente.get("record", [])}
+        entrati = 0
+        for work in nuovi:
+            if _key(work) in presenti:
+                continue
+            presenti.add(_key(work))
+            work.sources = [etichetta]
+            voce_corrente.setdefault("record", []).append(asdict(work))
+            entrati += 1
+        voce_corrente["totale"] = len(voce_corrente.get("record", []))
+        _scrivi(voci)
+        return entrati
+    return 0
+
+
+def _campi(record_salvato: dict) -> dict:
+    """Solo le chiavi che `Work` conosce: una cronologia vecchia può averne
+    di più o di meno di quelle del programma di oggi."""
+
+    ammessi = set(Work.__dataclass_fields__)
+    return {k: v for k, v in record_salvato.items() if k in ammessi}
+
+
 def _statistiche(results: list[SourceResult], works: list[Work]) -> list[dict]:
     from .search import statistiche
 

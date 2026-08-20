@@ -69,3 +69,34 @@ def test_il_file_della_cronologia_e_privato(isolated_config):
     ricerca_finta()
     modo = (isolated_config / "history.json").stat().st_mode
     assert stat.S_IMODE(modo) == 0o600
+
+
+def test_i_record_nuovi_vanno_in_coda_senza_duplicare():
+    strategy = Strategy(blocks=[Block("B", ["x"])])
+    esistenti = [Work(title="Primo", doi="10.1/a"), Work(title="Secondo", doi="10.1/b")]
+    id_voce = history.salva(
+        "topic", strategy, [SourceResult("openalex", "OpenAlex", "q")], esistenti
+    )
+
+    entrati = history.aggiungi(
+        id_voce,
+        [Work(title="Primo di nuovo", doi="10.1/a"), Work(title="Terzo", doi="10.1/c")],
+        "citazioni",
+    )
+    record = history.record(id_voce)
+    assert entrati == 1
+    assert [w.title for w in record] == ["Primo", "Secondo", "Terzo"]
+    assert record[2].sources == ["citazioni"]
+
+
+def test_le_decisioni_gia_prese_restano_sul_record_giusto():
+    strategy = Strategy(blocks=[Block("B", ["x"])])
+    id_voce = history.salva(
+        "topic", strategy, [SourceResult("openalex", "OpenAlex", "q")],
+        [Work(title="Primo", doi="10.1/a"), Work(title="Secondo", doi="10.1/b")],
+    )
+    history.decide(id_voce, 1, "incluso", "pertinente")
+    history.aggiungi(id_voce, [Work(title="Terzo", doi="10.1/c")], "citazioni")
+    record = history.record(id_voce)
+    assert record[1].title == "Secondo"
+    assert record[1].decisione == "incluso"
