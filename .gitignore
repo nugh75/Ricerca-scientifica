@@ -14,3 +14,6 @@ PROJECT-INFO.md
 .agents/
 .claude/
 .ai4educ/
+
+# Scratch dei workflow con subagent (superpowers)
+.superpowers/
