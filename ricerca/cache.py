@@ -20,6 +20,9 @@ from . import config as config_module
 
 DURATA = 24 * 60 * 60  # un giorno
 VARIABILE = "RICERCA_CACHE"
+# Le risposte servite dalla cache portano questo marcatore: il costo OpenAlex
+# si conta una volta sola, non a ogni ripetizione della stessa query.
+INTESTAZIONE = "x-ricerca-cache"
 
 
 def attiva() -> bool:
@@ -101,7 +104,9 @@ class TrasportoConCache(httpx.AsyncHTTPTransport):
         salvata = leggi(chiave_richiesta, self.durata)
         if salvata is not None:
             stato, tipo, corpo = salvata
-            return httpx.Response(stato, content=corpo, headers={"content-type": tipo})
+            return httpx.Response(
+                stato, content=corpo, headers={"content-type": tipo, INTESTAZIONE: "1"}
+            )
 
         risposta = await super().handle_async_request(request)
         if risposta.status_code == 200:

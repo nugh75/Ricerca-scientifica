@@ -80,3 +80,14 @@ async def test_una_risposta_compressa_non_viene_decompressa_due_volte(cache_acce
 
     assert prima.json()["esearchresult"]["idlist"] == ["1"]
     assert seconda.json() == prima.json()
+
+
+@respx.mock
+async def test_la_risposta_dalla_cache_si_riconosce(monkeypatch):
+    monkeypatch.setenv("RICERCA_CACHE", "1")
+    respx.get("https://esempio.test/x").mock(return_value=httpx.Response(200, json={"a": 1}))
+    async with cache.client() as client:
+        prima = await client.get("https://esempio.test/x")
+        dopo = await client.get("https://esempio.test/x")
+    assert cache.INTESTAZIONE not in prima.headers
+    assert dopo.headers.get(cache.INTESTAZIONE) == "1"
