@@ -254,7 +254,7 @@ button:disabled { opacity: .5; cursor: default; }
 /* ── gruppi di scelte ─────────────────────────────────────── */
 fieldset { border: 0; border-top: 1px solid var(--riga); margin: var(--u3) 0 0; padding: var(--u2) 0 0; }
 legend { font: 500 .75rem/1.4 var(--testo-famiglia); letter-spacing: .08em; text-transform: uppercase; color: var(--testo-tenue); padding: 0; }
-.fonti, .filtri { display: flex; flex-wrap: wrap; gap: var(--u1) var(--u3); margin-top: var(--u2); align-items: center; }
+.fonti, .filtri, .filtri-openalex { display: flex; flex-wrap: wrap; gap: var(--u1) var(--u3); margin-top: var(--u2); align-items: center; }
 .fonte { display: inline-flex; align-items: center; gap: var(--u1); width: auto; font-size: .9375rem; }
 .fonte label { display: inline-flex; align-items: center; gap: var(--u1); font-weight: 400; }
 .fonte input { width: auto; accent-color: var(--accento); }

@@ -1,10 +1,15 @@
 import httpx
 import respx
+from fastapi.testclient import TestClient
 
 from ricerca import search, sources
+from ricerca.app import app
 from ricerca.config import Config
 from ricerca.models import Block, Filtri, Strategy
+from ricerca.sources.openalex import filtro
 from ricerca.strategy import strategy_from_form
+
+client = TestClient(app)
 
 
 def con_filtri(**kwargs):
@@ -100,3 +105,68 @@ async def test_i_filtri_arrivano_alle_fonti_durante_la_ricerca():
     )
     await search.run(con_filtri(anno_da=2021), ["openalex"], 5, Config())
     assert "from_publication_date%3A2021-01-01" in str(rotta.calls[0].request.url)
+
+
+def test_i_filtri_nuovi_entrano_nella_stringa():
+    reso = filtro("ai literacy", Filtri(
+        lingua="en", escludi_ritirati=True, solo_oa=True, con_pdf=True
+    ))
+    assert "language:en" in reso
+    assert "is_retracted:false" in reso
+    assert "is_oa:true" in reso
+    assert "has_content.pdf:true" in reso
+
+
+def test_senza_filtri_la_stringa_resta_quella_di_prima():
+    assert filtro("ai literacy", Filtri()) == "title_and_abstract.search:ai literacy"
+
+
+def test_i_filtri_si_leggono_dal_modulo():
+    strategy = strategy_from_form(
+        ["Blocco"], ["ai"], lingua="it", escludi_ritirati=True, solo_oa=True, con_pdf=False
+    )
+    assert strategy.filtri.lingua == "it"
+    assert strategy.filtri.escludi_ritirati is True
+    assert strategy.filtri.solo_oa is True
+    assert strategy.filtri.con_pdf is False
+    assert strategy.filtri.attivi() is True
+
+
+def test_una_lingua_inventata_si_ignora():
+    assert strategy_from_form(["B"], ["ai"], lingua="klingon").filtri.lingua == ""
+
+
+@respx.mock
+def test_le_caselle_segnate_arrivano_vere_dal_form_reale(esegui_ricerca):
+    """Un checkbox HTML non spuntato non arriva nel POST: qui si verifica
+    che quello spuntato diventi True dopo Form(default=False), non solo
+    quando si chiama strategy_from_form direttamente in Python."""
+
+    rotta = respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json={"results": []})
+    )
+    esegui_ricerca(client, {
+        "label": ["C"], "terms": ["x"], "mesh": "",
+        "fonte": ["openalex"], "limite": "5",
+        "lingua": "en", "escludi_ritirati": "1", "solo_oa": "1", "con_pdf": "1",
+    })
+    inviata = str(rotta.calls[0].request.url)
+    assert "language%3Aen" in inviata
+    assert "is_retracted%3Afalse" in inviata
+    assert "is_oa%3Atrue" in inviata
+    assert "has_content.pdf%3Atrue" in inviata
+
+
+@respx.mock
+def test_le_caselle_non_segnate_restano_false_dal_form_reale(esegui_ricerca):
+    rotta = respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json={"results": []})
+    )
+    esegui_ricerca(client, {
+        "label": ["C"], "terms": ["x"], "mesh": "",
+        "fonte": ["openalex"], "limite": "5",
+    })
+    inviata = str(rotta.calls[0].request.url)
+    assert "is_retracted%3Afalse" not in inviata
+    assert "is_oa%3Atrue" not in inviata
+    assert "has_content.pdf%3Atrue" not in inviata

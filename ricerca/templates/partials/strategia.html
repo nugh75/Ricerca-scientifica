@@ -66,6 +66,19 @@
       </div>
     </fieldset>
 
+    <fieldset class="filtri-openalex">
+      <legend>{{ t.filtri_openalex }}</legend>
+      <label>{{ t.filtro_lingua }}
+        <select name="lingua">
+          <option value="">{{ t.filtro_lingua_tutte }}</option>
+          {% for codice in lingue %}<option value="{{ codice }}">{{ codice }}</option>{% endfor %}
+        </select>
+      </label>
+      <label><input type="checkbox" name="escludi_ritirati" value="1"> {{ t.filtro_ritirati }}</label>
+      <label><input type="checkbox" name="solo_oa" value="1"> {{ t.filtro_oa }}</label>
+      <label><input type="checkbox" name="con_pdf" value="1"> {{ t.filtro_pdf }}</label>
+    </fieldset>
+
     <fieldset>
       <legend>{{ t.legend_sources }}</legend>
       <div class="fonti">

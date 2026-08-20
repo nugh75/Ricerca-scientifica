@@ -38,15 +38,37 @@ class OpenAlex(Source):
         return [work_da(item) for item in corpo.get("results", [])]
 
 
-def filtro(query: str, filtri=None) -> str:
-    pezzi = [f"title_and_abstract.search:{query}"]
+def filtro_testo(query: str) -> str:
+    """La parte della domanda che cerca parole nel testo."""
+
+    return f"title_and_abstract.search:{query}"
+
+
+def filtro_vincoli(filtri=None) -> list[str]:
+    """I vincoli che valgono a prescindere dalla domanda, uno per elemento."""
+
+    pezzi = []
     if filtri and filtri.anno_da:
         pezzi.append(f"from_publication_date:{filtri.anno_da}-01-01")
     if filtri and filtri.anno_a:
         pezzi.append(f"to_publication_date:{filtri.anno_a}-12-31")
     if filtri and filtri.solo_articoli:
         pezzi.append("type:article")
-    return ",".join(pezzi)
+    if filtri and filtri.lingua:
+        pezzi.append(f"language:{filtri.lingua}")
+    if filtri and filtri.escludi_ritirati:
+        pezzi.append("is_retracted:false")
+    if filtri and filtri.solo_oa:
+        pezzi.append("is_oa:true")
+    if filtri and filtri.con_pdf:
+        pezzi.append("has_content.pdf:true")
+    return pezzi
+
+
+def filtro(query: str, filtri=None) -> str:
+    """I due pezzi uniti nella sintassi di OpenAlex."""
+
+    return ",".join([filtro_testo(query), *filtro_vincoli(filtri)])
 
 
 def _pdf_candidati(item: dict) -> list[str]:

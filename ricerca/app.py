@@ -40,7 +40,7 @@ from .export import (
 )
 from .llm import LLMClient, LLMError
 from .models import Strategy, Work
-from .strategy import heuristic_strategy, strategy_from_form
+from .strategy import LINGUE, heuristic_strategy, strategy_from_form
 
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -138,6 +138,7 @@ def base_context(config: Config, **extra) -> dict:
         "errori_registro": registro.quanti_errori(),
         "voci": registro.ultime(),
         "errori": registro.quanti_errori(),
+        "lingue": LINGUE,
     }
     context.update(extra)
     return context
@@ -328,8 +329,15 @@ async def query(
     anno_da: str = Form(default=""),
     anno_a: str = Form(default=""),
     solo_articoli: bool = Form(default=False),
+    lingua: str = Form(default=""),
+    escludi_ritirati: bool = Form(default=False),
+    solo_oa: bool = Form(default=False),
+    con_pdf: bool = Form(default=False),
 ):
-    strategy = strategy_from_form(label, terms, mesh, anno_da, anno_a, solo_articoli)
+    strategy = strategy_from_form(
+        label, terms, mesh, anno_da, anno_a, solo_articoli,
+        lingua, escludi_ritirati, solo_oa, con_pdf,
+    )
     return templates.TemplateResponse(
         request,
         "partials/query.html",
@@ -354,9 +362,16 @@ async def cerca(
     anno_da: str = Form(default=""),
     anno_a: str = Form(default=""),
     solo_articoli: bool = Form(default=False),
+    lingua: str = Form(default=""),
+    escludi_ritirati: bool = Form(default=False),
+    solo_oa: bool = Form(default=False),
+    con_pdf: bool = Form(default=False),
 ):
     config = current_config()
-    strategy = strategy_from_form(label, terms, mesh, anno_da, anno_a, solo_articoli)
+    strategy = strategy_from_form(
+        label, terms, mesh, anno_da, anno_a, solo_articoli,
+        lingua, escludi_ritirati, solo_oa, con_pdf,
+    )
     limite = max(1, min(limite, 100))
 
     async def esegui():

@@ -78,6 +78,11 @@ def topic_seed(topic: str, max_words: int = 3) -> list[str]:
     return words[:5]
 
 
+# Le lingue che l'interfaccia offre: OpenAlex ne conosce molte di più, ma un
+# codice inventato produce zero risultati senza spiegare perché.
+LINGUE = ("en", "it", "es", "fr", "de", "pt")
+
+
 def strategy_from_form(
     labels: list[str],
     term_lines: list[str],
@@ -85,6 +90,10 @@ def strategy_from_form(
     anno_da: str = "",
     anno_a: str = "",
     solo_articoli: bool = False,
+    lingua: str = "",
+    escludi_ritirati: bool = False,
+    solo_oa: bool = False,
+    con_pdf: bool = False,
 ) -> Strategy:
     """Ricostruisce la strategia dai campi di testo della pagina."""
 
@@ -101,6 +110,10 @@ def strategy_from_form(
             anno_da=_anno(anno_da),
             anno_a=_anno(anno_a),
             solo_articoli=bool(solo_articoli),
+            lingua=lingua if lingua in LINGUE else "",
+            escludi_ritirati=bool(escludi_ritirati),
+            solo_oa=bool(solo_oa),
+            con_pdf=bool(con_pdf),
         ),
     )
 

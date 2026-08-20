@@ -18,14 +18,26 @@ class Block:
 
 @dataclass
 class Filtri:
-    """Vincoli che valgono per tutte le fonti, ognuna con la sua sintassi."""
+    """Vincoli che valgono per tutte le fonti, ognuna con la sua sintassi.
+
+    Gli ultimi quattro li applica solo OpenAlex: le altre banche dati non
+    espongono gli stessi campi, e l'interfaccia deve dirlo — un filtro
+    ignorato in silenzio falsa il conteggio di una revisione.
+    """
 
     anno_da: int | None = None
     anno_a: int | None = None
     solo_articoli: bool = False
+    lingua: str = ""
+    escludi_ritirati: bool = False
+    solo_oa: bool = False
+    con_pdf: bool = False
 
     def attivi(self) -> bool:
-        return bool(self.anno_da or self.anno_a or self.solo_articoli)
+        return bool(
+            self.anno_da or self.anno_a or self.solo_articoli
+            or self.lingua or self.escludi_ritirati or self.solo_oa or self.con_pdf
+        )
 
 
 @dataclass
