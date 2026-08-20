@@ -23,7 +23,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
+from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, openalex_api, pdf, registro, search, unpaywall, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -350,6 +350,25 @@ async def query(
     )
 
 
+@app.get("/autocompleta", response_class=HTMLResponse)
+async def autocompleta(request: Request, entita: str = "keywords", q: str = ""):
+    """Le opzioni di un `datalist`; un guasto non ferma la scrittura."""
+
+    config = current_config()
+    try:
+        async with cache.client(headers={"User-Agent": search.USER_AGENT}) as http:
+            voci = await openalex_api.autocompleta(entita, q, config, http)
+    except (httpx.HTTPError, OSError):
+        voci = []
+    return templates.TemplateResponse(
+        request,
+        "partials/opzioni.html",
+        {
+            "request": request,
+            "voci": voci,
+            "valore_nome": entita in ("keywords", "topics"),
+        },
+    )
 @app.post("/cerca", response_class=HTMLResponse)
 async def cerca(
     request: Request,

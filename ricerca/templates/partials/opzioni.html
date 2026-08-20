@@ -1,0 +1,2 @@
+{% for voce in voci %}<option value="{{ voce.nome if valore_nome else voce.id }}" label="{{ voce.nome }}{% if voce.nota %} — {{ voce.nota }}{% endif %}">{{ voce.nome }}</option>
+{% endfor %}

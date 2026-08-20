@@ -40,13 +40,27 @@
       <div class="blocco">
         <label>{{ t.block }} {{ loop.index }}</label>
         <input name="label" value="{{ block.label }}" aria-label="{{ t.block_name_aria }} {{ loop.index }}">
-        <textarea name="terms" rows="2" aria-label="{{ t.block_terms_aria }} {{ loop.index }}">{{ block.terms|join(', ') }}</textarea>
+        <input name="terms" value="{{ block.terms|join(', ') }}"
+               list="suggerimenti-{{ loop.index }}"
+               hx-get="/autocompleta?entita=keywords"
+               hx-trigger="keyup changed delay:300ms"
+               hx-vals='js:{q: event.target.value}'
+               hx-target="#suggerimenti-{{ loop.index }}"
+               aria-label="{{ t.block_terms_aria }} {{ loop.index }}">
+        <datalist id="suggerimenti-{{ loop.index }}"></datalist>
       </div>
       {% endfor %}
       <div class="blocco">
         <label>{{ t.block }} {{ strategy.blocks|length + 1 }} — {{ t.block_optional }}</label>
         <input name="label" value="{{ t.block_extra_name }}" aria-label="{{ t.block_name_aria }}">
-        <textarea name="terms" rows="2" placeholder="{{ t.block_extra_placeholder }}" aria-label="{{ t.block_terms_aria }}"></textarea>
+        <input name="terms" placeholder="{{ t.block_extra_placeholder }}"
+               list="suggerimenti-extra"
+               hx-get="/autocompleta?entita=keywords"
+               hx-trigger="keyup changed delay:300ms"
+               hx-vals='js:{q: event.target.value}'
+               hx-target="#suggerimenti-extra"
+               aria-label="{{ t.block_terms_aria }}">
+        <datalist id="suggerimenti-extra"></datalist>
       </div>
     </div>
 

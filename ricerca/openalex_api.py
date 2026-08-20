@@ -24,6 +24,11 @@ CONTENUTI = "https://content.openalex.org"
 # ognuno legge il proprio.
 ULTIMA_OQL: ContextVar[str] = ContextVar("ultima_oql", default="")
 
+# Le entità su cui l'applicazione suggerisce: la lista chiusa evita che un
+# parametro dell'interfaccia diventi un pezzo di indirizzo qualsiasi.
+ENTITA = ("keywords", "topics", "sources", "institutions", "funders", "authors")
+MINIMO = 2
+
 
 def parametri(config: Config, **extra) -> dict[str, str]:
     """I parametri della chiamata, senza i vuoti: OpenAlex rifiuta con `400`
@@ -83,6 +88,34 @@ async def contenuto_pdf(work_id: str, config: Config, client: httpx.AsyncClient)
     risposta.raise_for_status()
     costo.aggiungi(costo.COSTO_PDF)
     return risposta.content
+
+
+async def autocompleta(
+    entita: str,
+    q: str,
+    config: Config,
+    client: httpx.AsyncClient,
+) -> list[dict]:
+    """Suggerimenti mentre si scrive: ~200 ms e non costa nulla.
+
+    Serve anche a rispettare la regola dei documenti di OpenAlex — mai
+    filtrare per nome, sempre risolvere il nome in un identificativo.
+    """
+
+    if entita not in ENTITA or len(q.strip()) < MINIMO:
+        return []
+    corpo = await chiama(
+        client, f"/autocomplete/{entita}", config, q=q.strip(), timeout=10
+    )
+    return [
+        {
+            "id": id_breve(voce.get("id")),
+            "nome": str(voce.get("display_name") or ""),
+            "nota": str(voce.get("hint") or ""),
+        }
+        for voce in corpo.get("results", [])
+        if voce.get("display_name")
+    ]
 
 
 def id_breve(valore: str | None) -> str:
