@@ -2,9 +2,14 @@
   {% for stato, etichetta in (('incluso', t.screening_include), ('forse', t.screening_maybe), ('escluso', t.screening_exclude)) %}
   <button type="button" class="segno {% if work.decisione == stato %}scelto{% endif %}"
           hx-post="/screening/{{ id_ricerca }}/{{ indice }}"
-          hx-vals='{"stato": "{{ stato }}"}'
-          hx-include="#motivo-{{ indice }}"
-          hx-target="#screening-{{ indice }}" hx-swap="outerHTML"
+          hx-vals='{"stato": "{{ stato }}"{% if aggiorna_elenco|default(false) %}, "aggiorna_elenco": "1"{% endif %}}'
+          {% if aggiorna_elenco|default(false) %}
+          hx-include="#motivo-{{ indice }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+          hx-target="#blocco-{{ id_ricerca }}"
+          {% else %}
+          hx-include="#motivo-{{ indice }}" hx-target="#screening-{{ indice }}"
+          {% endif %}
+          hx-swap="outerHTML"
           title="{{ etichetta }}">{{ etichetta }}</button>
   {% endfor %}
   <input id="motivo-{{ indice }}" name="motivo" value="{{ work.motivo }}"

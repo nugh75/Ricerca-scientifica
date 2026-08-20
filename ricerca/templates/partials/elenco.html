@@ -1,4 +1,54 @@
 {% set blocco_elenco = true %}<div id="blocco-{{ id_ricerca }}">
+<form class="scheda filtri-risultati" id="filtri-{{ id_ricerca }}"
+      hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+      hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">
+  <h3>{{ t.result_filters_title }}</h3>
+  <p class="aiuto">{{ t.result_filters_help }}</p>
+  <input type="hidden" name="vista" value="{{ vista }}">
+  <div class="griglia-filtri-risultati">
+    <label class="filtro-testo-risultati">
+      <span>{{ t.result_filter_text }}</span>
+      <input type="search" name="filtro_testo" value="{{ filtro_testo }}"
+             placeholder="{{ t.result_filter_text_placeholder }}">
+    </label>
+    <label>
+      <span>{{ t.result_filter_year_from }}</span>
+      <input type="number" name="filtro_anno_da" value="{{ filtro_anno_da or '' }}" inputmode="numeric">
+    </label>
+    <label>
+      <span>{{ t.result_filter_year_to }}</span>
+      <input type="number" name="filtro_anno_a" value="{{ filtro_anno_a or '' }}" inputmode="numeric">
+    </label>
+    <label>
+      <span>{{ t.result_filter_source }}</span>
+      <select name="filtro_fonte">
+        <option value="">{{ t.result_filter_any_source }}</option>
+        {% for fonte in fonti_filtro %}<option value="{{ fonte }}" {% if filtro_fonte == fonte %}selected{% endif %}>{{ fonte }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>{{ t.result_filter_status }}</span>
+      <select name="filtro_stato">
+        <option value="">{{ t.result_filter_any_status }}</option>
+        <option value="da_valutare" {% if filtro_stato == 'da_valutare' %}selected{% endif %}>{{ t.result_filter_undecided }}</option>
+        <option value="incluso" {% if filtro_stato == 'incluso' %}selected{% endif %}>{{ t.screening_include }}</option>
+        <option value="forse" {% if filtro_stato == 'forse' %}selected{% endif %}>{{ t.screening_maybe }}</option>
+        <option value="escluso" {% if filtro_stato == 'escluso' %}selected{% endif %}>{{ t.screening_exclude }}</option>
+      </select>
+    </label>
+  </div>
+  <div class="azioni">
+    <button type="submit" class="primario">{{ t.result_filter_apply }}</button>
+    {% if filtri_attivi %}
+    <button type="button" hx-post="/risultati/{{ id_ricerca }}"
+            hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+            hx-vals='{"vista": "{{ vista }}", "azzera_filtri": "1"}'
+            hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.result_filter_reset }}</button>
+    <span class="conteggi filtro-conteggio">{{ t.result_filter_count.format(mostrati=totale, totale=totale_tutti) }}</span>
+    {% endif %}
+  </div>
+</form>
+
 {% if fonti %}{% include "partials/fonti.html" %}{% endif %}
 
 <form class="scheda" id="campi-{{ id_ricerca }}">
@@ -12,16 +62,16 @@
     {% endfor %}
   </div>
   <div class="azioni">
-    <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+    <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
             name="vista" value="tabella">{{ t.btn_apply_fields }}</button>
     <span class="viste">
       <button type="button" class="lingua {% if vista == 'tabella' %}attiva{% endif %}"
-              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
               hx-vals='{"vista": "tabella"}' hx-target="#blocco-{{ id_ricerca }}"
               hx-swap="outerHTML">{{ t.view_table }}</button>
       <button type="button" class="lingua {% if vista == 'apa' %}attiva{% endif %}"
-              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
               hx-vals='{"vista": "apa"}' hx-target="#blocco-{{ id_ricerca }}"
               hx-swap="outerHTML">{{ t.view_apa }}</button>
     </span>
@@ -35,21 +85,21 @@
     <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', false)">{{ t.bulk_clear }}</button>
     {% for stato, etichetta in (('incluso', t.bulk_include), ('forse', t.bulk_maybe), ('escluso', t.bulk_exclude), ('annulla', t.bulk_clear_decisions)) %}
     <button type="button" hx-post="/screening-massa/{{ id_ricerca }}"
-            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
             hx-vals='{"stato": "{{ stato }}"}'
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ etichetta }}</button>
     {% endfor %}
     {% if config.zotero_api_key and config.zotero_library_id %}
     <button type="button" hx-post="/zotero-massa/{{ id_ricerca }}"
-            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.bulk_zotero }}</button>
     {% endif %}
     <button type="button" hx-post="/unpaywall/{{ id_ricerca }}"
-            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
             hx-indicator="#attesa-pdf">{{ t.unpaywall_fill }}</button>
     <button type="button" class="primario" hx-post="/pdf-massa/{{ id_ricerca }}"
-            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}"
+            hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
             hx-indicator="#attesa-pdf">{{ t.bulk_pdf }}</button>
     <span id="attesa-pdf" class="htmx-indicator">{{ t.waiting_pdf }}</span>

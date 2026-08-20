@@ -268,6 +268,30 @@ legend { font: 500 .75rem/1.4 var(--testo-famiglia); letter-spacing: .08em; text
 .azioni { display: flex; align-items: center; gap: var(--u1); flex-wrap: wrap; margin-top: var(--u3); }
 .conclusione { gap: var(--u2); margin: var(--u3) 0 var(--u6); }
 
+/* ── lente sui risultati salvati ─────────────────────────── */
+.filtri-risultati { border-left: 3px solid var(--accento); }
+.filtri-risultati > .aiuto { margin-top: calc(var(--u1) * -1); }
+.griglia-filtri-risultati {
+  display: grid;
+  grid-template-columns: minmax(16rem, 2fr) repeat(2, minmax(7rem, .55fr)) repeat(2, minmax(10rem, 1fr));
+  gap: var(--u2); align-items: end;
+}
+.griglia-filtri-risultati label { display: grid; gap: .25rem; color: var(--testo-tenue); }
+.filtro-conteggio { margin-left: auto; }
+@media (max-width: 72rem) {
+  .griglia-filtri-risultati { grid-template-columns: minmax(16rem, 2fr) repeat(2, minmax(7rem, 1fr)); }
+  .griglia-filtri-risultati label:nth-last-child(-n+2) { grid-column: span 1; }
+}
+@media (max-width: 48rem) {
+  .griglia-filtri-risultati { grid-template-columns: 1fr 1fr; }
+  .griglia-filtri-risultati .filtro-testo-risultati { grid-column: 1 / -1; }
+  .filtro-conteggio { flex-basis: 100%; margin-left: 0; }
+}
+@media (max-width: 30rem) {
+  .griglia-filtri-risultati { grid-template-columns: 1fr; }
+  .griglia-filtri-risultati .filtro-testo-risultati { grid-column: auto; }
+}
+
 /* ── termini ──────────────────────────────────────────────── */
 .gruppo-chip { margin-bottom: var(--u2); }
 .gruppo-chip:last-child { margin-bottom: 0; }

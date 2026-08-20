@@ -55,6 +55,17 @@ configure later, and reopen it any time from Settings.
 
 ## How it works
 
+### New in 1.0.0b4
+
+- Saved results can now be filtered across the complete search, before the
+  50-record pagination, by title, author, venue or DOI, year range, source and
+  screening status.
+- Text matching is case- and accent-insensitive. Filtered rows keep their
+  original history index, so record cards, screening and PDF actions always
+  operate on the intended work.
+- Filters remain active while changing page or view and after bulk actions;
+  changing a screening decision also refreshes a status-filtered list.
+
 ### New in 1.0.0b3
 
 - Citation chasing now resolves PubMed, Europe PMC and Crossref records in
@@ -190,7 +201,7 @@ remembered.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 421 tests, none touches the network
+.venv/bin/pytest -q                       # 433 tests, none touches the network
 .venv/bin/pytest -m rete tests/contratto  # checks the real APIs (weekly in CI)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```
@@ -284,6 +295,17 @@ obbligatorio: si può saltare e configurare dopo, e rivedere la guida quando si
 vuole da Impostazioni.
 
 ## Come funziona
+
+### Novità in 1.0.0b4
+
+- I risultati salvati si possono ora filtrare sull'intera ricerca, prima della
+  paginazione a 50 record, per titolo, autore, sede o DOI, intervallo di anni,
+  fonte e stato di screening.
+- La ricerca testuale non distingue maiuscole o accenti. Le righe filtrate
+  conservano l'indice originale nella cronologia, quindi scheda, screening e
+  azioni PDF operano sempre sul lavoro corretto.
+- I filtri restano attivi cambiando pagina o vista e dopo le azioni di massa;
+  una decisione di screening aggiorna anche un elenco filtrato per stato.
 
 ### Novità in 1.0.0b3
 
@@ -424,7 +446,7 @@ restano memorizzate.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/pytest -q                       # 421 test, nessuno tocca la rete
+.venv/bin/pytest -q                       # 433 test, nessuno tocca la rete
 .venv/bin/pytest -m rete tests/contratto  # controlla le API vere (CI settimanale)
 .venv/bin/uvicorn ricerca.app:app --reload --port 8000
 ```

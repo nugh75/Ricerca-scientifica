@@ -1,5 +1,5 @@
 {% if works %}
-<p class="riepilogo"><b>{{ totale }}</b> {{ t.summary_tail }}{% if pagine > 1 %} · {{ t.page_of.format(pagina=pagina, pagine=pagine) }}{% endif %}</p>
+<p class="riepilogo"><b>{{ totale }}</b> {% if filtri_attivi %}{{ t.result_filter_summary_tail.format(totale=totale_tutti) }}{% else %}{{ t.summary_tail }}{% endif %}{% if pagine > 1 %} · {{ t.page_of.format(pagina=pagina, pagine=pagine) }}{% endif %}</p>
 <div class="scarica">
   <span class="etichetta-scarica">{{ t.downloads_title }}</span>
   <a class="tasto" href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib_btn }}</a>
@@ -34,8 +34,7 @@
     {% if vista != 'apa' %}<th>{{ t.pdf_column }}</th><th>{{ t.screening_title }}</th>{% endif %}
   </tr></thead>
   <tbody>
-  {% for w in works %}
-  {% set riga = inizio + loop.index0 %}
+  {% for riga, w in righe %}
   <tr tabindex="0" data-riga="{{ riga }}">
     <td class="spunta"><input type="checkbox" form="massa-{{ id_ricerca }}" name="selezione" value="{{ riga }}"
                               aria-label="{{ t.bulk_title }} {{ riga + 1 }}"></td>
@@ -66,7 +65,7 @@
     {% endif %}
     {% endfor %}
     <td class="cella-pdf" data-etichetta="{{ t.pdf_column }}">{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>
-    <td class="cella-screening" data-etichetta="{{ t.screening_title }}">{% with work = w, indice = riga, fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}</td>
+    <td class="cella-screening" data-etichetta="{{ t.screening_title }}">{% with work = w, indice = riga, fuori_banda = False, aggiorna_elenco = True %}{% include "partials/screening.html" %}{% endwith %}</td>
   </tr>
   {% endfor %}
   </tbody>
@@ -77,18 +76,18 @@
 {% if pagine > 1 %}
 <div class="pagine">
   {% if pagina > 1 %}
-  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
           hx-vals='{"pagina": {{ pagina - 1 }}, "vista": "{{ vista }}"}'
           hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.page_previous }}</button>
   {% endif %}
   <span class="conteggi">{{ t.page_of.format(pagina=pagina, pagine=pagine) }}</span>
   {% if pagina < pagine %}
-  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}"
+  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
           hx-vals='{"pagina": {{ pagina + 1 }}, "vista": "{{ vista }}"}'
           hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.page_next }}</button>
   {% endif %}
 </div>
 {% endif %}
 {% else %}
-<p class="nota">{{ t.empty_results }}</p>
+<p class="nota">{{ t.result_filter_empty if filtri_attivi else t.empty_results }}</p>
 {% endif %}

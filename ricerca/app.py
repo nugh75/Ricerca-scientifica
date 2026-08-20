@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import traceback
+import unicodedata
 from datetime import datetime
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -486,7 +487,63 @@ def _pdf_presenti(works: list[Work]) -> dict[int, bool]:
 PER_PAGINA = 50
 
 
-def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1) -> dict:
+STATI_FILTRO = {"incluso", "forse", "escluso", "da_valutare"}
+
+
+def _normalizza_testo_filtro(testo: str) -> str:
+    decomposto = unicodedata.normalize("NFKD", testo.casefold())
+    senza_accenti = "".join(c for c in decomposto if not unicodedata.combining(c))
+    return " ".join("".join(c if c.isalnum() else " " for c in senza_accenti).split())
+
+
+def _filtra_risultati(
+    works: list[Work],
+    testo: str = "",
+    anno_da: int | None = None,
+    anno_a: int | None = None,
+    fonte: str = "",
+    stato: str = "",
+) -> list[tuple[int, Work]]:
+    """Filtra l'intero record conservando gli indici della cronologia."""
+
+    parole = _normalizza_testo_filtro(testo).split()
+    fonte = fonte.strip().casefold()
+    stato = stato if stato in STATI_FILTRO else ""
+    trovati = []
+    for indice, work in enumerate(works):
+        cercabile = _normalizza_testo_filtro(" ".join([
+            work.title,
+            *work.authors,
+            work.venue or "",
+            work.doi or "",
+        ]))
+        if parole and not all(parola in cercabile for parola in parole):
+            continue
+        if anno_da is not None and (work.year is None or work.year < anno_da):
+            continue
+        if anno_a is not None and (work.year is None or work.year > anno_a):
+            continue
+        if fonte and fonte not in {valore.casefold() for valore in work.sources}:
+            continue
+        if stato == "da_valutare" and work.decisione:
+            continue
+        if stato and stato != "da_valutare" and work.decisione != stato:
+            continue
+        trovati.append((indice, work))
+    return trovati
+
+
+def contesto_elenco(
+    id_ricerca: str,
+    campo,
+    vista: str,
+    pagina: int = 1,
+    filtro_testo: str = "",
+    filtro_anno_da: int | None = None,
+    filtro_anno_a: int | None = None,
+    filtro_fonte: str = "",
+    filtro_stato: str = "",
+) -> dict:
     """Tutto ciò che serve a disegnare un elenco di risultati, in un posto solo.
 
     Ci si arriva da tre strade — ricerca appena conclusa, cambio dei campi,
@@ -495,11 +552,24 @@ def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1) -> dict
 
     tutti = history.record(id_ricerca)
     voce = history.voce(id_ricerca) or {}
-    pagine = max(1, -(-len(tutti) // PER_PAGINA))
+    filtro_testo = filtro_testo.strip()
+    filtro_fonte = filtro_fonte.strip()
+    filtro_stato = filtro_stato if filtro_stato in STATI_FILTRO else ""
+    filtrati = _filtra_risultati(
+        tutti,
+        filtro_testo,
+        filtro_anno_da,
+        filtro_anno_a,
+        filtro_fonte,
+        filtro_stato,
+    )
+    pagine = max(1, -(-len(filtrati) // PER_PAGINA))
     pagina = min(max(1, pagina), pagine)
     inizio = (pagina - 1) * PER_PAGINA
+    righe = filtrati[inizio : inizio + PER_PAGINA]
     return {
-        "works": tutti[inizio : inizio + PER_PAGINA],
+        "works": [work for _, work in righe],
+        "righe": righe,
         "id_ricerca": id_ricerca,
         "campi": normalizza_campi(campo),
         "tutti_i_campi": CAMPI,
@@ -512,7 +582,20 @@ def contesto_elenco(id_ricerca: str, campo, vista: str, pagina: int = 1) -> dict
         "pagina": pagina,
         "pagine": pagine,
         "inizio": inizio,
-        "totale": len(tutti),
+        "totale": len(filtrati),
+        "totale_tutti": len(tutti),
+        "fonti_filtro": sorted(
+            {fonte for work in tutti for fonte in work.sources}, key=str.casefold
+        ),
+        "filtro_testo": filtro_testo,
+        "filtro_anno_da": filtro_anno_da,
+        "filtro_anno_a": filtro_anno_a,
+        "filtro_fonte": filtro_fonte,
+        "filtro_stato": filtro_stato,
+        "filtri_attivi": bool(
+            filtro_testo or filtro_anno_da is not None or filtro_anno_a is not None
+            or filtro_fonte or filtro_stato
+        ),
     }
 
 
@@ -522,11 +605,26 @@ def _elenco(
     campo: list[str],
     vista: str,
     pagina: int = 1,
+    filtro_testo: str = "",
+    filtro_anno_da: int | None = None,
+    filtro_anno_a: int | None = None,
+    filtro_fonte: str = "",
+    filtro_stato: str = "",
 ):
     return templates.TemplateResponse(
         request,
         "partials/elenco.html",
-        base_context(current_config(), **contesto_elenco(id_ricerca, campo, vista, pagina)),
+        base_context(current_config(), **contesto_elenco(
+            id_ricerca,
+            campo,
+            vista,
+            pagina,
+            filtro_testo,
+            filtro_anno_da,
+            filtro_anno_a,
+            filtro_fonte,
+            filtro_stato,
+        )),
     )
 
 
@@ -537,10 +635,30 @@ async def risultati(
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
     pagina: int = Form(default=1),
+    filtro_testo: str = Form(default=""),
+    filtro_anno_da: int | None = Form(default=None),
+    filtro_anno_a: int | None = Form(default=None),
+    filtro_fonte: str = Form(default=""),
+    filtro_stato: str = Form(default=""),
+    azzera_filtri: bool = Form(default=False),
 ):
     """Ridisegna l'elenco con i campi scelti, come tabella o come lista APA."""
 
-    return _elenco(request, id_ricerca, campo, vista, pagina=pagina)
+    if azzera_filtri:
+        filtro_testo = filtro_fonte = filtro_stato = ""
+        filtro_anno_da = filtro_anno_a = None
+    return _elenco(
+        request,
+        id_ricerca,
+        campo,
+        vista,
+        pagina=pagina,
+        filtro_testo=filtro_testo,
+        filtro_anno_da=filtro_anno_da,
+        filtro_anno_a=filtro_anno_a,
+        filtro_fonte=filtro_fonte,
+        filtro_stato=filtro_stato,
+    )
 
 
 def _campi_da_query(campi: str | None) -> list[str]:
@@ -832,6 +950,14 @@ async def screening(
     indice: int,
     stato: str = Form(...),
     motivo: str = Form(default=""),
+    aggiorna_elenco: bool = Form(default=False),
+    campo: list[str] = Form(default=[]),
+    vista: str = Form(default="tabella"),
+    filtro_testo: str = Form(default=""),
+    filtro_anno_da: int | None = Form(default=None),
+    filtro_anno_a: int | None = Form(default=None),
+    filtro_fonte: str = Form(default=""),
+    filtro_stato: str = Form(default=""),
 ):
     """Segna un record come incluso, forse o escluso. Ripetere annulla."""
 
@@ -839,6 +965,15 @@ async def screening(
     works = history.record(id_ricerca)
     if indice >= len(works):
         return HTMLResponse("")
+    if aggiorna_elenco:
+        return _elenco(
+            request, id_ricerca, campo, vista,
+            filtro_testo=filtro_testo,
+            filtro_anno_da=filtro_anno_da,
+            filtro_anno_a=filtro_anno_a,
+            filtro_fonte=filtro_fonte,
+            filtro_stato=filtro_stato,
+        )
     return templates.TemplateResponse(
         request,
         "partials/screening.html",
@@ -861,6 +996,11 @@ async def screening_massa(
     selezione: list[int] = Form(default=[]),
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
+    filtro_testo: str = Form(default=""),
+    filtro_anno_da: int | None = Form(default=None),
+    filtro_anno_a: int | None = Form(default=None),
+    filtro_fonte: str = Form(default=""),
+    filtro_stato: str = Form(default=""),
 ):
     """Applica la stessa decisione a tutti i record spuntati."""
 
@@ -872,7 +1012,14 @@ async def screening_massa(
                 history.decide(id_ricerca, indice, gia_deciso, decisione.get("motivo", ""))
         elif gia_deciso != stato:
             history.decide(id_ricerca, indice, stato, decisione.get("motivo", ""))
-    return _elenco(request, id_ricerca, campo, vista)
+    return _elenco(
+        request, id_ricerca, campo, vista,
+        filtro_testo=filtro_testo,
+        filtro_anno_da=filtro_anno_da,
+        filtro_anno_a=filtro_anno_a,
+        filtro_fonte=filtro_fonte,
+        filtro_stato=filtro_stato,
+    )
 
 
 @app.get("/export/{id_ricerca}.protocollo.txt", response_class=PlainTextResponse)
@@ -891,6 +1038,11 @@ async def zotero_massa(
     selezione: list[int] = Form(default=[]),
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
+    filtro_testo: str = Form(default=""),
+    filtro_anno_da: int | None = Form(default=None),
+    filtro_anno_a: int | None = Form(default=None),
+    filtro_fonte: str = Form(default=""),
+    filtro_stato: str = Form(default=""),
 ):
     """Manda a Zotero i record spuntati; senza spunte, quelli inclusi."""
 
@@ -907,9 +1059,23 @@ async def zotero_massa(
     except (zotero_client.ZoteroError, httpx.HTTPError, OSError) as exc:
         messaggio = i18n.strings(config.lang)["zotero_error"].format(errore=str(exc)[:160])
         registro.errore("Zotero", str(exc)[:200])
-        return avvisa(_elenco(request, id_ricerca, campo, vista), messaggio)
+        return avvisa(_elenco(
+            request, id_ricerca, campo, vista,
+            filtro_testo=filtro_testo,
+            filtro_anno_da=filtro_anno_da,
+            filtro_anno_a=filtro_anno_a,
+            filtro_fonte=filtro_fonte,
+            filtro_stato=filtro_stato,
+        ), messaggio)
 
-    return avvisa(_elenco(request, id_ricerca, campo, vista), messaggio, "buono")
+    return avvisa(_elenco(
+        request, id_ricerca, campo, vista,
+        filtro_testo=filtro_testo,
+        filtro_anno_da=filtro_anno_da,
+        filtro_anno_a=filtro_anno_a,
+        filtro_fonte=filtro_fonte,
+        filtro_stato=filtro_stato,
+    ), messaggio, "buono")
 
 
 async def _scarica_con_ripiego(
@@ -985,13 +1151,25 @@ async def completa_da_unpaywall(
     selezione: list[int] = Form(default=[]),
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
+    filtro_testo: str = Form(default=""),
+    filtro_anno_da: int | None = Form(default=None),
+    filtro_anno_a: int | None = Form(default=None),
+    filtro_fonte: str = Form(default=""),
+    filtro_stato: str = Form(default=""),
 ):
     """Completa i record spuntati — o tutti — con quel che sa Unpaywall."""
 
     config = current_config()
     etichette = i18n.strings(config.lang)
     if not config.mailto_valido:
-        return avvisa(_elenco(request, id_ricerca, campo, vista), etichette["unpaywall_no_email"])
+        return avvisa(_elenco(
+            request, id_ricerca, campo, vista,
+            filtro_testo=filtro_testo,
+            filtro_anno_da=filtro_anno_da,
+            filtro_anno_a=filtro_anno_a,
+            filtro_fonte=filtro_fonte,
+            filtro_stato=filtro_stato,
+        ), etichette["unpaywall_no_email"])
 
     works = history.record(id_ricerca)
     indici = [i for i in selezione if i < len(works)] or list(range(len(works)))
@@ -999,7 +1177,14 @@ async def completa_da_unpaywall(
     messaggio = etichette["unpaywall_done"].format(**esito)
     registro.annota("Unpaywall", messaggio)
     return avvisa(
-        _elenco(request, id_ricerca, campo, vista),
+        _elenco(
+            request, id_ricerca, campo, vista,
+            filtro_testo=filtro_testo,
+            filtro_anno_da=filtro_anno_da,
+            filtro_anno_a=filtro_anno_a,
+            filtro_fonte=filtro_fonte,
+            filtro_stato=filtro_stato,
+        ),
         messaggio,
         "errore" if esito["falliti"] else "buono",
     )
@@ -1084,6 +1269,11 @@ async def pdf_massa(
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
     selezione: list[int] = Form(default=[]),
+    filtro_testo: str = Form(default=""),
+    filtro_anno_da: int | None = Form(default=None),
+    filtro_anno_a: int | None = Form(default=None),
+    filtro_fonte: str = Form(default=""),
+    filtro_stato: str = Form(default=""),
 ):
     """Scarica in un colpo i PDF aperti: quelli spuntati, o tutti."""
 
@@ -1117,7 +1307,14 @@ async def pdf_massa(
     else:
         registro.annota("PDF in blocco", esito)
     return avvisa(
-        _elenco(request, id_ricerca, campo, vista),
+        _elenco(
+            request, id_ricerca, campo, vista,
+            filtro_testo=filtro_testo,
+            filtro_anno_da=filtro_anno_da,
+            filtro_anno_a=filtro_anno_a,
+            filtro_fonte=filtro_fonte,
+            filtro_stato=filtro_stato,
+        ),
         esito,
         "errore" if falliti else "buono",
     )
