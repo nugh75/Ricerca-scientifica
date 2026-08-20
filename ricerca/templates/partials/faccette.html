@@ -1,0 +1,21 @@
+<div class="faccette">
+  <p class="meta">{{ t.faccette_intro }}</p>
+  {% for blocco in profilo %}
+    <section>
+      <h4>{{ t[blocco.etichetta] }}</h4>
+      {% if not blocco.voci %}
+        <p class="meta">{{ t.faccette_vuoto }}</p>
+      {% else %}
+        <ul class="barre">
+          {% for voce in blocco.voci %}
+            <li>
+              <span class="etichetta">{{ voce.etichetta }}</span>
+              <span class="barra" style="width: {{ voce.quota }}%"></span>
+              <span class="numero">{{ voce.quanti }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  {% endfor %}
+</div>

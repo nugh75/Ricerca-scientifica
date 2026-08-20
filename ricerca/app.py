@@ -23,7 +23,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, citazioni, costo, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
+from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -619,6 +619,29 @@ def _posizioni_per_fonte(voce: dict, work: Work) -> list[dict]:
         if fonte.get("id") in work.sources:
             righe.append({"etichetta": fonte.get("etichetta", ""), "trovati": fonte.get("trovati", 0)})
     return righe
+
+
+@app.get("/faccette/{id_ricerca}", response_class=HTMLResponse)
+async def faccette_profilo(request: Request, id_ricerca: str):
+    """Il profilo del campo per la strategia di questa ricerca."""
+
+    config = current_config()
+    voce = history.voce(id_ricerca) or {}
+    query = next(
+        (f.get("query", "") for f in voce.get("fonti", []) if f.get("id") == "openalex"),
+        "",
+    )
+    if not query:
+        return HTMLResponse("")
+    async with cache.client(
+        headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+    ) as http:
+        profilo = await faccette.profilo(
+            query, history.filtri(id_ricerca), config, http
+        )
+    return templates.TemplateResponse(
+        request, "partials/faccette.html", base_context(config, profilo=profilo)
+    )
 
 
 @app.get("/citazioni/{id_ricerca}/{indice}/{verso}", response_class=HTMLResponse)

@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import config as config_module
-from .models import SourceResult, Strategy, Work
+from .models import Filtri, SourceResult, Strategy, Work
 
 MAX_VOCI = 50
 
@@ -59,6 +59,7 @@ def salva(
         "topic": topic,
         "blocchi": [asdict(b) for b in strategy.blocks],
         "mesh": list(strategy.mesh),
+        "filtri": asdict(strategy.filtri),
         "fonti": _statistiche(results, works),
         "totale": len(works),
         "record": [asdict(w) for w in works],
@@ -236,6 +237,15 @@ def strategia(id_voce: str) -> Strategy:
     trovata = voce(id_voce) or {}
     blocchi = [Block(**b) for b in trovata.get("blocchi", [])]
     return Strategy(blocks=blocchi, mesh=list(trovata.get("mesh", [])))
+
+
+def filtri(id_voce: str) -> Filtri:
+    """I filtri di una ricerca salvata. Una voce vecchia non li ha: niente
+    filtri è la risposta giusta, non un errore."""
+
+    salvati = (voce(id_voce) or {}).get("filtri") or {}
+    ammessi = set(Filtri.__dataclass_fields__)
+    return Filtri(**{k: v for k, v in salvati.items() if k in ammessi})
 
 
 STATI = ("incluso", "forse", "escluso")

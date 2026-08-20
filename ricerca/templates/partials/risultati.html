@@ -8,5 +8,8 @@
     {% endfor %}
   </ul>
 
+  <button hx-get="/faccette/{{ id_ricerca }}" hx-target="#faccette">{{ t.faccette_bottone }}</button>
+  <div id="faccette"></div>
+
   {% include "partials/elenco.html" %}
 </section>

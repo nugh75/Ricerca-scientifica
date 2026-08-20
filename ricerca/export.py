@@ -199,6 +199,13 @@ def protocollo(voce: dict, conteggi: dict) -> str:
     if voce.get("mesh"):
         righe.append("- **MeSH**: " + ", ".join(voce["mesh"]))
 
+    attivi = [
+        f"{k}: {v}" for k, v in (voce.get("filtri") or {}).items()
+        if v not in (None, False, "")
+    ]
+    if attivi:
+        righe += ["", "## Filtri", ""] + [f"- {riga}" for riga in attivi]
+
     righe += ["", "## Interrogazioni", "", "| Banca dati | Stringa | Risultati |", "|---|---|---|"]
     for fonte in voce.get("fonti", []):
         esito = fonte.get("errore") or fonte.get("trovati", 0)
@@ -240,6 +247,13 @@ def protocollo_testo(voce: dict, conteggi: dict) -> str:
         righe.append(f"  {blocco.get('label', '')}: " + ", ".join(blocco.get("terms", [])))
     if voce.get("mesh"):
         righe.append("  MeSH: " + ", ".join(voce["mesh"]))
+
+    attivi = [
+        f"{k}: {v}" for k, v in (voce.get("filtri") or {}).items()
+        if v not in (None, False, "")
+    ]
+    if attivi:
+        righe += ["", "FILTRI"] + [f"  {riga}" for riga in attivi]
 
     righe += ["", "INTERROGAZIONI"]
     for fonte in voce.get("fonti", []):

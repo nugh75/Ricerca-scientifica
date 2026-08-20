@@ -507,6 +507,12 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .azioni-citazioni { display: flex; flex-wrap: wrap; gap: var(--u1); margin: var(--u2) 0; }
 .citazioni { margin: 0 0 var(--u2); }
 .elenco-citazioni { display: grid; gap: var(--u1); margin: 0 0 var(--u2); padding: 0; list-style: none; }
+.faccette { margin: var(--u2) 0; }
+.barre { list-style: none; padding: 0; }
+.barre li { display: grid; grid-template-columns: 12rem 1fr 4rem; align-items: center; gap: .5rem; }
+.barre .barra { height: .7rem; background: currentColor; opacity: .35; border-radius: .35rem; }
+.barre .etichetta { overflow-wrap: anywhere; }
+.barre .numero { text-align: right; font-variant-numeric: tabular-nums; }
 .meta { font-size: .875rem; color: var(--testo-tenue); margin: 0 0 var(--u1); }
 .scheda-abstract { max-width: 72ch; }
 .scheda-riquadro { border: 1px solid var(--riga); border-radius: var(--raggio); padding: var(--u2) var(--u3); margin: var(--u2) 0; }

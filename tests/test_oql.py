@@ -39,3 +39,14 @@ def test_una_fonte_senza_oql_non_stampa_la_riga():
         "fonti": [{"id": "pubmed", "etichetta": "PubMed", "query": "(x)", "trovati": 1}],
     }
     assert "OQL" not in protocollo(voce, {})
+
+
+def test_il_protocollo_stampa_i_filtri_attivi():
+    from ricerca.export import protocollo, protocollo_testo
+
+    voce = {
+        "topic": "x", "quando": "2026-08-20T10:00:00", "blocchi": [],
+        "fonti": [], "filtri": {"lingua": "it", "solo_oa": True, "anno_da": None},
+    }
+    assert "lingua: it" in protocollo(voce, {})
+    assert "solo_oa: True" in protocollo_testo(voce, {})
