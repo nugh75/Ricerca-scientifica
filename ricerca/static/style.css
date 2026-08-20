@@ -354,6 +354,8 @@ a.tasto em { font-style: normal; font-family: var(--mono); font-size: .75rem; co
 .lingua { font: 500 .75rem/1 var(--testo-famiglia); letter-spacing: .04em; padding: .4rem .5rem; color: var(--testo-tenue); }
 .lingua.attiva { color: var(--accento); border-color: var(--accento); background: var(--accento-tenue); }
 .chiave { display: flex; align-items: center; gap: var(--u2); }
+.interruttore { display: flex; align-items: center; gap: var(--u1); margin-top: var(--u2); }
+.interruttore input { width: auto; }
 .rimuovi { display: inline-flex; align-items: center; gap: var(--u1); white-space: nowrap; font-size: .8125rem; font-weight: 400; color: var(--testo-tenue); }
 .rimuovi input { width: auto; accent-color: var(--errore); }
 .impostazioni label, .benvenuto label { display: block; margin-top: var(--u2); margin-bottom: var(--u1); font-size: .8125rem; color: var(--testo-tenue); }

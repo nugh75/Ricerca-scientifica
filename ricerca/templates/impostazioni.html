@@ -37,6 +37,12 @@
              placeholder="{% if config.openalex_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
       {% if config.openalex_api_key %}<label class="rimuovi"><input type="checkbox" name="rimuovi" value="openalex_api_key"> {{ t.key_remove }}</label>{% endif %}
     </span>
+    <label class="interruttore">
+      <input type="checkbox" name="openalex_contenuti" value="1"
+             {% if config.openalex_contenuti %}checked{% endif %}>
+      {{ t.archivio_pdf }}
+    </label>
+    <small>{{ t.archivio_pdf_nota }}</small>
     {% include "partials/credito.html" %}
     <label for="s2_api_key">{{ t.settings_s2 }}</label>
     <span class="chiave">

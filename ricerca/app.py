@@ -783,32 +783,28 @@ async def _scarica_con_ripiego(
     id_ricerca: str, indice: int, work: Work, config: Config, client: httpx.AsyncClient
 ) -> bool:
     """Scarica il PDF; se i collegamenti che abbiamo falliscono, ne chiede
-    altri a Unpaywall e riprova una volta sola."""
+    altri a Unpaywall e lascia l'archivio OpenAlex come ultima strada."""
 
     try:
-        await pdf.scarica(work, client)
+        await pdf.scarica(work, client, prova_archivio=False)
         return True
-    except (httpx.HTTPError, ValueError, OSError) as exc:
-        primo_motivo = str(exc)[:120]
+    except (httpx.HTTPError, ValueError, OSError):
+        pass
 
-    if not (config.mailto_valido and work.doi):
-        registro.errore(f"PDF non scaricato: {work.title[:60]}", primo_motivo)
-        return False
-
-    altre = await unpaywall.altre_copie(work.doi, config, client)
-    nuove = [u for u in altre if u not in work.candidati_pdf()]
-    if not nuove:
-        registro.errore(f"PDF non scaricato: {work.title[:60]}", primo_motivo)
-        return False
-
-    work.oa_urls = work.oa_urls + nuove
-    history.completa(id_ricerca, indice, {"oa_urls": work.oa_urls})
+    nuove = []
+    if config.mailto_valido and work.doi:
+        altre = await unpaywall.altre_copie(work.doi, config, client)
+        nuove = [u for u in altre if u not in work.candidati_pdf()]
+        if nuove:
+            work.oa_urls = work.oa_urls + nuove
+            history.completa(id_ricerca, indice, {"oa_urls": work.oa_urls})
     try:
         await pdf.scarica(work, client)
-        registro.annota(
-            i18n.strings(config.lang)["log_pdf_rescued"],
-            f"{work.title[:60]} · {len(nuove)}",
-        )
+        if nuove:
+            registro.annota(
+                i18n.strings(config.lang)["log_pdf_rescued"],
+                f"{work.title[:60]} · {len(nuove)}",
+            )
         return True
     except (httpx.HTTPError, ValueError, OSError) as exc:
         registro.errore(f"PDF non scaricato: {work.title[:60]}", str(exc)[:120])
@@ -1156,6 +1152,7 @@ async def salva_impostazioni(
     s2_api_key: str = Form(default=""),
     ncbi_api_key: str = Form(default=""),
     openalex_api_key: str = Form(default=""),
+    openalex_contenuti: str = Form(default=""),
     zotero_api_key: str = Form(default=""),
     zotero_library_id: str = Form(default=""),
     zotero_library_type: str = Form(default="users"),
@@ -1174,6 +1171,7 @@ async def salva_impostazioni(
     config.llm_model = llm_model.strip()
     config.zotero_library_id = zotero_library_id.strip()
     config.zotero_library_type = zotero_library_type.strip() or "users"
+    config.openalex_contenuti = openalex_contenuti.strip()
 
     nuovi = {
         "llm_api_key": llm_api_key.strip(),

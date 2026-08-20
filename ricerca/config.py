@@ -38,6 +38,8 @@ class Config:
     s2_api_key: str = ""
     ncbi_api_key: str = ""
     openalex_api_key: str = ""
+    # L'archivio dei PDF di OpenAlex costa $0.01 a file: si accende a mano.
+    openalex_contenuti: str = ""
     zotero_api_key: str = ""
     zotero_library_id: str = ""
     zotero_library_type: str = "users"

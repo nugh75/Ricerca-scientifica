@@ -14,7 +14,7 @@ import zipfile
 
 import httpx
 
-from . import biblioteca
+from . import biblioteca, costo
 from . import config as config_module
 from .export import cite_key, cognome
 from .models import Work
@@ -149,7 +149,7 @@ def gia_scaricato(work: Work):
     return None
 
 
-async def scarica(work: Work, client: httpx.AsyncClient):
+async def scarica(work: Work, client: httpx.AsyncClient, prova_archivio: bool = True):
     """Prova i collegamenti del record finché uno restituisce davvero un PDF.
 
     Le fonti ne dichiarano più d'uno e il primo è spesso una pagina di
@@ -158,7 +158,7 @@ async def scarica(work: Work, client: httpx.AsyncClient):
     """
 
     candidati = work.candidati_pdf()
-    if not candidati:
+    if not candidati and not prova_archivio:
         raise ValueError("nessun link ad accesso aperto")
 
     esistente = gia_scaricato(work)
@@ -179,7 +179,12 @@ async def scarica(work: Work, client: httpx.AsyncClient):
             break
         motivi.append("non è un PDF")
 
+    if contenuto is None and prova_archivio:
+        contenuto = await _dall_archivio(work, motivi)
+
     if contenuto is None:
+        if not candidati:
+            raise ValueError("nessun link ad accesso aperto")
         raise ValueError(
             f"nessuno dei {len(candidati)} collegamenti dà un PDF ({', '.join(motivi[:3])})"
         )
@@ -195,6 +200,37 @@ async def scarica(work: Work, client: httpx.AsyncClient):
     )
     biblioteca.estrai(percorso)  # il testo serve per cercare dentro i PDF
     return percorso
+
+
+async def _dall_archivio(work: Work, motivi: list[str]) -> bytes | None:
+    """L'ultima strada: la copia nell'archivio di OpenAlex, che si paga.
+
+    Si prova solo quando i collegamenti aperti hanno fallito tutti, l'opzione
+    è accesa e la chiave c'è: nessuna spesa parte da sola.
+    """
+
+    from . import openalex_api
+
+    config = config_module.load()
+    identificativo = work.openalex_id or openalex_api.id_breve(
+        work.pdf_archivio
+    ).removesuffix(".pdf")
+    if not (config.openalex_contenuti and config.openalex_api_key and identificativo):
+        return None
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        try:
+            contenuto = await openalex_api.contenuto_pdf(identificativo, config, client)
+        except (httpx.HTTPError, ValueError) as exc:
+            motivi.append(f"archivio: {type(exc).__name__}")
+            return None
+    if not contenuto.startswith(b"%PDF"):
+        motivi.append("archivio: non è un PDF")
+        return None
+    annota(
+        strings(config.lang)["log_pdf_archivio"],
+        f"{identificativo} · ${costo.COSTO_PDF:.2f}",
+    )
+    return contenuto
 
 
 def archivio(works: list[Work]) -> tuple[bytes, int]:

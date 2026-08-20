@@ -65,6 +65,26 @@ async def chiama(
     return corpo
 
 
+async def contenuto_pdf(work_id: str, config: Config, client: httpx.AsyncClient) -> bytes:
+    """Il PDF dall'archivio di OpenAlex: $0.01 a file, chiave obbligatoria.
+
+    Il corpo non dichiara la spesa come fa l'API dei metadati, quindi il
+    costo si annota qui a listino.
+    """
+
+    if not config.openalex_api_key:
+        raise ValueError("l'archivio OpenAlex vuole la chiave")
+    risposta = await client.get(
+        f"{CONTENUTI}/works/{work_id}.pdf",
+        params={"api_key": config.openalex_api_key},
+        timeout=120,
+        follow_redirects=True,
+    )
+    risposta.raise_for_status()
+    costo.aggiungi(costo.COSTO_PDF)
+    return risposta.content
+
+
 def id_breve(valore: str | None) -> str:
     """`https://openalex.org/W123` → `W123`: il filtro vuole la forma corta."""
 
