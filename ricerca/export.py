@@ -113,7 +113,9 @@ def to_csv(works: list[Work], campi=None) -> str:
     writer = csv.writer(buffer)
     writer.writerow(campi)
     for work in works:
-        writer.writerow([valore(work, campo) or "" for campo in campi])
+        # Solo `None` diventa cella vuota: uno zero o un `False` sono un dato,
+        # non un'assenza, e una revisione sistematica non deve confonderli.
+        writer.writerow([v if (v := valore(work, campo)) is not None else "" for campo in campi])
     return buffer.getvalue()
 
 

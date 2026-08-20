@@ -96,3 +96,15 @@ def test_il_csv_esporta_citazioni_e_ritiro():
     riga = to_csv([Work(title="X", citazioni=7, ritirato=True)], ["titolo", "citazioni", "ritirato"])
     assert "7" in riga
     assert "True" in riga or "true" in riga.lower()
+
+
+def test_lo_zero_citazioni_si_distingue_dal_dato_mancante():
+    from ricerca.export import to_csv
+    from ricerca.models import Work
+
+    righe = to_csv([
+        Work(title="Mai citato", citazioni=0),
+        Work(title="Non ancora verificato", citazioni=None),
+    ], ["titolo", "citazioni"]).splitlines()
+    assert righe[1] == "Mai citato,0"          # lo zero e' un dato, si vede
+    assert righe[2] == "Non ancora verificato,"  # None resta cella vuota

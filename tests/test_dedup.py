@@ -84,3 +84,23 @@ def test_la_fusione_tiene_i_campi_di_openalex():
     assert unito.ritirato is True
     assert unito.molto_citato is True
     assert unito.pdf_archivio.endswith("W9.pdf")
+
+
+def test_lo_zero_citazioni_non_si_perde_nella_fusione():
+    from ricerca.dedup import merge
+    from ricerca.models import Work
+
+    mai_citato = Work(title="Mai citato da nessuno", doi="10.1/z", sources=["openalex"], citazioni=0)
+    altra_copia = Work(title="Mai citato da nessuno", doi="10.1/z", sources=["crossref"], citazioni=99)
+    unito = merge([mai_citato, altra_copia])[0]
+    assert unito.citazioni == 0  # lo zero e' un dato vero, non va sovrascritto
+
+
+def test_le_citazioni_mancanti_si_completano_dall_altra_fonte():
+    from ricerca.dedup import merge
+    from ricerca.models import Work
+
+    senza_conteggio = Work(title="Senza conteggio", doi="10.1/w", sources=["crossref"], citazioni=None)
+    con_conteggio = Work(title="Senza conteggio", doi="10.1/w", sources=["openalex"], citazioni=5)
+    unito = merge([senza_conteggio, con_conteggio])[0]
+    assert unito.citazioni == 5
