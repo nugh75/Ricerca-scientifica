@@ -62,6 +62,12 @@ def filtro_vincoli(filtri=None) -> list[str]:
         pezzi.append("is_oa:true")
     if filtri and filtri.con_pdf:
         pezzi.append("has_content.pdf:true")
+    if filtri and filtri.rivista_id:
+        pezzi.append(f"primary_location.source.id:{filtri.rivista_id}")
+    if filtri and filtri.ateneo_id:
+        pezzi.append(f"authorships.institutions.id:{filtri.ateneo_id}")
+    if filtri and filtri.finanziatore_id:
+        pezzi.append(f"funders.id:{filtri.finanziatore_id}")
     return pezzi
 
 

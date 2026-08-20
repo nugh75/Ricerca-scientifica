@@ -388,6 +388,10 @@ STRINGS: dict[str, dict[str, str]] = {
         "faccetta_tema": "Per tema",
         "faccetta_paese": "Per paese degli autori",
         "semantica_avviso": "Cerca per significato: al massimo 50 record, $0.001 a interrogazione. Utile quando le parole giuste non si sanno ancora.",
+        "filtro_rivista": "Rivista",
+        "filtro_ateneo": "Ateneo",
+        "filtro_finanziatore": "Finanziatore",
+        "filtro_entita_aiuto": "scrivi il nome e scegli dall'elenco",
     },
     "en": {
         "lang_name": "English",
@@ -767,6 +771,10 @@ STRINGS: dict[str, dict[str, str]] = {
         "faccetta_tema": "By topic",
         "faccetta_paese": "By author country",
         "semantica_avviso": "Meaning-based search: 50 records at most, $0.001 per query. Useful when you don't know the right words yet.",
+        "filtro_rivista": "Journal",
+        "filtro_ateneo": "Institution",
+        "filtro_finanziatore": "Funder",
+        "filtro_entita_aiuto": "type the name and pick from the list",
     },
 }
 

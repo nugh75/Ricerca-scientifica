@@ -91,6 +91,16 @@
       <label><input type="checkbox" name="escludi_ritirati" value="1"> {{ t.filtro_ritirati }}</label>
       <label><input type="checkbox" name="solo_oa" value="1"> {{ t.filtro_oa }}</label>
       <label><input type="checkbox" name="con_pdf" value="1"> {{ t.filtro_pdf }}</label>
+      {% for campo, entita, etichetta in [("rivista", "sources", t.filtro_rivista), ("ateneo", "institutions", t.filtro_ateneo), ("finanziatore", "funders", t.filtro_finanziatore)] %}
+        <label>{{ etichetta }}
+          <input name="{{ campo }}" list="lista-{{ campo }}" placeholder="{{ t.filtro_entita_aiuto }}"
+                 hx-get="/autocompleta?entita={{ entita }}"
+                 hx-trigger="keyup changed delay:300ms"
+                 hx-vals='js:{q: event.target.value}'
+                 hx-target="#lista-{{ campo }}">
+          <datalist id="lista-{{ campo }}"></datalist>
+        </label>
+      {% endfor %}
     </fieldset>
 
     <fieldset>

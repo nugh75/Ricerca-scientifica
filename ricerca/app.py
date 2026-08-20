@@ -333,10 +333,19 @@ async def query(
     escludi_ritirati: bool = Form(default=False),
     solo_oa: bool = Form(default=False),
     con_pdf: bool = Form(default=False),
+    rivista: str = Form(default=""),
+    ateneo: str = Form(default=""),
+    finanziatore: str = Form(default=""),
 ):
     strategy = strategy_from_form(
         label, terms, mesh, anno_da, anno_a, solo_articoli,
-        lingua, escludi_ritirati, solo_oa, con_pdf,
+        lingua=lingua,
+        escludi_ritirati=escludi_ritirati,
+        solo_oa=solo_oa,
+        con_pdf=con_pdf,
+        rivista=rivista,
+        ateneo=ateneo,
+        finanziatore=finanziatore,
     )
     return templates.TemplateResponse(
         request,
@@ -385,11 +394,20 @@ async def cerca(
     escludi_ritirati: bool = Form(default=False),
     solo_oa: bool = Form(default=False),
     con_pdf: bool = Form(default=False),
+    rivista: str = Form(default=""),
+    ateneo: str = Form(default=""),
+    finanziatore: str = Form(default=""),
 ):
     config = current_config()
     strategy = strategy_from_form(
         label, terms, mesh, anno_da, anno_a, solo_articoli,
-        lingua, escludi_ritirati, solo_oa, con_pdf,
+        lingua=lingua,
+        escludi_ritirati=escludi_ritirati,
+        solo_oa=solo_oa,
+        con_pdf=con_pdf,
+        rivista=rivista,
+        ateneo=ateneo,
+        finanziatore=finanziatore,
     )
     limite = max(1, min(limite, 100))
 

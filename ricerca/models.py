@@ -32,11 +32,15 @@ class Filtri:
     escludi_ritirati: bool = False
     solo_oa: bool = False
     con_pdf: bool = False
+    rivista_id: str = ""
+    ateneo_id: str = ""
+    finanziatore_id: str = ""
 
     def attivi(self) -> bool:
         return bool(
             self.anno_da or self.anno_a or self.solo_articoli
             or self.lingua or self.escludi_ritirati or self.solo_oa or self.con_pdf
+            or self.rivista_id or self.ateneo_id or self.finanziatore_id
         )
 
 

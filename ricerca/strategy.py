@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from .i18n import strings
 from .keywords import words_of
 from .models import Block, Filtri, Strategy, Suggestions
@@ -82,6 +84,22 @@ def topic_seed(topic: str, max_words: int = 3) -> list[str]:
 # codice inventato produce zero risultati senza spiegare perché.
 LINGUE = ("en", "it", "es", "fr", "de", "pt")
 
+_IDENTIFICATIVO = re.compile(r"^([SIF])(\d+)$", re.IGNORECASE)
+
+
+def identificativo(valore: str, prefisso: str) -> str:
+    """Un identificativo OpenAlex, o niente.
+
+    Il campo del modulo accetta anche quello che si scrive a mano: un nome
+    di rivista battuto a tastiera non è un filtro valido, e mandarlo così
+    farebbe rispondere `400` a OpenAlex. Meglio ignorarlo.
+    """
+
+    trovato = _IDENTIFICATIVO.match(str(valore).strip())
+    if not trovato or trovato.group(1).upper() != prefisso:
+        return ""
+    return prefisso + trovato.group(2)
+
 
 def strategy_from_form(
     labels: list[str],
@@ -94,6 +112,9 @@ def strategy_from_form(
     escludi_ritirati: bool = False,
     solo_oa: bool = False,
     con_pdf: bool = False,
+    rivista: str = "",
+    ateneo: str = "",
+    finanziatore: str = "",
 ) -> Strategy:
     """Ricostruisce la strategia dai campi di testo della pagina."""
 
@@ -114,6 +135,9 @@ def strategy_from_form(
             escludi_ritirati=bool(escludi_ritirati),
             solo_oa=bool(solo_oa),
             con_pdf=bool(con_pdf),
+            rivista_id=identificativo(rivista, "S"),
+            ateneo_id=identificativo(ateneo, "I"),
+            finanziatore_id=identificativo(finanziatore, "F"),
         ),
     )
 
