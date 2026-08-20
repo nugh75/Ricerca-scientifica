@@ -1,0 +1,19 @@
+{% from "partials/icona.html" import icona %}
+<div class="tab-list" role="tablist" aria-label="{{ t.saved_search_tabs }}">
+  <button type="button" id="tab-risultati" class="tab attiva" role="tab"
+          aria-selected="true" aria-controls="pannello-risultati" tabindex="0">
+    {{ icona('results') }} {{ t.tab_results }}
+  </button>
+  <button type="button" id="tab-protocollo" class="tab" role="tab"
+          aria-selected="false" aria-controls="pannello-protocollo" tabindex="-1">
+    {{ icona('protocol') }} {{ t.tab_protocol }}
+  </button>
+</div>
+
+<div id="pannello-risultati" class="tab-panel" role="tabpanel" aria-labelledby="tab-risultati">
+  {% include "partials/elenco.html" %}
+</div>
+
+<div id="pannello-protocollo" class="tab-panel" role="tabpanel" aria-labelledby="tab-protocollo" hidden>
+  {% include "partials/protocollo.html" %}
+</div>

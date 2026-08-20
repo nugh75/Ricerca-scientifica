@@ -462,7 +462,12 @@ async def stato_lavoro(request: Request, id_lavoro: str):
     return templates.TemplateResponse(
         request,
         "partials/risultati.html",
-        base_context(config, results=[], **contesto_elenco(lavoro.risultato, [], "tabella")),
+        base_context(
+            config,
+            results=[],
+            voce=history.voce(lavoro.risultato) or {},
+            **contesto_elenco(lavoro.risultato, [], "tabella"),
+        ),
     )
 
 

@@ -48,7 +48,7 @@ def test_la_cronologia_conserva_query_e_statistiche():
 
 def test_il_pannello_mostra_la_query_inviata():
     id_ricerca = ricerca_salvata()
-    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"})
+    pagina = client.get(f"/cronologia/{id_ricerca}")
     assert "query esatta" in pagina.text
     assert "Only here" in pagina.text
 
@@ -135,7 +135,7 @@ def test_annullare_un_record_senza_decisione_non_cambia_nulla():
 
 def test_i_tasti_di_scaricamento_ci_sono_tutti():
     id_ricerca = ricerca_salvata()
-    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+    pagina = client.get(f"/cronologia/{id_ricerca}").text
     for pezzo in (".bib", ".csv", ".apa.txt", ".protocollo.md", ".protocollo.txt"):
         assert f"/export/{id_ricerca}{pezzo}" in pagina
     assert 'class="tasto"' in pagina

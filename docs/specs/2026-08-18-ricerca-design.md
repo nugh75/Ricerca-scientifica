@@ -254,7 +254,9 @@ accordo con chi commissiona:
 - **System UI** per il testo (nessun carattere da scaricare, resa immediata)
   e **JetBrains Mono** per query, conteggi e dati;
 - **struttura invariata**: cambia l'aspetto, non dove stanno le cose;
-- **nessuna icona**: numeri per i passi, parole per il resto.
+- **icone SVG solo per azioni riconoscibili**: i controlli compatti mostrano
+  l'etichetta completa in un tooltip e la conservano per i lettori di schermo;
+  le azioni ambigue o distruttive continuano a usare parole.
 
 Dal documento vengono anche: unità di spaziatura da 8 px, raggio 8 px, ombre
 non oltre `0 2px 8px rgba(0,0,0,.08)`, larghezza massima 1280 px, etichetta

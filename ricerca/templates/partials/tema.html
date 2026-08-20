@@ -1,8 +1,9 @@
+{% from "partials/icona.html" import icona %}
 <span class="temi" id="temi">
   {% for nome, etichetta in (('chiaro', t.theme_light), ('auto', t.theme_auto), ('scuro', t.theme_dark)) %}
-  <button type="button" class="lingua {% if tema == nome %}attiva{% endif %}"
+  <button type="button" class="lingua solo-icona tooltip {% if tema == nome %}attiva{% endif %}"
           hx-post="/tema/{{ nome }}" hx-target="#temi" hx-swap="outerHTML"
-          title="{{ etichetta }}"
-          onclick="document.documentElement.setAttribute('data-tema', '{{ nome }}')">{{ etichetta }}</button>
+          aria-label="{{ etichetta }}" data-tooltip="{{ etichetta }}"
+          onclick="document.documentElement.setAttribute('data-tema', '{{ nome }}')">{{ icona(nome == 'chiaro' and 'light' or nome == 'scuro' and 'dark' or 'auto') }}</button>
   {% endfor %}
 </span>

@@ -61,6 +61,31 @@ def test_i_comandi_restano_a_portata():
     assert "form.comandi {\n  position: sticky;" in FOGLIO
 
 
+def test_una_ricerca_salvata_separa_risultati_e_protocollo():
+    id_ricerca = ricerca_con(3)
+    pagina = client.get(f"/cronologia/{id_ricerca}").text
+
+    assert 'role="tablist"' in pagina
+    assert 'id="tab-risultati"' in pagina and 'aria-selected="true"' in pagina
+    assert 'id="tab-protocollo"' in pagina and 'aria-selected="false"' in pagina
+    assert 'id="pannello-protocollo"' in pagina and "hidden" in pagina
+    assert pagina.count('class="fonti-statistiche"') == 1
+
+
+def test_i_comandi_compatti_hanno_icona_e_tooltip_accessibile():
+    pagina = client.get("/").text
+
+    assert 'class="icona"' in pagina
+    assert 'class="lingua solo-icona tooltip' in pagina
+    assert 'aria-label="roomy"' in pagina
+    assert 'data-tooltip="roomy"' in pagina
+
+
+def test_gli_avvisi_non_hanno_la_barra_verticale():
+    blocco = FOGLIO[FOGLIO.index(".avviso {"):FOGLIO.index(".chiudi-avviso {")]
+    assert "border-left" not in blocco
+
+
 # ── macchine ──────────────────────────────────────────────────────────
 def test_l_elenco_e_diviso_in_pagine():
     id_ricerca = ricerca_con(PER_PAGINA + 20)

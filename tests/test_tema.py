@@ -27,7 +27,7 @@ def test_un_tema_inventato_ricade_su_auto():
 
 def test_il_bottone_scelto_e_evidenziato():
     pagina = client.post("/tema/scuro").text
-    assert 'class="lingua attiva"' in pagina
+    assert 'class="lingua solo-icona tooltip attiva"' in pagina
     assert "dark" in pagina
 
 

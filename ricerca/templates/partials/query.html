@@ -1,3 +1,4 @@
+{% from "partials/icona.html" import icona %}
 <div class="scheda">
   <h3>{{ t.card_queries }}</h3>
   <div class="query">
@@ -5,14 +6,16 @@
     <div class="riga-query">
       <span>{{ source.label }}</span>
       <code>{{ queries[source.id] }}</code>
-      <button type="button" class="copia" data-copia="{{ queries[source.id] }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button>
+      <button type="button" class="copia solo-icona tooltip" data-copia="{{ queries[source.id] }}" data-copiato="{{ t.copied }}"
+              aria-label="{{ t.btn_copy }}" data-tooltip="{{ t.btn_copy }}">{{ icona('copy') }}</button>
     </div>
     {% endfor %}
     {% for source in copy_only %}
     <div class="riga-query incolla">
       <span>{{ source.label }} · {{ t.paste_suffix }}</span>
       <code>{{ queries[source.id] }}</code>
-      <button type="button" class="copia" data-copia="{{ queries[source.id] }}" data-copiato="{{ t.copied }}">{{ t.btn_copy }}</button>
+      <button type="button" class="copia solo-icona tooltip" data-copia="{{ queries[source.id] }}" data-copiato="{{ t.copied }}"
+              aria-label="{{ t.btn_copy }}" data-tooltip="{{ t.btn_copy }}">{{ icona('copy') }}</button>
     </div>
     {% endfor %}
   </div>

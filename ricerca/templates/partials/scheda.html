@@ -1,18 +1,20 @@
+{% from "partials/icona.html" import icona %}
 <div class="scheda-testa">
   <span class="scheda-provenienza">
     {{ work.year or '—' }}{% for fonte in work.sources %} · <span class="fonti-cella">{{ fonte }}</span>{% endfor %}
   </span>
   <span class="scheda-navigazione">
     {% if indice > 0 %}
-    <button type="button" class="copia" hx-get="/scheda/{{ id_ricerca }}/{{ indice - 1 }}"
-            hx-target="#scheda-corpo">‹ {{ t.card_previous }}</button>
+    <button type="button" class="copia solo-icona tooltip" hx-get="/scheda/{{ id_ricerca }}/{{ indice - 1 }}"
+            hx-target="#scheda-corpo" aria-label="{{ t.card_previous }}" data-tooltip="{{ t.card_previous }}">{{ icona('previous') }}</button>
     {% endif %}
     <span class="conteggi">{{ t.card_of.format(indice=indice + 1, totale=totale) }}</span>
     {% if indice + 1 < totale %}
-    <button type="button" class="copia" hx-get="/scheda/{{ id_ricerca }}/{{ indice + 1 }}"
-            hx-target="#scheda-corpo">{{ t.card_next }} ›</button>
+    <button type="button" class="copia solo-icona tooltip" hx-get="/scheda/{{ id_ricerca }}/{{ indice + 1 }}"
+            hx-target="#scheda-corpo" aria-label="{{ t.card_next }}" data-tooltip="{{ t.card_next }}">{{ icona('next') }}</button>
     {% endif %}
-    <button type="button" class="copia" id="scheda-chiudi">{{ t.pdf_viewer_close }}</button>
+    <button type="button" class="copia solo-icona tooltip" id="scheda-chiudi"
+            aria-label="{{ t.pdf_viewer_close }}" data-tooltip="{{ t.pdf_viewer_close }}">{{ icona('close') }}</button>
   </span>
 </div>
 
@@ -127,10 +129,14 @@
   <h3>{{ t.card_citation }}</h3>
   <p class="scheda-riferimento">{{ riferimento }}</p>
   <div class="azioni">
-    <button type="button" class="copia" data-copia="{{ riferimento }}" data-copiato="{{ t.copied }}">{{ t.card_copy_apa }}</button>
-    <button type="button" class="copia" data-copia="{{ bibtex }}" data-copiato="{{ t.copied }}">{{ t.card_copy_bibtex }}</button>
-    {% if work.doi %}<button type="button" class="copia" data-copia="{{ work.doi }}" data-copiato="{{ t.copied }}">{{ t.card_copy_doi }}</button>{% endif %}
-    {% if work.url %}<a class="copia" href="{{ work.url }}" target="_blank" rel="noreferrer">{{ t.card_publisher }} ↗</a>{% endif %}
+    <button type="button" class="copia solo-icona tooltip" data-copia="{{ riferimento }}" data-copiato="{{ t.copied }}"
+            aria-label="{{ t.card_copy_apa }}" data-tooltip="{{ t.card_copy_apa }}">{{ icona('copy') }}</button>
+    <button type="button" class="copia solo-icona tooltip" data-copia="{{ bibtex }}" data-copiato="{{ t.copied }}"
+            aria-label="{{ t.card_copy_bibtex }}" data-tooltip="{{ t.card_copy_bibtex }}">{{ icona('copy') }}</button>
+    {% if work.doi %}<button type="button" class="copia solo-icona tooltip" data-copia="{{ work.doi }}" data-copiato="{{ t.copied }}"
+            aria-label="{{ t.card_copy_doi }}" data-tooltip="{{ t.card_copy_doi }}">{{ icona('copy') }}</button>{% endif %}
+    {% if work.url %}<a class="copia solo-icona tooltip" href="{{ work.url }}" target="_blank" rel="noreferrer"
+       aria-label="{{ t.card_publisher }}" data-tooltip="{{ t.card_publisher }}">{{ icona('external') }}</a>{% endif %}
   </div>
 
   <form class="scheda-riquadro" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}" hx-target="#scheda-corpo">

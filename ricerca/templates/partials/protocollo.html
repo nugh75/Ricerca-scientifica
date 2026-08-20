@@ -1,0 +1,18 @@
+<div class="scheda">
+  <h3>{{ t.card_blocks }}</h3>
+  <dl class="protocollo-blocchi">
+    {% for blocco in voce.blocchi %}
+    <div><dt>{{ blocco.label }}</dt><dd>{{ blocco.terms|join(', ') }}</dd></div>
+    {% endfor %}
+    {% if voce.mesh %}<div><dt>MeSH</dt><dd>{{ voce.mesh|join(', ') }}</dd></div>{% endif %}
+  </dl>
+</div>
+
+{% if fonti %}{% include "partials/fonti.html" %}{% endif %}
+
+<p><span class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span></p>
+<div class="scarica">
+  <span class="etichetta-scarica">{{ t.tab_protocol }}</span>
+  <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol_md }}</a>
+  <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.txt">{{ t.download_protocol_txt }}</a>
+</div>

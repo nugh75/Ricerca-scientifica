@@ -15,6 +15,7 @@
 <script src="/static/htmx.min.js?v={{ versione }}" defer></script>
 </head>
 <body>
+{% from "partials/icona.html" import icona %}
 <header>
   <a class="brand" href="/">Ricerca<span>{{ t.brand_sub }}</span></a>
   <nav>
@@ -43,8 +44,10 @@
   <div class="lettore-testa">
     <strong id="lettore-titolo"></strong>
     <span class="lettore-azioni">
-      <a id="lettore-fuori" class="copia" href="#" target="_blank" rel="noreferrer">{{ t.pdf_viewer_external }}</a>
-      <button type="button" class="copia" id="lettore-chiudi">{{ t.pdf_viewer_close }}</button>
+      <a id="lettore-fuori" class="copia solo-icona tooltip" href="#" target="_blank" rel="noreferrer"
+         aria-label="{{ t.pdf_viewer_external }}" data-tooltip="{{ t.pdf_viewer_external }}">{{ icona('external') }}</a>
+      <button type="button" class="copia solo-icona tooltip" id="lettore-chiudi"
+              aria-label="{{ t.pdf_viewer_close }}" data-tooltip="{{ t.pdf_viewer_close }}">{{ icona('close') }}</button>
     </span>
   </div>
   <iframe id="lettore-telaio" title="{{ t.pdf_viewer_title }}"></iframe>
@@ -128,8 +131,10 @@ document.body.addEventListener("avviso", function (evento) {
   const chiudi = document.createElement("button");
   chiudi.type = "button";
   chiudi.className = "chiudi-avviso";
-  chiudi.setAttribute("aria-label", "×");
-  chiudi.textContent = "×";
+  chiudi.classList.add("solo-icona", "tooltip");
+  chiudi.setAttribute("aria-label", "{{ t.pdf_viewer_close }}");
+  chiudi.setAttribute("data-tooltip", "{{ t.pdf_viewer_close }}");
+  chiudi.innerHTML = '<svg class="icona" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg>';
   chiudi.addEventListener("click", () => riquadro.remove());
   riquadro.appendChild(chiudi);
   document.getElementById("avvisi").appendChild(riquadro);
@@ -162,11 +167,60 @@ document.addEventListener("click", function (event) {
   const bottone = event.target.closest("[data-copia]");
   if (!bottone || !navigator.clipboard) return;
   navigator.clipboard.writeText(bottone.getAttribute("data-copia")).then(function () {
+    const etichetta = bottone.getAttribute("aria-label");
+    const tooltip = bottone.getAttribute("data-tooltip");
     const testo = bottone.textContent;
-    bottone.textContent = bottone.getAttribute("data-copiato");
-    setTimeout(function () { bottone.textContent = testo; }, 1500);
+    const copiato = bottone.getAttribute("data-copiato");
+    if (bottone.classList.contains("solo-icona")) {
+      bottone.setAttribute("aria-label", copiato);
+      bottone.setAttribute("data-tooltip", copiato);
+    } else {
+      bottone.textContent = copiato;
+    }
+    setTimeout(function () {
+      if (bottone.classList.contains("solo-icona")) {
+        if (etichetta) bottone.setAttribute("aria-label", etichetta);
+        else bottone.removeAttribute("aria-label");
+        if (tooltip) bottone.setAttribute("data-tooltip", tooltip);
+        else bottone.removeAttribute("data-tooltip");
+      } else {
+        bottone.textContent = testo;
+      }
+    }, 1500);
   });
 });
+
+// Le ricerche separano il lavoro sui record dal protocollo. I tasti
+// freccia seguono il comportamento ARIA previsto per una tablist orizzontale.
+document.addEventListener("click", function (event) {
+  const tab = event.target.closest('[role="tab"]');
+  if (tab) attivaTab(tab);
+});
+document.addEventListener("keydown", function (event) {
+  const tab = event.target.closest && event.target.closest('[role="tab"]');
+  if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]')];
+  let indice = tabs.indexOf(tab);
+  if (event.key === "ArrowLeft") indice = (indice - 1 + tabs.length) % tabs.length;
+  if (event.key === "ArrowRight") indice = (indice + 1) % tabs.length;
+  if (event.key === "Home") indice = 0;
+  if (event.key === "End") indice = tabs.length - 1;
+  attivaTab(tabs[indice]);
+  tabs[indice].focus();
+  event.preventDefault();
+});
+function attivaTab(tab) {
+  const lista = tab.closest('[role="tablist"]');
+  if (!lista) return;
+  lista.querySelectorAll('[role="tab"]').forEach(function (voce) {
+    const attiva = voce === tab;
+    voce.classList.toggle("attiva", attiva);
+    voce.setAttribute("aria-selected", String(attiva));
+    voce.tabIndex = attiva ? 0 : -1;
+    const pannello = document.getElementById(voce.getAttribute("aria-controls"));
+    if (pannello) pannello.hidden = !attiva;
+  });
+}
 </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% from "partials/icona.html" import icona %}
 {% if works %}
 <p class="riepilogo"><b>{{ totale }}</b> {% if filtri_attivi %}{{ t.result_filter_summary_tail.format(totale=totale_tutti) }}{% else %}{{ t.summary_tail }}{% endif %}{% if pagine > 1 %} · {{ t.page_of.format(pagina=pagina, pagine=pagine) }}{% endif %}</p>
 <div class="scarica">
@@ -5,8 +6,6 @@
   <a class="tasto" href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib_btn }}</a>
   <a class="tasto" href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv_btn }}</a>
   <a class="tasto" href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa_btn }}</a>
-  <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.md">{{ t.download_protocol_md }}</a>
-  <a class="tasto" href="/export/{{ id_ricerca }}.protocollo.txt">{{ t.download_protocol_txt }}</a>
   {% if pdf_su_disco %}
   <a class="tasto" href="/pdf/{{ id_ricerca }}.zip">{{ t.download_zip }}
      <em>{{ t.pdf_on_disk.format(quanti=pdf_su_disco) }}</em></a>
@@ -76,15 +75,17 @@
 {% if pagine > 1 %}
 <div class="pagine">
   {% if pagina > 1 %}
-  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+  <button type="button" class="solo-icona tooltip" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
           hx-vals='{"pagina": {{ pagina - 1 }}, "vista": "{{ vista }}"}'
-          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.page_previous }}</button>
+          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+          aria-label="{{ t.page_previous }}" data-tooltip="{{ t.page_previous }}">{{ icona('previous') }}</button>
   {% endif %}
   <span class="conteggi">{{ t.page_of.format(pagina=pagina, pagine=pagine) }}</span>
   {% if pagina < pagine %}
-  <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+  <button type="button" class="solo-icona tooltip" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
           hx-vals='{"pagina": {{ pagina + 1 }}, "vista": "{{ vista }}"}'
-          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.page_next }}</button>
+          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+          aria-label="{{ t.page_next }}" data-tooltip="{{ t.page_next }}">{{ icona('next') }}</button>
   {% endif %}
 </div>
 {% endif %}

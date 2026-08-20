@@ -233,6 +233,29 @@ html[data-tema="scuro"] button.primario, html[data-tema="auto"] button.primario 
 html[data-tema="chiaro"] button.primario { color: #fff; }
 button.primario:hover { background: var(--accento-scuro); border-color: var(--accento-scuro); box-shadow: var(--ombra-rilievo); }
 button:disabled { opacity: .5; cursor: default; }
+.icona {
+  width: 1.125rem; height: 1.125rem; flex: 0 0 auto;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.solo-icona { justify-content: center; width: 2.25rem; height: 2.25rem; padding: 0; }
+.tooltip { position: relative; }
+.tooltip::after {
+  content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + .45rem);
+  z-index: 600; width: max-content; max-width: 16rem; transform: translate(-50%, .25rem);
+  padding: .375rem .5rem; border-radius: var(--raggio-piccolo);
+  background: var(--testo); color: var(--sfondo);
+  font: 500 .75rem/1.35 var(--testo-famiglia); letter-spacing: 0; text-transform: none;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--transizione), transform var(--transizione), visibility var(--transizione);
+}
+.tooltip:hover::after, .tooltip:focus-visible::after {
+  opacity: 1; visibility: visible; transform: translate(-50%, 0);
+}
+header .tooltip::after {
+  top: calc(100% + .45rem); bottom: auto; transform: translate(-50%, -.25rem);
+}
+header .tooltip:hover::after, header .tooltip:focus-visible::after { transform: translate(-50%, 0); }
 
 /* ── argomento ────────────────────────────────────────────── */
 .topic-form { display: flex; gap: var(--u1); flex-wrap: wrap; margin: var(--u3) 0 var(--u2); }
@@ -267,6 +290,28 @@ legend { font: 500 .75rem/1.4 var(--testo-famiglia); letter-spacing: .08em; text
 .filtri .limite input { width: 6rem; }
 .azioni { display: flex; align-items: center; gap: var(--u1); flex-wrap: wrap; margin-top: var(--u3); }
 .conclusione { gap: var(--u2); margin: var(--u3) 0 var(--u6); }
+
+/* ── una ricerca, due spazi di lavoro ─────────────────────── */
+.tab-list {
+  display: flex; gap: var(--u3); margin-top: var(--u4);
+  border-bottom: 1px solid var(--bordo);
+}
+.tab {
+  border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+  margin-bottom: -1px; padding: .75rem .125rem;
+  background: transparent; color: var(--testo-tenue);
+}
+.tab:hover { background: transparent; color: var(--testo); border-color: var(--bordo); }
+.tab.attiva { color: var(--accento); border-bottom-color: var(--accento); }
+.tab-panel { padding-top: var(--u2); }
+.tab-panel[hidden] { display: none; }
+.protocollo-blocchi { display: grid; gap: var(--u2); margin: 0; }
+.protocollo-blocchi div { display: grid; grid-template-columns: minmax(10rem, .3fr) 1fr; gap: var(--u2); }
+.protocollo-blocchi dt { color: var(--testo-tenue); font-size: .875rem; font-weight: 600; }
+.protocollo-blocchi dd { margin: 0; font: 400 .8125rem/1.6 var(--mono); }
+@media (max-width: 44rem) {
+  .protocollo-blocchi div { grid-template-columns: 1fr; gap: .25rem; }
+}
 
 /* ── lente sui risultati salvati ─────────────────────────── */
 .filtri-risultati { border-left: 3px solid var(--accento); }
@@ -590,13 +635,13 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .avviso {
   pointer-events: auto; position: relative;
   background: var(--scheda); color: var(--testo);
-  border: 1px solid var(--bordo); border-left: 3px solid var(--accento);
+  border: 1px solid var(--bordo);
   border-radius: var(--raggio); box-shadow: var(--ombra-rilievo);
   padding: var(--u2) 2.25rem var(--u2) var(--u3);
   font-size: .9375rem; line-height: 1.5;
   animation: entra 240ms ease-out both;
 }
-.avviso.errore-avviso { border-left-color: var(--errore); }
+.avviso.errore-avviso { border-color: color-mix(in srgb, var(--errore) 55%, var(--bordo)); }
 .chiudi-avviso {
   position: absolute; top: .25rem; right: .25rem;
   border: 0; background: none; padding: .25rem .4rem;

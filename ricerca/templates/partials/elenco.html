@@ -49,8 +49,6 @@
   </div>
 </form>
 
-{% if fonti %}{% include "partials/fonti.html" %}{% endif %}
-
 <form class="scheda" id="campi-{{ id_ricerca }}">
   <h3>{{ t.fields_title }}</h3>
   <div class="fonti">
@@ -65,15 +63,16 @@
     <button type="button" hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
             hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
             name="vista" value="tabella">{{ t.btn_apply_fields }}</button>
+    {% from "partials/icona.html" import icona %}
     <span class="viste">
-      <button type="button" class="lingua {% if vista == 'tabella' %}attiva{% endif %}"
+      <button type="button" class="lingua solo-icona tooltip {% if vista == 'tabella' %}attiva{% endif %}"
               hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
               hx-vals='{"vista": "tabella"}' hx-target="#blocco-{{ id_ricerca }}"
-              hx-swap="outerHTML">{{ t.view_table }}</button>
-      <button type="button" class="lingua {% if vista == 'apa' %}attiva{% endif %}"
+              hx-swap="outerHTML" aria-label="{{ t.view_table }}" data-tooltip="{{ t.view_table }}">{{ icona('table') }}</button>
+      <button type="button" class="lingua solo-icona tooltip {% if vista == 'apa' %}attiva{% endif %}"
               hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
               hx-vals='{"vista": "apa"}' hx-target="#blocco-{{ id_ricerca }}"
-              hx-swap="outerHTML">{{ t.view_apa }}</button>
+              hx-swap="outerHTML" aria-label="{{ t.view_apa }}" data-tooltip="{{ t.view_apa }}">{{ icona('list') }}</button>
     </span>
   </div>
 </form>
