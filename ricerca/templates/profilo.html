@@ -56,6 +56,14 @@
         {% if opera.url %}<a href="{{ opera.url }}" target="_blank" rel="noreferrer">{{ opera.title }}</a>{% else %}<span>{{ opera.title }}</span>{% endif %}
         <small>{{ opera.year or '—' }}{% if opera.venue %} · {{ opera.venue }}{% endif %}</small>
         <b>{{ opera.citazioni|numero }} {{ t.profile_citations }}</b>
+        {% if opera.openalex_id and opera.citazioni %}
+        <button type="button" class="copia mostra-citanti"
+                hx-get="/esplora/citanti/{{ opera.openalex_id }}"
+                hx-target="#citanti-{{ loop.index }}" hx-swap="innerHTML">
+          {{ t.profile_show_citing }}
+        </button>
+        <div id="citanti-{{ loop.index }}" class="citanti-slot"></div>
+        {% endif %}
       </li>
       {% endfor %}
     </ol>

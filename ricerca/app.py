@@ -366,7 +366,13 @@ async def query(
 
 
 @app.get("/autocompleta", response_class=HTMLResponse)
-async def autocompleta(request: Request, entita: str = "keywords", q: str = ""):
+async def autocompleta(
+    request: Request,
+    entita: str = "keywords",
+    q: str = "",
+    modo: str = "opzioni",
+    bersaglio: str = "",
+):
     """Le opzioni di un `datalist`; un guasto non ferma la scrittura."""
 
     config = current_config()
@@ -377,11 +383,12 @@ async def autocompleta(request: Request, entita: str = "keywords", q: str = ""):
         voci = []
     return templates.TemplateResponse(
         request,
-        "partials/opzioni.html",
+        "partials/suggerimenti_parole.html" if modo == "pulsanti" else "partials/opzioni.html",
         {
             "request": request,
             "voci": voci,
             "valore_nome": entita in ("keywords", "topics"),
+            "bersaglio": bersaglio,
         },
     )
 @app.post("/cerca", response_class=HTMLResponse)
@@ -631,6 +638,38 @@ def _elenco(
             filtro_fonte,
             filtro_stato,
         )),
+    )
+
+
+def _indici_massa(works: list[Work], selezione: list[int], tutti: bool) -> list[int]:
+    """Ambito esplicito e sicuro per ogni comando potenzialmente massivo."""
+
+    if tutti:
+        return list(range(len(works)))
+    return list(dict.fromkeys(i for i in selezione if 0 <= i < len(works)))
+
+
+def _avviso_ambito_massa(
+    request: Request,
+    id_ricerca: str,
+    campo: list[str],
+    vista: str,
+    filtro_testo: str,
+    filtro_anno_da: int | None,
+    filtro_anno_a: int | None,
+    filtro_fonte: str,
+    filtro_stato: str,
+):
+    risposta = _elenco(
+        request, id_ricerca, campo, vista,
+        filtro_testo=filtro_testo,
+        filtro_anno_da=filtro_anno_da,
+        filtro_anno_a=filtro_anno_a,
+        filtro_fonte=filtro_fonte,
+        filtro_stato=filtro_stato,
+    )
+    return avvisa(
+        risposta, i18n.strings(current_config().lang)["bulk_scope_required"]
     )
 
 
@@ -1000,6 +1039,7 @@ async def screening_massa(
     id_ricerca: str,
     stato: str = Form(...),
     selezione: list[int] = Form(default=[]),
+    tutti: bool = Form(default=False),
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
     filtro_testo: str = Form(default=""),
@@ -1010,7 +1050,14 @@ async def screening_massa(
 ):
     """Applica la stessa decisione a tutti i record spuntati."""
 
-    for indice in selezione:
+    works = history.record(id_ricerca)
+    indici = _indici_massa(works, selezione, tutti)
+    if not indici:
+        return _avviso_ambito_massa(
+            request, id_ricerca, campo, vista, filtro_testo, filtro_anno_da,
+            filtro_anno_a, filtro_fonte, filtro_stato,
+        )
+    for indice in indici:
         decisione = history.decisioni(id_ricerca).get(str(indice), {})
         gia_deciso = decisione.get("stato", "")
         if stato == "annulla":
@@ -1042,6 +1089,7 @@ async def zotero_massa(
     request: Request,
     id_ricerca: str,
     selezione: list[int] = Form(default=[]),
+    tutti: bool = Form(default=False),
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
     filtro_testo: str = Form(default=""),
@@ -1050,12 +1098,17 @@ async def zotero_massa(
     filtro_fonte: str = Form(default=""),
     filtro_stato: str = Form(default=""),
 ):
-    """Manda a Zotero i record spuntati; senza spunte, quelli inclusi."""
+    """Manda a Zotero i record spuntati, o tutti quando richiesto."""
 
     config = current_config()
     works = history.record(id_ricerca)
-    scelti = [works[i] for i in selezione if i < len(works)]
-    da_inviare = scelti or [w for w in works if w.decisione == "incluso"] or works
+    indici = _indici_massa(works, selezione, tutti)
+    if not indici:
+        return _avviso_ambito_massa(
+            request, id_ricerca, campo, vista, filtro_testo, filtro_anno_da,
+            filtro_anno_a, filtro_fonte, filtro_stato,
+        )
+    da_inviare = [works[i] for i in indici]
 
     try:
         async with httpx.AsyncClient(headers={"User-Agent": search.USER_AGENT}) as client:
@@ -1155,6 +1208,7 @@ async def completa_da_unpaywall(
     request: Request,
     id_ricerca: str,
     selezione: list[int] = Form(default=[]),
+    tutti: bool = Form(default=False),
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
     filtro_testo: str = Form(default=""),
@@ -1163,10 +1217,17 @@ async def completa_da_unpaywall(
     filtro_fonte: str = Form(default=""),
     filtro_stato: str = Form(default=""),
 ):
-    """Completa i record spuntati — o tutti — con quel che sa Unpaywall."""
+    """Completa i record spuntati, o tutti quando richiesto, con Unpaywall."""
 
     config = current_config()
     etichette = i18n.strings(config.lang)
+    works = history.record(id_ricerca)
+    indici = _indici_massa(works, selezione, tutti)
+    if not indici:
+        return _avviso_ambito_massa(
+            request, id_ricerca, campo, vista, filtro_testo, filtro_anno_da,
+            filtro_anno_a, filtro_fonte, filtro_stato,
+        )
     if not config.mailto_valido:
         return avvisa(_elenco(
             request, id_ricerca, campo, vista,
@@ -1177,8 +1238,6 @@ async def completa_da_unpaywall(
             filtro_stato=filtro_stato,
         ), etichette["unpaywall_no_email"])
 
-    works = history.record(id_ricerca)
-    indici = [i for i in selezione if i < len(works)] or list(range(len(works)))
     esito = await _completa_da_unpaywall(id_ricerca, indici, config)
     messaggio = etichette["unpaywall_done"].format(**esito)
     registro.annota("Unpaywall", messaggio)
@@ -1275,16 +1334,22 @@ async def pdf_massa(
     campo: list[str] = Form(default=[]),
     vista: str = Form(default="tabella"),
     selezione: list[int] = Form(default=[]),
+    tutti: bool = Form(default=False),
     filtro_testo: str = Form(default=""),
     filtro_anno_da: int | None = Form(default=None),
     filtro_anno_a: int | None = Form(default=None),
     filtro_fonte: str = Form(default=""),
     filtro_stato: str = Form(default=""),
 ):
-    """Scarica in un colpo i PDF aperti: quelli spuntati, o tutti."""
+    """Scarica i PDF dei record spuntati, o di tutti quando richiesto."""
 
     works = history.record(id_ricerca)
-    indici = [i for i in selezione if i < len(works)] or list(range(len(works)))
+    indici = _indici_massa(works, selezione, tutti)
+    if not indici:
+        return _avviso_ambito_massa(
+            request, id_ricerca, campo, vista, filtro_testo, filtro_anno_da,
+            filtro_anno_a, filtro_fonte, filtro_stato,
+        )
     da_prendere = [(i, works[i]) for i in indici if works[i].oa_url and not pdf.gia_scaricato(works[i])]
 
     presi = falliti = 0
@@ -1444,6 +1509,31 @@ async def autore_pagina(request: Request, id_entita: str):
 @app.get("/riviste/{id_entita}", response_class=HTMLResponse)
 async def rivista_pagina(request: Request, id_entita: str):
     return await _pagina_profilo(request, "riviste", id_entita)
+
+
+@app.get("/esplora/citanti/{id_lavoro}", response_class=HTMLResponse)
+async def citanti_profilo(request: Request, id_lavoro: str):
+    """Carica su richiesta gli articoli che citano un lavoro del profilo."""
+
+    config = current_config()
+    identificativo = citazioni.identificativo_lavoro(id_lavoro)
+    if not identificativo:
+        return HTMLResponse("", status_code=404)
+    trovati, problema = [], ""
+    try:
+        async with cache.client(
+            headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+        ) as client:
+            trovati = await citazioni.cerca(
+                Work(title="", openalex_id=identificativo), "avanti", config, client, limite=8
+            )
+    except (ValueError, httpx.HTTPError, OSError):
+        problema = i18n.strings(config.lang)["explore_error"]
+    return templates.TemplateResponse(
+        request,
+        "partials/citanti_profilo.html",
+        base_context(config, trovati=trovati, problema=problema),
+    )
 
 
 @app.get("/registro", response_class=HTMLResponse)

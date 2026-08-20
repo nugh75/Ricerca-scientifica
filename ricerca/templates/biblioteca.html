@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{{ t.library_title }} · Ricerca{% endblock %}
 {% block content %}
-<section class="passo senza-numero">
-  <p class="occhiello">{{ t.library_eyebrow }}</p>
-  <h1>{{ t.library_title }}</h1>
-  <p>{{ t.library_intro }}</p>
+<section class="passo">
+  <div class="pagina-testa">
+    <p class="occhiello">{{ t.library_eyebrow }}</p>
+    <h1>{{ t.library_title }}</h1>
+    <p>{{ t.library_intro }}</p>
+  </div>
 
   {% if documenti %}
   <form method="get" class="topic-form">
@@ -14,7 +16,7 @@
 
   {% if query %}
     {% if trovati %}
-    <div class="scheda">
+    <div class="sezione-pagina">
       {% for trovato in trovati %}
       <div class="gruppo-chip">
         <h3>{{ trovato.file }} — {{ t.library_count.format(quante=trovato.occorrenze) }}</h3>

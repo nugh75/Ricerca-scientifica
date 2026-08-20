@@ -51,7 +51,15 @@ def test_la_rotta_di_screening_aggiorna_cella_e_conteggi():
     pagina = client.post(f"/screening/{id_ricerca}/0", data={"stato": "incluso", "motivo": "utile"})
     assert "scelto" in pagina.text
     assert 'id="conteggi"' in pagina.text
+    assert f'id="prisma-{id_ricerca}"' in pagina.text
     assert history.record(id_ricerca)[0].motivo == "utile"
+
+
+def test_le_motivazioni_sono_aree_di_testo_ridimensionabili():
+    id_ricerca = ricerca_con_tre_record()
+    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+    assert '<textarea id="motivo-0"' in pagina
+    assert 'class="motivo"' in pagina
 
 
 def test_le_decisioni_finiscono_nel_csv():

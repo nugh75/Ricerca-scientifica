@@ -4,6 +4,10 @@
           aria-selected="true" aria-controls="pannello-risultati" tabindex="0">
     {{ icona('results') }} {{ t.tab_results }}
   </button>
+  <button type="button" id="tab-profilo" class="tab" role="tab"
+          aria-selected="false" aria-controls="pannello-profilo" tabindex="-1">
+    {{ icona('field') }} {{ t.tab_field_profile }}
+  </button>
   <button type="button" id="tab-protocollo" class="tab" role="tab"
           aria-selected="false" aria-controls="pannello-protocollo" tabindex="-1">
     {{ icona('protocol') }} {{ t.tab_protocol }}
@@ -12,6 +16,11 @@
 
 <div id="pannello-risultati" class="tab-panel" role="tabpanel" aria-labelledby="tab-risultati">
   {% include "partials/elenco.html" %}
+</div>
+
+<div id="pannello-profilo" class="tab-panel" role="tabpanel" aria-labelledby="tab-profilo" hidden
+     hx-get="/faccette/{{ id_ricerca }}" hx-trigger="caricaProfilo once" hx-swap="innerHTML">
+  <p class="aiuto">{{ t.field_profile_help }}</p>
 </div>
 
 <div id="pannello-protocollo" class="tab-panel" role="tabpanel" aria-labelledby="tab-protocollo" hidden>

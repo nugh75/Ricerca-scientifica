@@ -18,17 +18,41 @@
 {% from "partials/icona.html" import icona %}
 <header>
   <a class="brand" href="/">Ricerca<span>{{ t.brand_sub }}</span></a>
-  <nav>
-    <a href="/">{{ t.nav_strategy }}</a>
-    <a href="/esplora">{{ t.nav_explore }}</a>
-    <a href="/cronologia">{{ t.nav_history }}</a>
-    <a href="/biblioteca">{{ t.nav_library }}</a>
-    <a href="/impostazioni">{{ t.nav_settings }}</a>
-    {% include "partials/densita.html" %}
-    {% include "partials/tema.html" %}
-    <span class="lingue">
-      <button type="button" class="lingua {% if lang == 'it' %}attiva{% endif %}" hx-post="/lingua/it" hx-target="body" hx-swap="outerHTML" lang="it">IT</button>
-      <button type="button" class="lingua {% if lang == 'en' %}attiva{% endif %}" hx-post="/lingua/en" hx-target="body" hx-swap="outerHTML" lang="en">EN</button>
+  <nav class="navigazione-principale">
+    <span class="navigazione-pagine">
+      <a href="/" {% if request.url.path == '/' %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_strategy }}</a>
+      <a href="/esplora" {% if request.url.path.startswith('/esplora') or request.url.path.startswith('/autori/') or request.url.path.startswith('/riviste/') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_explore }}</a>
+      <a href="/cronologia" {% if request.url.path.startswith('/cronologia') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_history }}</a>
+      <a href="/biblioteca" {% if request.url.path.startswith('/biblioteca') %}class="attiva" aria-current="page"{% endif %}>{{ t.nav_library }}</a>
+      <a class="voce-sistema{% if request.url.path.startswith('/impostazioni') %} attiva{% endif %}" href="/impostazioni" {% if request.url.path.startswith('/impostazioni') %}aria-current="page"{% endif %}>{{ t.nav_settings }}</a>
+    </span>
+    <span class="navigazione-preferenze">
+      <details class="preferenze-visive">
+        <summary class="solo-icona tooltip" aria-label="{{ t.display_preferences }}"
+                 data-tooltip="{{ t.display_preferences }}">{{ icona('sliders') }}</summary>
+        <div class="preferenze-pannello">
+          <strong>{{ t.display_preferences }}</strong>
+          <div class="preferenza-riga">
+            <span>{{ t.display_theme }}</span>
+            {% include "partials/tema.html" %}
+          </div>
+          <div class="preferenza-riga">
+            <span>{{ t.display_density }}</span>
+            {% include "partials/densita.html" %}
+          </div>
+          <div class="preferenza-riga">
+            <span>{{ t.display_language }}</span>
+            <span class="lingue">
+              <button type="button" class="scelta-preferenza {% if lang == 'it' %}attiva{% endif %}"
+                      hx-post="/lingua/it" hx-target="body" hx-swap="outerHTML" lang="it"
+                      aria-pressed="{{ 'true' if lang == 'it' else 'false' }}">Italiano</button>
+              <button type="button" class="scelta-preferenza {% if lang == 'en' %}attiva{% endif %}"
+                      hx-post="/lingua/en" hx-target="body" hx-swap="outerHTML" lang="en"
+                      aria-pressed="{{ 'true' if lang == 'en' else 'false' }}">English</button>
+            </span>
+          </div>
+        </div>
+      </details>
     </span>
   </nav>
 </header>
@@ -81,6 +105,24 @@ window.addEventListener("pagehide", function () {
 function spunta(id, valore) {
   document.querySelectorAll('input[form="massa-' + id + '"][name="selezione"]')
     .forEach(function (casella) { casella.checked = valore; });
+  aggiornaMassa(id);
+}
+
+function aggiornaMassa(id) {
+  const modulo = document.getElementById("massa-" + id);
+  if (!modulo) return;
+  const selezionati = document.querySelectorAll(
+    'input[form="massa-' + id + '"][name="selezione"]:checked'
+  ).length;
+  const tutti = modulo.querySelector('input[name="tutti"]');
+  const haAmbito = selezionati > 0 || Boolean(tutti && tutti.checked);
+  modulo.querySelectorAll("[data-richiede-ambito]").forEach(function (bottone) {
+    bottone.disabled = !haAmbito;
+  });
+  const contatore = document.getElementById("selezionati-" + id);
+  if (contatore) contatore.textContent = selezionati === 1
+    ? "{{ t.bulk_selected_one }}"
+    : "{{ t.bulk_selected_count }}".replace("{quanti}", selezionati);
 }
 
 // Tasti rapidi per lo screening: con centocinquanta record da valutare,
@@ -191,6 +233,22 @@ document.addEventListener("click", function (event) {
   });
 });
 
+// I suggerimenti OpenAlex restano visibili anche nei campi multilinea.
+document.addEventListener("click", function (event) {
+  const suggerimento = event.target.closest("[data-termine][data-target]");
+  if (!suggerimento) return;
+  const campo = document.getElementById(suggerimento.getAttribute("data-target"));
+  if (!campo) return;
+  const termine = suggerimento.getAttribute("data-termine");
+  const esistenti = campo.value.split(",").map((voce) => voce.trim()).filter(Boolean);
+  if (!esistenti.some((voce) => voce.toLocaleLowerCase() === termine.toLocaleLowerCase())) {
+    campo.value = esistenti.concat([termine]).join(", ");
+    campo.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  suggerimento.remove();
+  campo.focus();
+});
+
 // Le ricerche separano il lavoro sui record dal protocollo. I tasti
 // freccia seguono il comportamento ARIA previsto per una tablist orizzontale.
 document.addEventListener("click", function (event) {
@@ -219,7 +277,12 @@ function attivaTab(tab) {
     voce.setAttribute("aria-selected", String(attiva));
     voce.tabIndex = attiva ? 0 : -1;
     const pannello = document.getElementById(voce.getAttribute("aria-controls"));
-    if (pannello) pannello.hidden = !attiva;
+    if (pannello) {
+      pannello.hidden = !attiva;
+      if (attiva && pannello.getAttribute("hx-trigger") === "caricaProfilo once") {
+        pannello.dispatchEvent(new Event("caricaProfilo"));
+      }
+    }
   });
 }
 </script>

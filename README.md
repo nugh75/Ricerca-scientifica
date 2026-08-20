@@ -55,6 +55,19 @@ configure later, and reopen it any time from Settings.
 
 ## How it works
 
+### New in 1.0.0b6
+
+- Saved searches now use three focused workspaces: **Results**, **Field
+  profile**, and **Protocol**. Page hierarchy, menus, icons, preferences, and
+  notifications have been simplified, while redundant step numbering has
+  been removed.
+- A compact PRISMA rail shows screening progress and filters records by status.
+  Bulk decisions, downloads, metadata completion, and Zotero export now require
+  an explicit selection or an explicit choice to act on every saved record.
+- Keyword suggestions remain visible beside resizable Boolean-block fields;
+  screening reasons are resizable too. Author and journal profiles can reveal,
+  on demand, the articles citing each most-cited work.
+
 ### New in 1.0.0b5
 
 - Every search now separates the operational **Results** from the reproducible
@@ -310,6 +323,21 @@ obbligatorio: si può saltare e configurare dopo, e rivedere la guida quando si
 vuole da Impostazioni.
 
 ## Come funziona
+
+### Novità in 1.0.0b6
+
+- Le ricerche salvate usano tre spazi distinti: **Risultati**, **Profilo del
+  campo** e **Protocollo**. Gerarchia delle pagine, menu, icone, preferenze e
+  notifiche sono più semplici; le numerazioni di percorso ridondanti sono state
+  eliminate.
+- Una barra PRISMA compatta mostra l'avanzamento dello screening e filtra i
+  record per stato. Decisioni, PDF, completamento dei metadati e invio a Zotero
+  in blocco richiedono una selezione oppure la scelta esplicita di tutti i
+  record salvati.
+- I suggerimenti di parole chiave restano visibili accanto ai campi
+  ridimensionabili dei blocchi booleani; anche le motivazioni di screening sono
+  ridimensionabili. Nei profili di autori e riviste si possono caricare, su
+  richiesta, gli articoli che citano ciascun lavoro più citato.
 
 ### Novità in 1.0.0b5
 

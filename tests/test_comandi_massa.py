@@ -91,12 +91,24 @@ def test_scaricamento_dei_pdf_in_blocco():
 
 
 @respx.mock
-def test_senza_spunte_scarica_tutto_e_conta_i_falliti():
+def test_senza_spunte_non_scarica_nulla():
+    rotta = respx.get(url__startswith="https://esempio.org/").mock(
+        return_value=httpx.Response(200, content=PDF_FINTO))
+    id_ricerca = ricerca_salvata(quanti=2)
+
+    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
+
+    assert "Select at least one record" in avviso_di(pagina)
+    assert not rotta.called
+
+
+@respx.mock
+def test_la_scelta_esplicita_di_tutti_scarica_tutto_e_conta_i_falliti():
     respx.get("https://esempio.org/0.pdf").mock(return_value=httpx.Response(200, content=PDF_FINTO))
     respx.get("https://esempio.org/1.pdf").mock(return_value=httpx.Response(403))
     id_ricerca = ricerca_salvata(quanti=2)
 
-    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
+    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
 
     assert "PDFs downloaded: 1" in avviso_di(pagina)
     assert "failed: 1" in avviso_di(pagina)
@@ -104,7 +116,7 @@ def test_senza_spunte_scarica_tutto_e_conta_i_falliti():
 
 def test_i_record_senza_pdf_aperto_non_contano():
     id_ricerca = ricerca_salvata(quanti=2, oa=False)
-    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
+    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
     assert "PDFs downloaded: 0 · failed: 0" in avviso_di(pagina)
 
 
@@ -169,3 +181,20 @@ def test_zotero_in_blocco_manda_i_selezionati():
     inviati = rotta.calls[0].request.content
     assert b"Studio 2" in inviati and b"Studio 0" not in inviati
     assert "Sent to Zotero" in avviso_di(pagina)
+
+
+@respx.mock
+def test_zotero_senza_ambito_non_invia_nulla():
+    from ricerca import config as config_module
+    from ricerca.config import Config
+
+    config_module.save(Config(zotero_api_key="k", zotero_library_id="123"))
+    id_ricerca = ricerca_salvata(quanti=2)
+    rotta = respx.post(url__startswith="https://api.zotero.org").mock(
+        return_value=httpx.Response(200, json={"successful": {}, "failed": {}})
+    )
+
+    pagina = client.post(f"/zotero-massa/{id_ricerca}", data={})
+
+    assert "Select at least one record" in avviso_di(pagina)
+    assert not rotta.called

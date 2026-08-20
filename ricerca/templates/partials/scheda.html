@@ -130,15 +130,11 @@
 
   <h3>{{ t.card_citation }}</h3>
   <p class="scheda-riferimento">{{ riferimento }}</p>
-  <div class="azioni">
-    <button type="button" class="copia solo-icona tooltip" data-copia="{{ riferimento }}" data-copiato="{{ t.copied }}"
-            aria-label="{{ t.card_copy_apa }}" data-tooltip="{{ t.card_copy_apa }}">{{ icona('copy') }}</button>
-    <button type="button" class="copia solo-icona tooltip" data-copia="{{ bibtex }}" data-copiato="{{ t.copied }}"
-            aria-label="{{ t.card_copy_bibtex }}" data-tooltip="{{ t.card_copy_bibtex }}">{{ icona('copy') }}</button>
-    {% if work.doi %}<button type="button" class="copia solo-icona tooltip" data-copia="{{ work.doi }}" data-copiato="{{ t.copied }}"
-            aria-label="{{ t.card_copy_doi }}" data-tooltip="{{ t.card_copy_doi }}">{{ icona('copy') }}</button>{% endif %}
-    {% if work.url %}<a class="copia solo-icona tooltip" href="{{ work.url }}" target="_blank" rel="noreferrer"
-       aria-label="{{ t.card_publisher }}" data-tooltip="{{ t.card_publisher }}">{{ icona('external') }}</a>{% endif %}
+  <div class="azioni azioni-citazione">
+    <button type="button" class="copia" data-copia="{{ riferimento }}" data-copiato="{{ t.copied }}">{{ t.card_copy_apa }}</button>
+    <button type="button" class="copia" data-copia="{{ bibtex }}" data-copiato="{{ t.copied }}">{{ t.card_copy_bibtex }}</button>
+    {% if work.doi %}<button type="button" class="copia" data-copia="{{ work.doi }}" data-copiato="{{ t.copied }}">{{ t.card_copy_doi }}</button>{% endif %}
+    {% if work.url %}<a class="copia" href="{{ work.url }}" target="_blank" rel="noreferrer">{{ t.card_publisher }}</a>{% endif %}
   </div>
 
   <form class="scheda-riquadro" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}" hx-target="#scheda-corpo">

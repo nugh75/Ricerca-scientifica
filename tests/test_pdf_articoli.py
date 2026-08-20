@@ -64,7 +64,7 @@ def test_il_tasto_zip_compare_solo_con_i_pdf_sul_disco():
     prima = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
     assert f"/pdf/{id_ricerca}.zip" not in prima
 
-    client.post(f"/pdf-massa/{id_ricerca}", data={})
+    client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
     dopo = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
     assert f"/pdf/{id_ricerca}.zip" in dopo
     assert "3 on disk" in dopo
@@ -74,7 +74,7 @@ def test_il_tasto_zip_compare_solo_con_i_pdf_sul_disco():
 def test_il_nome_dentro_lo_zip_e_leggibile():
     respx.get("https://esempio.org/0.pdf").mock(return_value=httpx.Response(200, content=PDF_FINTO))
     id_ricerca = ricerca_con_pdf(quanti=1)
-    client.post(f"/pdf-massa/{id_ricerca}", data={})
+    client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
 
     with zipfile.ZipFile(io.BytesIO(client.get(f"/pdf/{id_ricerca}.zip").content)) as archivio:
         assert archivio.namelist()[0] == "2024_rossi_studio-0.pdf"
@@ -85,7 +85,7 @@ def test_il_pdf_viene_servito_per_essere_letto_non_scaricato():
     respx.get(url__startswith="https://esempio.org/").mock(
         return_value=httpx.Response(200, content=PDF_FINTO))
     id_ricerca = ricerca_con_pdf(quanti=1)
-    client.post(f"/pdf-massa/{id_ricerca}", data={})
+    client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
 
     risposta = client.get(f"/pdf/{id_ricerca}/0/file")
 
@@ -98,7 +98,7 @@ def test_il_tasto_apre_il_lettore_interno_non_una_finestra_esterna():
     respx.get(url__startswith="https://esempio.org/").mock(
         return_value=httpx.Response(200, content=PDF_FINTO))
     id_ricerca = ricerca_con_pdf(quanti=1)
-    client.post(f"/pdf-massa/{id_ricerca}", data={})
+    client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
 
     cella = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
 

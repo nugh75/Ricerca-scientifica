@@ -1,9 +1,8 @@
-{% from "partials/icona.html" import icona %}
 <span class="densita" id="densita">
   {% for valore, etichetta in (('comoda', t.density_comfortable), ('compatta', t.density_compact)) %}
-  <button type="button" class="lingua solo-icona tooltip {% if densita == valore %}attiva{% endif %}"
+  <button type="button" class="scelta-preferenza {% if densita == valore %}attiva{% endif %}"
           hx-post="/densita/{{ valore }}" hx-target="#densita" hx-swap="outerHTML"
-          aria-label="{{ etichetta }}" data-tooltip="{{ etichetta }}"
-          onclick="document.documentElement.setAttribute('data-densita', '{{ valore }}')">{{ icona(valore == 'comoda' and 'comfortable' or 'compact') }}</button>
+          aria-pressed="{{ 'true' if densita == valore else 'false' }}"
+          onclick="document.documentElement.setAttribute('data-densita', '{{ valore }}')">{{ etichetta }}</button>
   {% endfor %}
 </span>

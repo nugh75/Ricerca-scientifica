@@ -1,4 +1,4 @@
-<section class="passo entra" data-passo="3">
+<section class="passo entra">
   <p class="occhiello">{{ t.step3_eyebrow }}</p>
   <h2>{{ t.step3_title }}</h2>
 
@@ -7,9 +7,6 @@
     <li>{{ r.label }} — {% if r.error %}<span class="errore">{{ r.error }}</span>{% else %}<b>{{ r.works|length }}</b>{% endif %}</li>
     {% endfor %}
   </ul>
-
-  <button hx-get="/faccette/{{ id_ricerca }}" hx-target="#faccette">{{ t.faccette_bottone }}</button>
-  <div id="faccette"></div>
 
   {% include "partials/spazio_ricerca.html" %}
 </section>

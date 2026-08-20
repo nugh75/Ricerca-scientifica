@@ -1,7 +1,7 @@
 # OpenAlex esteso — specifica
 
 **Data:** 2026-08-20
-**Stato:** implementata in 1.0.0b2, estesa in 1.0.0b5
+**Stato:** implementata in 1.0.0b2, estesa in 1.0.0b5 e 1.0.0b6
 
 ## Perché
 
@@ -101,6 +101,10 @@ consultazione: possono aggiornarsi con tempi diversi e non costituiscono da
 soli un giudizio di qualità. Le cronologie precedenti, prive di identificativi,
 restano leggibili e aprono una ricerca per nome senza associare omonimi in modo
 automatico.
+
+Dalla versione 1.0.0b6, ogni lavoro più citato può caricare su richiesta un
+elenco breve degli articoli che lo citano. Il caricamento resta differito per
+non moltiplicare le chiamate OpenAlex quando si apre il profilo.
 
 ## Che cosa resta fuori
 

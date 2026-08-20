@@ -61,24 +61,70 @@ def test_i_comandi_restano_a_portata():
     assert "form.comandi {\n  position: sticky;" in FOGLIO
 
 
-def test_una_ricerca_salvata_separa_risultati_e_protocollo():
+def test_una_ricerca_salvata_separa_risultati_profilo_e_protocollo():
     id_ricerca = ricerca_con(3)
     pagina = client.get(f"/cronologia/{id_ricerca}").text
 
     assert 'role="tablist"' in pagina
     assert 'id="tab-risultati"' in pagina and 'aria-selected="true"' in pagina
+    assert 'id="tab-profilo"' in pagina and 'aria-selected="false"' in pagina
+    assert 'id="pannello-profilo"' in pagina and 'hx-trigger="caricaProfilo once"' in pagina
     assert 'id="tab-protocollo"' in pagina and 'aria-selected="false"' in pagina
     assert 'id="pannello-protocollo"' in pagina and "hidden" in pagina
     assert pagina.count('class="fonti-statistiche"') == 1
 
 
-def test_i_comandi_compatti_hanno_icona_e_tooltip_accessibile():
+def test_le_sezioni_non_mostrano_più_numeri_di_percorso_ridondanti():
+    pagina = client.get("/").text
+    assert "data-passo" not in pagina
+    assert "Step one" not in pagina
+    assert ".passo::before" not in FOGLIO
+
+
+def test_le_preferenze_visive_usano_una_sola_icona_accessibile():
     pagina = client.get("/").text
 
     assert 'class="icona"' in pagina
-    assert 'class="lingua solo-icona tooltip' in pagina
-    assert 'aria-label="roomy"' in pagina
-    assert 'data-tooltip="roomy"' in pagina
+    assert 'class="preferenze-visive"' in pagina
+    assert pagina.count('aria-label="Preferences"') == 1
+    assert 'data-tooltip="Preferences"' in pagina
+    assert '>roomy</button>' in pagina and '>compact</button>' in pagina
+    assert '>Italiano</button>' in pagina and '>English</button>' in pagina
+
+
+def test_gli_strumenti_dei_risultati_hanno_una_gerarchia_esplicita():
+    id_ricerca = ricerca_con(3)
+    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+
+    assert pagina.count('class="pannello-operativo') >= 3
+    assert 'class="comandi barra-comandi"' in pagina
+    assert 'class="scelta-vista attiva"' in pagina
+
+
+def test_i_menu_contestuali_stanno_nel_pannello_a_cui_si_riferiscono():
+    id_ricerca = ricerca_con(3)
+    pagina = client.get(f"/cronologia/{id_ricerca}").text
+
+    risultati = pagina.split('id="pannello-risultati"', 1)[1].split('id="pannello-profilo"', 1)[0]
+    assert 'id="faccette"' not in risultati
+    assert risultati.index('class="gruppo-vista"') < risultati.index('class="comandi barra-comandi"')
+
+    profilo = pagina.split('id="pannello-profilo"', 1)[1].split('id="pannello-protocollo"', 1)[0]
+    assert f'hx-get="/faccette/{id_ricerca}"' in profilo
+
+    apa = client.post(f"/risultati/{id_ricerca}", data={"vista": "apa"}).text
+    assert 'class="comandi barra-comandi"' not in apa
+
+
+def test_prisma_e_azioni_massive_esplicitano_ambito_e_selezione():
+    id_ricerca = ricerca_con(3)
+    pagina = client.get(f"/cronologia/{id_ricerca}").text
+
+    assert 'class="prisma-rail"' in pagina
+    assert f'id="prisma-{id_ricerca}"' in pagina
+    assert 'name="tutti" value="1"' in pagina
+    assert 'data-richiede-ambito' in pagina
+    assert f'id="selezionati-{id_ricerca}"' in pagina
 
 
 def test_gli_avvisi_non_hanno_la_barra_verticale():

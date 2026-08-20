@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ t.settings_title }} · Ricerca{% endblock %}
 {% block content %}
-<section class="passo senza-numero">
-  <p class="occhiello">{{ t.settings_eyebrow }}</p>
-  <h1>{{ t.settings_title }}</h1>
-  {% if salvato %}<p><span class="marchio">{{ t.settings_saved.format(path=percorso) }}</span></p>{% endif %}
+<section class="passo">
+  <div class="pagina-testa">
+    <p class="occhiello">{{ t.settings_eyebrow }}</p>
+    <h1>{{ t.settings_title }}</h1>
+    {% if salvato %}<p><span class="marchio">{{ t.settings_saved.format(path=percorso) }}</span></p>{% endif %}
+  </div>
 
-  <form method="post" class="scheda impostazioni">
+  <form method="post" class="sezione-pagina impostazioni">
     <h3>{{ t.settings_llm }}</h3>
     <p class="aiuto">{{ t.settings_llm_help }}
       {% for nome, url in presets.items() %}
@@ -81,7 +83,7 @@
     <div class="azioni"><button type="submit" class="primario">{{ t.btn_save }}</button></div>
   </form>
 
-  <div class="scheda">
+  <section class="sezione-pagina">
     <h3>{{ t.diag_title }}</h3>
     <table class="diagnosi">
       <tr><th>{{ t.diag_version }}</th><td><b>{{ diagnosi.versione }}</b></td></tr>
@@ -95,9 +97,9 @@
     {% if not diagnosi.allineata %}<p class="nota errore">{{ t.diag_stale }}</p>{% endif %}
     <p class="aiuto">{{ t.diag_hint }}</p>
     <p><a class="tasto" href="/benvenuto">{{ t.welcome_reopen }}</a></p>
-  </div>
+  </section>
 
-  <div class="scheda">
+  <section class="sezione-pagina">
     <h3>{{ t.settings_status }}</h3>
     <ul class="stato">
     {% for source in sources %}
@@ -110,6 +112,6 @@
         {% else %}<b>{{ t.status_ready }}</b>{% endif %}</li>
     {% endfor %}
     </ul>
-  </div>
+  </section>
 </section>
 {% endblock %}

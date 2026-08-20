@@ -85,6 +85,31 @@ def test_la_pagina_autore_mostra_metriche_e_lavori():
     assert "1,234" in pagina
     assert "17" in pagina
     assert "Il lavoro più citato" in pagina
+    assert "/esplora/citanti/W9" in pagina
+
+
+@respx.mock
+def test_un_lavoro_del_profilo_mostra_gli_articoli_che_lo_citano():
+    citante = {
+        **LAVORO,
+        "id": "https://openalex.org/W10",
+        "title": "Un articolo che cita il lavoro",
+        "cited_by_count": 12,
+    }
+    rotta = respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json={"meta": {}, "results": [citante]})
+    )
+
+    pagina = client.get("/esplora/citanti/W9")
+
+    assert pagina.status_code == 200
+    assert "Un articolo che cita il lavoro" in pagina.text
+    assert "cites%3AW9" in str(rotta.calls[0].request.url)
+
+
+def test_un_id_lavoro_inventato_non_diventa_un_filtro_openalex():
+    pagina = client.get("/esplora/citanti/../../works")
+    assert pagina.status_code in (404, 422)
 
 
 def test_un_identificativo_di_profilo_inventato_non_diventa_un_endpoint():

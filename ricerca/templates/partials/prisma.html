@@ -1,0 +1,20 @@
+<section id="prisma-{{ id_ricerca }}" class="prisma-rail" aria-label="{{ t.prisma_title }}"{% if fuori_banda|default(false) %} hx-swap-oob="outerHTML"{% endif %}>
+  <span id="conteggi" class="solo-lettori">{{ t.screening_counts.format(**conteggi) }}</span>
+  <div class="prisma-nodo"><span>{{ t.prisma_identified }}</span><strong>{{ conteggi.grezzi }}</strong></div>
+  <div class="prisma-nodo"><span>{{ t.prisma_deduplicated }}</span><strong>{{ conteggi.dopo_deduplica }}</strong></div>
+  {% for stato, etichetta, valore in [
+    ('da_valutare', t.prisma_to_screen, conteggi.da_valutare),
+    ('incluso', t.prisma_included, conteggi.incluso),
+    ('forse', t.prisma_maybe, conteggi.forse),
+    ('escluso', t.prisma_excluded, conteggi.escluso)
+  ] %}
+  <button type="button" class="prisma-nodo prisma-filtro{% if filtro_stato|default('') == stato %} attivo{% endif %}"
+          hx-post="/risultati/{{ id_ricerca }}"
+          hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+          hx-vals='{"vista": "{{ vista|default('tabella') }}", "filtro_stato": "{{ stato }}"}'
+          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+          aria-pressed="{{ 'true' if filtro_stato|default('') == stato else 'false' }}">
+    <span>{{ etichetta }}</span><strong>{{ valore }}</strong>
+  </button>
+  {% endfor %}
+</section>

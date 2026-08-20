@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% block title %}{{ t.history_title }} · Ricerca{% endblock %}
 {% block content %}
-<section class="passo senza-numero">
-  <p class="occhiello">{{ t.history_eyebrow }}</p>
-  <h1>{{ t.history_title }}</h1>
-  <p>{{ t.history_intro }}</p>
+<section class="passo">
+  <div class="pagina-testa">
+    <p class="occhiello">{{ t.history_eyebrow }}</p>
+    <h1>{{ t.history_title }}</h1>
+    <p>{{ t.history_intro }}</p>
+  </div>
 
   {% if voci %}
-  <div class="scheda">
+  <div class="sezione-pagina">
     <div class="scorre">
     <table>
       <thead><tr>

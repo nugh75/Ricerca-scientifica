@@ -1,0 +1,17 @@
+{% if problema %}
+<p class="nota">{{ problema }}</p>
+{% elif trovati %}
+<div class="citanti-profilo">
+  <h3>{{ t.profile_citing_works }}</h3>
+  <ol>
+    {% for work in trovati %}
+    <li>
+      {% if work.url %}<a href="{{ work.url }}" target="_blank" rel="noreferrer">{{ work.title }}</a>{% else %}<span>{{ work.title }}</span>{% endif %}
+      <small>{{ work.year or '—' }}{% if work.venue %} · {{ work.venue }}{% endif %}{% if work.citazioni is not none %} · {{ work.citazioni|numero }} {{ t.profile_citations }}{% endif %}</small>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+{% else %}
+<p class="nota">{{ t.profile_no_citing }}</p>
+{% endif %}

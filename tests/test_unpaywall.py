@@ -84,7 +84,7 @@ def test_il_comando_in_blocco_completa_i_record_incompleti():
     respx.get(url__startswith=unpaywall.API).mock(return_value=httpx.Response(200, json=RISPOSTA))
     id_ricerca = ricerca_incompleta()
 
-    pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
+    pagina = client.post(f"/unpaywall/{id_ricerca}", data={"tutti": "1"})
 
     assert "Filled in from Unpaywall: 1" in avviso_di(pagina)
     record = history.record(id_ricerca)
@@ -98,7 +98,7 @@ def test_il_comando_in_blocco_completa_i_record_incompleti():
 def test_senza_email_il_comando_lo_dice_invece_di_tacere():
     config_module.save(Config(configurato="1"))
     id_ricerca = ricerca_incompleta()
-    pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
+    pagina = client.post(f"/unpaywall/{id_ricerca}", data={"tutti": "1"})
     assert "needs the courtesy email" in avviso_di(pagina)
 
 
@@ -108,7 +108,7 @@ def test_la_correzione_a_mano_vince_sul_completamento():
     respx.get(url__startswith=unpaywall.API).mock(return_value=httpx.Response(200, json=RISPOSTA))
     id_ricerca = ricerca_incompleta()
 
-    client.post(f"/unpaywall/{id_ricerca}", data={})
+    client.post(f"/unpaywall/{id_ricerca}", data={"tutti": "1"})
     client.post(f"/scheda/{id_ricerca}/0", data={"year": "2019"})
 
     record = history.record(id_ricerca)[0]
@@ -138,10 +138,24 @@ def test_un_guasto_di_unpaywall_finisce_nel_registro():
     respx.get(url__startswith=unpaywall.API).mock(return_value=httpx.Response(503))
     id_ricerca = ricerca_incompleta()
 
-    pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
+    pagina = client.post(f"/unpaywall/{id_ricerca}", data={"tutti": "1"})
 
     assert "failed: 1" in avviso_di(pagina)
     assert any("Unpaywall" in v.azione for v in registro.ultime())
+
+
+@respx.mock
+def test_unpaywall_senza_ambito_non_interroga_la_rete():
+    config_module.save(Config(mailto="x@y.it", configurato="1"))
+    rotta = respx.get(url__startswith=unpaywall.API).mock(
+        return_value=httpx.Response(200, json=RISPOSTA)
+    )
+    id_ricerca = ricerca_incompleta()
+
+    pagina = client.post(f"/unpaywall/{id_ricerca}", data={})
+
+    assert "Select at least one record" in avviso_di(pagina)
+    assert not rotta.called
 
 
 UNA_COPIA = {
@@ -186,7 +200,7 @@ def test_quando_i_nostri_collegamenti_falliscono_si_chiede_a_unpaywall():
     id_ricerca = history.salva("t", Strategy([Block("C", ["x"])]),
                                [SourceResult("crossref", "Crossref", "q", works=works)], works)
 
-    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={})
+    pagina = client.post(f"/pdf-massa/{id_ricerca}", data={"tutti": "1"})
 
     from conftest import avviso_di
     assert "PDFs downloaded: 1" in avviso_di(pagina)

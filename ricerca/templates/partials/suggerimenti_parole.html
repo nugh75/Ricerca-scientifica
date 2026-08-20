@@ -1,0 +1,2 @@
+{% for voce in voci %}<button type="button" class="chip suggerimento-parola"
+  data-termine="{{ voce.nome }}" data-target="{{ bersaglio }}">{{ voce.nome }}{% if voce.nota %} <em>{{ voce.nota }}</em>{% endif %}</button>{% endfor %}

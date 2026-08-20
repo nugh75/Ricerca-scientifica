@@ -11,6 +11,7 @@ blocchi di cento, il massimo di valori in OR che un filtro accetta.
 
 from __future__ import annotations
 
+import re
 from urllib.parse import quote
 
 import httpx
@@ -23,6 +24,14 @@ from .sources.openalex import SELECT, work_da
 
 VERSI = ("indietro", "avanti", "lato")
 BLOCCO = 100          # valori in OR ammessi da un filtro
+_ID_LAVORO = re.compile(r"^W\d+$", re.IGNORECASE)
+
+
+def identificativo_lavoro(valore: str) -> str:
+    """Restituisce soltanto un identificativo OpenAlex di lavoro sicuro."""
+
+    breve = openalex_api.id_breve(valore).upper()
+    return breve if _ID_LAVORO.fullmatch(breve) else ""
 
 
 async def risolvi(
@@ -37,8 +46,8 @@ async def risolvi(
     compatibili, per non inseguire le citazioni del lavoro sbagliato.
     """
 
-    identificativo = work.openalex_id or openalex_api.id_breve(work.url)
-    if identificativo.startswith("W"):
+    identificativo = identificativo_lavoro(work.openalex_id or work.url)
+    if identificativo:
         work.openalex_id = identificativo
         return work
 

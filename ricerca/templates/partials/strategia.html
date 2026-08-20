@@ -1,4 +1,4 @@
-<section class="passo entra" data-passo="2">
+<section class="passo entra">
   <p class="occhiello">{{ t.step2_eyebrow }}</p>
   <h2>{{ t.step2_title }} «{{ topic }}»</h2>
   <p>
@@ -40,27 +40,25 @@
       <div class="blocco">
         <label>{{ t.block }} {{ loop.index }}</label>
         <input name="label" value="{{ block.label }}" aria-label="{{ t.block_name_aria }} {{ loop.index }}">
-        <input name="terms" value="{{ block.terms|join(', ') }}"
-               list="suggerimenti-{{ loop.index }}"
-               hx-get="/autocompleta?entita=keywords"
+        <textarea id="termini-{{ loop.index }}" name="terms" rows="2"
+               hx-get="/autocompleta?entita=keywords&amp;modo=pulsanti&amp;bersaglio=termini-{{ loop.index }}"
                hx-trigger="keyup changed delay:300ms"
                hx-vals='js:{q: event.target.value}'
                hx-target="#suggerimenti-{{ loop.index }}"
-               aria-label="{{ t.block_terms_aria }} {{ loop.index }}">
-        <datalist id="suggerimenti-{{ loop.index }}"></datalist>
+               aria-label="{{ t.block_terms_aria }} {{ loop.index }}">{{ block.terms|join(', ') }}</textarea>
+        <div id="suggerimenti-{{ loop.index }}" class="suggerimenti-parole" aria-live="polite"></div>
       </div>
       {% endfor %}
       <div class="blocco">
         <label>{{ t.block }} {{ strategy.blocks|length + 1 }} — {{ t.block_optional }}</label>
         <input name="label" value="{{ t.block_extra_name }}" aria-label="{{ t.block_name_aria }}">
-        <input name="terms" placeholder="{{ t.block_extra_placeholder }}"
-               list="suggerimenti-extra"
-               hx-get="/autocompleta?entita=keywords"
+        <textarea id="termini-extra" name="terms" rows="2" placeholder="{{ t.block_extra_placeholder }}"
+               hx-get="/autocompleta?entita=keywords&amp;modo=pulsanti&amp;bersaglio=termini-extra"
                hx-trigger="keyup changed delay:300ms"
                hx-vals='js:{q: event.target.value}'
                hx-target="#suggerimenti-extra"
-               aria-label="{{ t.block_terms_aria }}">
-        <datalist id="suggerimenti-extra"></datalist>
+               aria-label="{{ t.block_terms_aria }}"></textarea>
+        <div id="suggerimenti-extra" class="suggerimenti-parole" aria-live="polite"></div>
       </div>
     </div>
 

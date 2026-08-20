@@ -167,7 +167,8 @@ def test_l_attesa_punta_sempre_al_contenitore_giusto():
     assert 'hx-target="#passo-tre"' in frammento
     assert 'hx-target=""' not in frammento
     assert "bersaglio" not in frammento          # niente selettori nell'indirizzo
-    assert frammento.count('data-passo="3"') == 1
+    assert frammento.count('class="passo entra"') == 1
+    assert "data-passo" not in frammento
 
 
 def test_l_attesa_non_si_annida_a_ogni_giro():

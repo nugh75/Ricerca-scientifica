@@ -60,6 +60,21 @@ def test_la_rotta_rende_le_opzioni():
 
 
 @respx.mock
+def test_i_suggerimenti_per_i_blocchi_sono_pulsanti_visibili():
+    respx.get(url__startswith="https://api.openalex.org/autocomplete/keywords").mock(
+        return_value=httpx.Response(200, json={"meta": {}, "results": [
+            {"id": "https://openalex.org/keywords/ai-literacy",
+             "display_name": "AI literacy", "hint": "Keyword"},
+        ]})
+    )
+    pagina = TestClient(app).get(
+        "/autocompleta", params={"entita": "keywords", "q": "ai li", "modo": "pulsanti"}
+    )
+    assert 'type="button"' in pagina.text
+    assert 'data-termine="AI literacy"' in pagina.text
+
+
+@respx.mock
 def test_se_openalex_e_giu_la_rotta_risponde_vuota():
     respx.get(url__startswith="https://api.openalex.org/autocomplete").mock(
         return_value=httpx.Response(500)

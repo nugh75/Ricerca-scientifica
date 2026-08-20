@@ -12,9 +12,9 @@
           hx-swap="outerHTML"
           title="{{ etichetta }}">{{ etichetta }}</button>
   {% endfor %}
-  <input id="motivo-{{ indice }}" name="motivo" value="{{ work.motivo }}"
-         placeholder="{{ t.screening_reason }}" class="motivo">
+  <textarea id="motivo-{{ indice }}" name="motivo" rows="1"
+            placeholder="{{ t.screening_reason }}" class="motivo">{{ work.motivo }}</textarea>
 </span>
 {% if fuori_banda %}
-<span id="conteggi" hx-swap-oob="true" class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span>
+{% include "partials/prisma.html" %}
 {% endif %}

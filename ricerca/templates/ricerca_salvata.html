@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %}{{ t.saved_search }} · Ricerca{% endblock %}
 {% block content %}
-<section class="passo senza-numero">
-  <p class="occhiello">{{ t.saved_search }} · {{ quando|replace('T', ' ') }}</p>
-  <h1>{{ voce.topic or t.history_title }}</h1>
+<section class="passo">
+  <div class="pagina-testa pagina-testa-ricerca">
+    <p class="occhiello">{{ t.saved_search }} · {{ quando|replace('T', ' ') }}</p>
+    <h1>{{ voce.topic or t.history_title }}</h1>
+  </div>
 
   {% include "partials/spazio_ricerca.html" %}
 </section>

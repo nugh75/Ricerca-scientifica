@@ -1,17 +1,32 @@
 {% from "partials/icona.html" import icona %}
 {% if works %}
 <p class="riepilogo"><b>{{ totale }}</b> {% if filtri_attivi %}{{ t.result_filter_summary_tail.format(totale=totale_tutti) }}{% else %}{{ t.summary_tail }}{% endif %}{% if pagine > 1 %} · {{ t.page_of.format(pagina=pagina, pagine=pagine) }}{% endif %}</p>
-<div class="scarica">
-  <span class="etichetta-scarica">{{ t.downloads_title }}</span>
-  <a class="tasto" href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib_btn }}</a>
-  <a class="tasto" href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv_btn }}</a>
-  <a class="tasto" href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa_btn }}</a>
-  {% if pdf_su_disco %}
-  <a class="tasto" href="/pdf/{{ id_ricerca }}.zip">{{ t.download_zip }}
-     <em>{{ t.pdf_on_disk.format(quanti=pdf_su_disco) }}</em></a>
-  {% endif %}
+<div class="barra-elenco">
+  <div class="gruppo-vista" role="group" aria-label="{{ t.view_title }}">
+    <span class="etichetta-scarica">{{ t.view_title }}</span>
+    <span class="viste">
+      <button type="button" class="scelta-vista {% if vista == 'tabella' %}attiva{% endif %}"
+              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+              hx-vals='{"vista": "tabella"}' hx-target="#blocco-{{ id_ricerca }}"
+              hx-swap="outerHTML" aria-pressed="{{ 'true' if vista == 'tabella' else 'false' }}">{{ icona('table') }} {{ t.view_table }}</button>
+      <button type="button" class="scelta-vista {% if vista == 'apa' %}attiva{% endif %}"
+              hx-post="/risultati/{{ id_ricerca }}" hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+              hx-vals='{"vista": "apa"}' hx-target="#blocco-{{ id_ricerca }}"
+              hx-swap="outerHTML" aria-pressed="{{ 'true' if vista == 'apa' else 'false' }}">{{ icona('list') }} {{ t.view_apa }}</button>
+    </span>
+  </div>
+  <div class="scarica">
+    <span class="etichetta-scarica">{{ t.downloads_title }}</span>
+    <a class="tasto" href="/export/{{ id_ricerca }}.bib?campi={{ campi|join(',') }}">{{ t.download_bib_btn }}</a>
+    <a class="tasto" href="/export/{{ id_ricerca }}.csv?campi={{ campi|join(',') }}">{{ t.download_csv_btn }}</a>
+    <a class="tasto" href="/export/{{ id_ricerca }}.apa.txt">{{ t.download_apa_btn }}</a>
+    {% if pdf_su_disco %}
+    <a class="tasto" href="/pdf/{{ id_ricerca }}.zip">{{ t.download_zip }}
+       <em>{{ t.pdf_on_disk.format(quanti=pdf_su_disco) }}</em></a>
+    {% endif %}
+  </div>
 </div>
-<p><span id="conteggi" class="conteggi">{{ t.screening_counts.format(**conteggi) }}</span></p>
+{% include "partials/prisma.html" %}
 {% if config.zotero_api_key and config.zotero_library_id %}
 <div class="azioni">
   <button type="button" hx-post="/zotero/{{ id_ricerca }}" hx-target="#zotero-{{ id_ricerca }}">{{ t.zotero_send }}</button>
@@ -25,6 +40,51 @@
   {% for riferimento in works|apa_list %}<li>{{ riferimento }}</li>{% endfor %}
 </ol>
 {% else %}
+<form class="comandi barra-comandi" id="massa-{{ id_ricerca }}">
+  <h3>{{ t.bulk_title }}</h3>
+  <div class="ambito-massa">
+    <output id="selezionati-{{ id_ricerca }}" class="conteggi" aria-live="polite">{{ t.bulk_selected_count.format(quanti=0) }}</output>
+    <label><input type="checkbox" name="tutti" value="1" onchange="aggiornaMassa('{{ id_ricerca }}')"> {{ t.bulk_all_records }}</label>
+  </div>
+  <div class="azioni azioni-massa">
+    <span class="gruppo-comandi">
+      <span class="etichetta-comandi">{{ t.bulk_group_selection }}</span>
+      <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', true)">{{ t.bulk_select_all }}</button>
+      <button type="button" class="copia" onclick="spunta('{{ id_ricerca }}', false)">{{ t.bulk_clear }}</button>
+    </span>
+    <span class="gruppo-comandi">
+      <span class="etichetta-comandi">{{ t.bulk_group_decision }}</span>
+      {% for stato, etichetta in (('incluso', t.bulk_include), ('forse', t.bulk_maybe), ('escluso', t.bulk_exclude), ('annulla', t.bulk_clear_decisions)) %}
+      <button type="button" hx-post="/screening-massa/{{ id_ricerca }}"
+              data-richiede-ambito disabled
+              hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+              hx-vals='{"stato": "{{ stato }}"}'
+              hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ etichetta }}</button>
+      {% endfor %}
+    </span>
+    <span class="gruppo-comandi">
+      <span class="etichetta-comandi">{{ t.bulk_group_files }}</span>
+      {% if config.zotero_api_key and config.zotero_library_id %}
+      <button type="button" hx-post="/zotero-massa/{{ id_ricerca }}"
+              data-richiede-ambito disabled
+              hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+              hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.bulk_zotero }}</button>
+      {% endif %}
+      <button type="button" hx-post="/unpaywall/{{ id_ricerca }}"
+              data-richiede-ambito disabled
+              hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+              hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+              hx-indicator="#attesa-pdf">{{ t.unpaywall_fill }}</button>
+      <button type="button" class="primario" hx-post="/pdf-massa/{{ id_ricerca }}"
+              data-richiede-ambito disabled
+              hx-include="#massa-{{ id_ricerca }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+              hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML"
+              hx-indicator="#attesa-pdf">{{ t.bulk_pdf }}</button>
+      <span id="attesa-pdf" class="htmx-indicator">{{ t.waiting_pdf }}</span>
+    </span>
+  </div>
+  <p class="aiuto">{{ t.bulk_scope_hint }}</p>
+</form>
 <div class="scorre">
 <table class="risultati">
   <thead><tr>
@@ -36,6 +96,7 @@
   {% for riga, w in righe %}
   <tr tabindex="0" data-riga="{{ riga }}">
     <td class="spunta"><input type="checkbox" form="massa-{{ id_ricerca }}" name="selezione" value="{{ riga }}"
+                              onchange="aggiornaMassa('{{ id_ricerca }}')"
                               aria-label="{{ t.bulk_title }} {{ riga + 1 }}"></td>
     {% for campo in campi %}
     {% if campo == 'titolo' %}
