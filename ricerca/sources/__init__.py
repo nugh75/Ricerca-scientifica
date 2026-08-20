@@ -11,11 +11,13 @@ from .doaj import Doaj
 from .europepmc import EuropePMC
 from .opac_sbn import OpacSbn
 from .openalex import OpenAlex
+from .openalex_semantica import OpenAlexSemantica
 from .pubmed import PubMed
 from .semantic_scholar import SemanticScholar
 
 ALL: list[Source] = [
     OpenAlex(),
+    OpenAlexSemantica(),
     Crossref(),
     PubMed(),
     EuropePMC(),
