@@ -626,6 +626,56 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .carica-pdf { display: flex; flex-wrap: wrap; align-items: center; gap: var(--u1); margin-top: var(--u1); }
 .carica-pdf input[type="file"] { flex: 1 1 12rem; font-size: .8125rem; padding: .25rem; border: 1px dashed var(--bordo); background: none; }
 
+/* ── indice bibliometrico: un registro, non una classifica ─────────── */
+.esplora-testa, .profilo { max-width: 72rem; margin-inline: auto; }
+.soprattitolo { font: 500 .75rem/1.4 var(--testo-famiglia); letter-spacing: .08em; text-transform: uppercase; color: var(--testo-tenue); }
+.introduzione { max-width: 68ch; color: var(--testo-tenue); font-size: 1.0625rem; }
+.esplora-tab { margin: var(--u4) 0 0; }
+.esplora-tab a { text-decoration: none; }
+.esplora-form { max-width: 48rem; margin-top: var(--u3); }
+.esplora-cerca { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--u1); }
+.elenco-profili { display: grid; max-width: 72rem; margin: var(--u3) auto; border-top: 1px solid var(--riga); }
+.profilo-riga {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--u3);
+  padding: var(--u3) var(--u1); border-bottom: 1px solid var(--riga); text-decoration: none;
+}
+.profilo-riga:hover { background: var(--accento-tenue); }
+.profilo-riga small { display: block; margin-top: .2rem; color: var(--testo-tenue); }
+.profilo-riga-metriche { display: flex; gap: var(--u1); color: var(--testo-tenue); white-space: nowrap; }
+.profilo-riga-metriche b { color: var(--testo); font-variant-numeric: tabular-nums; }
+.profilo-testa { border-bottom: 1px solid var(--riga); padding-bottom: var(--u3); }
+.profilo-testa h1 { max-width: 22ch; margin-bottom: var(--u1); }
+.profilo-identificatori { font: 400 .8125rem/1.6 var(--mono); color: var(--testo-tenue); }
+.registro-metriche {
+  display: grid; grid-template-columns: repeat(5, minmax(7rem, 1fr));
+  border-block: 1px solid var(--riga); margin-top: var(--u4);
+}
+.registro-metriche div { padding: var(--u3); border-right: 1px solid var(--riga); }
+.registro-metriche div:last-child { border-right: 0; }
+.registro-metriche span { display: block; min-height: 2.5em; color: var(--testo-tenue); font-size: .8125rem; }
+.registro-metriche strong { display: block; margin-top: var(--u1); font: 600 1.75rem/1 var(--mono); }
+.profilo-nota { max-width: 72ch; }
+.profilo-stato { display: flex; flex-wrap: wrap; gap: var(--u1); }
+.profilo-sezione { margin-top: var(--u6); }
+.andamento-citazioni { max-width: 50rem; padding: 0; list-style: none; }
+.andamento-citazioni li { display: grid; grid-template-columns: 3.5rem minmax(4rem, 1fr) 5rem; align-items: center; gap: var(--u2); margin: var(--u1) 0; }
+.andamento-citazioni .traccia { height: .55rem; background: var(--riga); border-radius: 1rem; overflow: hidden; }
+.andamento-citazioni i { display: block; height: 100%; min-width: 2px; background: var(--accento); }
+.andamento-citazioni b { text-align: right; font: 500 .875rem/1 var(--mono); }
+.opere-citate { padding-left: 2rem; }
+.opere-citate li { position: relative; padding: var(--u2) 7rem var(--u2) var(--u1); border-bottom: 1px solid var(--riga); }
+.opere-citate small { display: block; margin-top: .2rem; color: var(--testo-tenue); }
+.opere-citate b { position: absolute; top: var(--u2); right: var(--u1); font: 500 .8125rem/1.4 var(--mono); }
+.numero-citazioni { font-variant-numeric: tabular-nums; }
+@media (max-width: 48rem) {
+  .registro-metriche { grid-template-columns: 1fr 1fr; }
+  .registro-metriche div { border-bottom: 1px solid var(--riga); }
+  .profilo-riga { align-items: flex-start; flex-direction: column; }
+  .opere-citate li { padding-right: var(--u1); }
+  .opere-citate b { position: static; display: block; margin-top: var(--u1); }
+}
+@media (max-width: 34rem) { .esplora-cerca { grid-template-columns: 1fr; } }
+
 /* ── avvisi: in un angolo, senza spostare nulla ─────────────── */
 .avvisi {
   position: fixed; right: var(--u3); bottom: var(--u3); z-index: 400;

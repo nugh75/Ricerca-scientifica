@@ -14,7 +14,7 @@ CAMPI = (
     "anno", "titolo", "autori", "sede", "doi", "url", "abstract", "fonti", "pdf",
     "citazioni", "ritirato", "decisione", "motivo",
 )
-CAMPI_PREDEFINITI = ("anno", "titolo", "autori", "sede", "fonti")
+CAMPI_PREDEFINITI = ("anno", "titolo", "autori", "sede", "citazioni", "fonti")
 
 _ATTRIBUTI = {
     "anno": "year",

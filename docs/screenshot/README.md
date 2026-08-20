@@ -9,6 +9,9 @@ Generati con Playwright dalla app in esecuzione in locale.
 | `1-topic.png` | step 1: topic / passo 1: argomento |
 | `2-ricerche-suggerite.png` | step 2: terms, blocks, queries / termini, blocchi, stringhe |
 | `3-risultati.png` | what each database did / che cosa ha fatto ogni banca dati |
+| `23-risultati-citazioni.png` | citation counts and entity links / citazioni e collegamenti alle entità |
+| `24-autore.png` | OpenAlex author profile / profilo autore OpenAlex |
+| `25-rivista.png` | OpenAlex journal profile / profilo rivista OpenAlex |
 | `9-comandi.png` | bulk commands and downloads / comandi in blocco e scaricamenti |
 | `6-apa.png` | APA references / riferimenti APA |
 | `20-scheda.png` | record card / scheda del record |

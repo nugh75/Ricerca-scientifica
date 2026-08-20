@@ -65,7 +65,7 @@ def test_cerca_mostra_risultati_ed_export(esegui_ricerca):
     bib = client.get(f"/export/{token}.bib")
     assert "@article{" in bib.text
     csv = client.get(f"/export/{token}.csv")
-    assert csv.text.startswith("anno,titolo,autori,sede,fonti")
+    assert csv.text.startswith("anno,titolo,autori,sede,citazioni,fonti")
 
 
 def test_impostazioni_salva_su_file(isolated_config):

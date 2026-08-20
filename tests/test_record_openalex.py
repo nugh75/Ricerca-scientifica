@@ -8,8 +8,13 @@ RISPOSTA = {"meta": {"cost_usd": 0.001}, "results": [{
     "id": "https://openalex.org/W42",
     "title": "Un articolo ritirato",
     "publication_year": 2024,
-    "authorships": [],
-    "primary_location": {},
+    "authorships": [{"author": {
+        "id": "https://openalex.org/A123", "display_name": "Ada Rossi",
+    }}],
+    "primary_location": {"source": {
+        "id": "https://openalex.org/S456", "display_name": "Journal of Tests",
+        "type": "journal",
+    }},
     "abstract_inverted_index": {"Un": [0], "abstract": [1], "vero": [2]},
     "is_retracted": True,
     "cited_by_count": 137,
@@ -33,6 +38,8 @@ async def test_il_record_porta_i_campi_nuovi():
     assert work.citazioni == 137
     assert work.molto_citato is True
     assert work.pdf_archivio == "https://content.openalex.org/works/W42.pdf"
+    assert work.author_ids == ["A123"]
+    assert work.venue_id == "S456"
 
 
 @respx.mock

@@ -42,7 +42,10 @@ SOMIGLIANZA_MINIMA = 0.92
 
 
 def _unisci(kept: Work, work: Work) -> None:
-    for campo in ("doi", "year", "venue", "url", "abstract", "oa_url", "openalex_id", "pdf_archivio"):
+    for campo in (
+        "doi", "year", "venue", "venue_id", "url", "abstract", "oa_url",
+        "openalex_id", "pdf_archivio",
+    ):
         if not getattr(kept, campo) and getattr(work, campo):
             setattr(kept, campo, getattr(work, campo))
     # `citazioni` ha uno zero legittimo: la verità sta nell'assenza (None),
@@ -55,6 +58,9 @@ def _unisci(kept: Work, work: Work) -> None:
     kept.molto_citato = kept.molto_citato or work.molto_citato
     if len(work.authors) > len(kept.authors):
         kept.authors = work.authors
+        kept.author_ids = work.author_ids
+    elif work.author_ids and work.authors == kept.authors and not kept.author_ids:
+        kept.author_ids = work.author_ids
     for source in work.sources:
         if source not in kept.sources:
             kept.sources.append(source)

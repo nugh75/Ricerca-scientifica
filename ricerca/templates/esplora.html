@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ t.explore_title }} · Ricerca{% endblock %}
+{% block content %}
+<section class="passo esplora-testa">
+  <p class="soprattitolo">{{ t.explore_eyebrow }}</p>
+  <h1>{{ t.explore_title }}</h1>
+  <p class="introduzione">{{ t.explore_intro }}</p>
+
+  <nav class="tab-list esplora-tab" aria-label="{{ t.explore_title }}">
+    <a class="tab {% if tipo == 'autori' %}attiva{% endif %}" href="/esplora?tipo=autori"
+       {% if tipo == 'autori' %}aria-current="page"{% endif %}>{{ t.tab_authors }}</a>
+    <a class="tab {% if tipo == 'riviste' %}attiva{% endif %}" href="/esplora?tipo=riviste"
+       {% if tipo == 'riviste' %}aria-current="page"{% endif %}>{{ t.tab_journals }}</a>
+  </nav>
+
+  <form class="esplora-form" method="get" action="/esplora">
+    <input type="hidden" name="tipo" value="{{ tipo }}">
+    <label for="esplora-q">{{ t.search_author if tipo == 'autori' else t.search_journal }}</label>
+    <div class="esplora-cerca">
+      <input id="esplora-q" name="q" value="{{ query }}" minlength="2" required
+             placeholder="{{ t.explore_placeholder_author if tipo == 'autori' else t.explore_placeholder_journal }}">
+      <button class="primario" type="submit">{{ t.explore_search }}</button>
+    </div>
+    <p class="aiuto">{{ t.explore_help }}</p>
+  </form>
+</section>
+
+{% if errore %}<p class="nota errore">{{ t.explore_error }}</p>{% endif %}
+{% if query and not trovati and not errore %}<p class="nota">{{ t.explore_no_results }}</p>{% endif %}
+{% if trovati %}
+<section class="elenco-profili" aria-label="{{ t.explore_results }}">
+  {% for voce in trovati %}
+  <a class="profilo-riga" href="/{{ tipo }}/{{ voce.id }}">
+    <span><strong>{{ voce.nome }}</strong>
+      <small>{{ voce.istituzione if tipo == 'autori' else voce.editore }}</small>
+    </span>
+    <span class="profilo-riga-metriche">
+      {{ t.profile_works }} <b>{{ voce.lavori|numero }}</b>
+      {{ t.profile_citations }} <b>{{ voce.citazioni|numero }}</b>
+    </span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

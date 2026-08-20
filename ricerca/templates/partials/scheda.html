@@ -24,9 +24,11 @@
   {% if work.citazioni is not none %}
     <p class="meta">{{ t.record_citazioni }}: {{ work.citazioni }}{% if work.molto_citato %} · {{ t.record_top10 }}{% endif %}</p>
   {% endif %}
-  <p class="scheda-autori">{{ work.authors|join('; ') or '—' }}</p>
+  <p class="scheda-autori">
+    {% for nome, id_autore in work.authors_identified %}{% if not loop.first %}; {% endif %}{% if id_autore %}<a href="/autori/{{ id_autore }}">{{ nome }}</a>{% else %}<a href="/esplora?tipo=autori&amp;q={{ nome|urlencode }}">{{ nome }}</a>{% endif %}{% else %}—{% endfor %}
+  </p>
   <p class="aiuto">
-    {{ work.venue or '—' }}{% if work.doi %} · {{ work.doi }}{% endif %}
+    {% if work.venue_id %}<a href="/riviste/{{ work.venue_id }}">{{ work.venue or '—' }}</a>{% elif work.venue %}<a href="/esplora?tipo=riviste&amp;q={{ work.venue|urlencode }}">{{ work.venue }}</a>{% else %}—{% endif %}{% if work.doi %} · {{ work.doi }}{% endif %}
     {% if work.corretto %}<span class="marchio">{{ t.card_fixed }}</span>{% endif %}
     {% if work.completato %}<span class="marchio">{{ t.unpaywall_source }}</span>{% endif %}
   </p>

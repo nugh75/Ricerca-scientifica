@@ -150,6 +150,10 @@ def record(id_voce: str) -> list[Work]:
         for campo, valore in corrette.get(str(indice), {}).items():
             if hasattr(lavoro, campo):
                 setattr(lavoro, campo, valore)
+                if campo == "authors":
+                    lavoro.author_ids = []
+                elif campo == "venue":
+                    lavoro.venue_id = ""
                 lavoro.corretto.append(campo)
                 if campo in lavoro.completato:
                     lavoro.completato.remove(campo)

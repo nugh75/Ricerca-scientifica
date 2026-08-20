@@ -24,7 +24,7 @@ def test_bibtex_vuoto_non_esplode():
 
 def test_csv_ha_intestazione_e_righe():
     rows = to_csv(works()).splitlines()
-    assert rows[0] == "anno,titolo,autori,sede,fonti"
+    assert rows[0] == "anno,titolo,autori,sede,citazioni,fonti"
     assert len(rows) == 3
 
 
@@ -42,8 +42,12 @@ def test_i_campi_scelti_governano_csv_e_bibtex():
 def test_campi_sconosciuti_ricadono_sui_predefiniti():
     from ricerca.export import normalizza_campi
 
-    assert normalizza_campi(["inventato"]) == list(("anno", "titolo", "autori", "sede", "fonti"))
-    assert normalizza_campi(None) == list(("anno", "titolo", "autori", "sede", "fonti"))
+    assert normalizza_campi(["inventato"]) == list(
+        ("anno", "titolo", "autori", "sede", "citazioni", "fonti")
+    )
+    assert normalizza_campi(None) == list(
+        ("anno", "titolo", "autori", "sede", "citazioni", "fonti")
+    )
 
 
 def test_apa_formatta_nomi_estesi_e_iniziali():

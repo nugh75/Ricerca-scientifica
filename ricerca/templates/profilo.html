@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ profilo.nome }} · Ricerca{% endblock %}
+{% block content %}
+<article class="profilo">
+  <header class="profilo-testa">
+    <p class="soprattitolo">{{ t.profile_author if tipo == 'autori' else t.profile_journal }}</p>
+    <h1>{{ profilo.nome }}</h1>
+    {% if tipo == 'autori' and profilo.istituzione %}<p class="introduzione">{{ profilo.istituzione }}</p>{% endif %}
+    {% if tipo == 'riviste' and profilo.editore %}<p class="introduzione">{{ profilo.editore }}</p>{% endif %}
+    <p class="profilo-identificatori">
+      <a href="https://openalex.org/{{ profilo.id }}" target="_blank" rel="noreferrer">OpenAlex {{ profilo.id }}</a>
+      {% if profilo.orcid %} · <a href="{{ profilo.orcid }}" target="_blank" rel="noreferrer">ORCID</a>{% endif %}
+      {% if profilo.issn %} · ISSN {{ profilo.issn }}{% endif %}
+      {% if profilo.sito %} · <a href="{{ profilo.sito }}" target="_blank" rel="noreferrer">{{ t.profile_website }}</a>{% endif %}
+    </p>
+  </header>
+
+  <section class="registro-metriche" aria-label="{{ t.profile_metrics }}">
+    {% for valore, etichetta in [
+      (profilo.lavori|numero, t.profile_works),
+      (profilo.citazioni|numero, t.profile_citations),
+      (profilo.h_index, t.profile_h_index),
+      (profilo.i10_index, t.profile_i10),
+      (profilo.media_due_anni if profilo.media_due_anni is not none else '—', t.profile_two_year)
+    ] %}
+    <div><span>{{ etichetta }}</span><strong>{{ valore }}</strong></div>
+    {% endfor %}
+  </section>
+  <p class="nota profilo-nota">{{ t.profile_metrics_note }} {{ t.profile_checked.format(data=consultato) }}</p>
+
+  {% if tipo == 'riviste' %}
+  <p class="profilo-stato">
+    <span class="marchio">{{ t.profile_open_access }}: {{ t.value_yes if profilo.oa else t.value_no }}</span>
+    <span class="marchio">DOAJ: {{ t.value_yes if profilo.doaj else t.value_no }}</span>
+  </p>
+  {% endif %}
+
+  {% if profilo.anni %}
+  <section class="profilo-sezione">
+    <h2>{{ t.profile_trend }}</h2>
+    <ol class="andamento-citazioni">
+      {% for anno in profilo.anni %}
+      <li><span>{{ anno.anno }}</span><span class="traccia"><i style="width: {{ anno.quota }}%"></i></span>
+          <b>{{ anno.citazioni|numero }}</b></li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
+  <section class="profilo-sezione">
+    <h2>{{ t.profile_top_works }}</h2>
+    {% if opere %}
+    <ol class="opere-citate">
+      {% for opera in opere %}
+      <li>
+        {% if opera.url %}<a href="{{ opera.url }}" target="_blank" rel="noreferrer">{{ opera.title }}</a>{% else %}<span>{{ opera.title }}</span>{% endif %}
+        <small>{{ opera.year or '—' }}{% if opera.venue %} · {{ opera.venue }}{% endif %}</small>
+        <b>{{ opera.citazioni|numero }} {{ t.profile_citations }}</b>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}<p class="nota">{{ t.profile_no_works }}</p>{% endif %}
+  </section>
+</article>
+{% endblock %}

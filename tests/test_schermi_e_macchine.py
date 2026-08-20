@@ -86,6 +86,41 @@ def test_gli_avvisi_non_hanno_la_barra_verticale():
     assert "border-left" not in blocco
 
 
+def test_la_tabella_mostra_zero_citazioni_e_collega_le_entita():
+    work = Work(
+        title="Studio", authors=["Ada Rossi"], author_ids=["A1"],
+        venue="Journal of Tests", venue_id="S1", citazioni=0, sources=["openalex"],
+    )
+    id_ricerca = history.salva(
+        "t", Strategy([Block("C", ["x"])]),
+        [SourceResult("openalex", "OpenAlex", "q", works=[work])], [work],
+    )
+    pagina = client.post(
+        f"/risultati/{id_ricerca}",
+        data={"vista": "tabella", "campo": ["autori", "sede", "citazioni"]},
+    ).text
+
+    assert 'href="/autori/A1"' in pagina
+    assert 'href="/riviste/S1"' in pagina
+    assert 'data-etichetta="citations" class="numero-citazioni"' in pagina
+    assert '>0</td>' in pagina
+
+
+def test_le_entita_senza_id_aprono_una_ricerca_per_nome():
+    work = Work(title="Studio", authors=["Ada Rossi"], venue="Journal of Tests")
+    id_ricerca = history.salva(
+        "t", Strategy([Block("C", ["x"])]),
+        [SourceResult("crossref", "Crossref", "q", works=[work])], [work],
+    )
+    pagina = client.post(
+        f"/risultati/{id_ricerca}",
+        data={"vista": "tabella", "campo": ["autori", "sede"]},
+    ).text
+
+    assert '/esplora?tipo=autori&amp;q=Ada%20Rossi' in pagina
+    assert '/esplora?tipo=riviste&amp;q=Journal%20of%20Tests' in pagina
+
+
 # ── macchine ──────────────────────────────────────────────────────────
 def test_l_elenco_e_diviso_in_pagine():
     id_ricerca = ricerca_con(PER_PAGINA + 20)

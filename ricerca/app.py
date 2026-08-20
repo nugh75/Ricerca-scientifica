@@ -24,7 +24,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, openalex_api, pdf, registro, search, unpaywall, watchdog
+from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, search, unpaywall, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -46,6 +46,7 @@ from .strategy import LINGUE, heuristic_strategy, strategy_from_form
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 templates.env.filters["apa_list"] = lambda works: [apa(w) for w in sorted(works, key=lambda w: apa(w).lower())]
+templates.env.filters["numero"] = lambda valore: f"{int(valore or 0):,}"
 
 @asynccontextmanager
 async def ciclo_di_vita(_: FastAPI):
@@ -1389,6 +1390,60 @@ async def biblioteca_pagina(request: Request, q: str = ""):
             documenti=len(biblioteca.documenti()),
         ),
     )
+
+
+@app.get("/esplora", response_class=HTMLResponse)
+async def esplora(request: Request, tipo: str = "autori", q: str = ""):
+    """Cerca autori o riviste OpenAlex senza avviare una revisione."""
+
+    config = current_config()
+    tipo = tipo if tipo in profili.TIPI else "autori"
+    trovati, errore = [], ""
+    if q.strip():
+        try:
+            async with cache.client(
+                headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+            ) as client:
+                trovati = await profili.cerca(tipo, q, config, client)
+        except (httpx.HTTPError, OSError) as exc:
+            errore = str(exc)[:160]
+    return templates.TemplateResponse(
+        request,
+        "esplora.html",
+        base_context(config, tipo=tipo, query=q, trovati=trovati, errore=errore),
+    )
+
+
+async def _pagina_profilo(request: Request, tipo: str, id_entita: str):
+    config = current_config()
+    try:
+        async with cache.client(
+            headers={"User-Agent": search.USER_AGENT}, follow_redirects=True
+        ) as client:
+            profilo, opere = await profili.leggi(tipo, id_entita, config, client)
+    except (ValueError, httpx.HTTPError, OSError):
+        return RedirectResponse(f"/esplora?tipo={tipo}", status_code=303)
+    return templates.TemplateResponse(
+        request,
+        "profilo.html",
+        base_context(
+            config,
+            tipo=tipo,
+            profilo=profilo,
+            opere=opere,
+            consultato=datetime.now().strftime("%Y-%m-%d"),
+        ),
+    )
+
+
+@app.get("/autori/{id_entita}", response_class=HTMLResponse)
+async def autore_pagina(request: Request, id_entita: str):
+    return await _pagina_profilo(request, "autori", id_entita)
+
+
+@app.get("/riviste/{id_entita}", response_class=HTMLResponse)
+async def rivista_pagina(request: Request, id_entita: str):
+    return await _pagina_profilo(request, "riviste", id_entita)
 
 
 @app.get("/registro", response_class=HTMLResponse)

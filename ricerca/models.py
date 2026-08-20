@@ -68,9 +68,13 @@ class Work:
 
     title: str
     authors: list[str] = field(default_factory=list)
+    # Identificativi paralleli ai nomi: restano separati per non rompere le
+    # cronologie vecchie, che conservano soltanto una lista di stringhe.
+    author_ids: list[str] = field(default_factory=list)
     year: int | None = None
     doi: str | None = None
     venue: str | None = None
+    venue_id: str = ""
     url: str | None = None
     abstract: str | None = None
     oa_url: str | None = None
@@ -113,6 +117,13 @@ class Work:
         if len(self.authors) <= 3:
             return ", ".join(self.authors)
         return f"{self.authors[0]} et al."
+
+    @property
+    def authors_identified(self) -> list[tuple[str, str]]:
+        """Nomi e ID allineati, con ID vuoto quando una fonte non lo sa."""
+
+        ids = [*self.author_ids, *([""] * max(0, len(self.authors) - len(self.author_ids)))]
+        return list(zip(self.authors, ids))
 
 
 @dataclass

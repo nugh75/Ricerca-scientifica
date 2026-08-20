@@ -48,9 +48,16 @@
     {% elif campo == 'anno' %}
       <td data-etichetta="{{ t['field_' ~ campo] }}" class="anno">{{ w.year or '—' }}</td>
     {% elif campo == 'autori' %}
-      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.authors_short }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}">
+        {% if w.authors|length > 3 %}
+          {% set nome, id_autore = w.authors_identified[0] %}
+          {% if id_autore %}<a href="/autori/{{ id_autore }}">{{ nome }}</a>{% else %}<a href="/esplora?tipo=autori&amp;q={{ nome|urlencode }}">{{ nome }}</a>{% endif %} et al.
+        {% else %}
+          {% for nome, id_autore in w.authors_identified %}{% if not loop.first %}, {% endif %}{% if id_autore %}<a href="/autori/{{ id_autore }}">{{ nome }}</a>{% else %}<a href="/esplora?tipo=autori&amp;q={{ nome|urlencode }}">{{ nome }}</a>{% endif %}{% endfor %}
+        {% endif %}
+      </td>
     {% elif campo == 'sede' %}
-      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.venue or '' }}</td>
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{% if w.venue_id %}<a href="/riviste/{{ w.venue_id }}">{{ w.venue or '' }}</a>{% elif w.venue %}<a href="/esplora?tipo=riviste&amp;q={{ w.venue|urlencode }}">{{ w.venue }}</a>{% endif %}</td>
     {% elif campo == 'doi' %}
       <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{{ w.doi or '' }}</td>
     {% elif campo == 'url' %}
@@ -61,6 +68,14 @@
       <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{{ w.sources|join(' · ') }}</td>
     {% elif campo == 'pdf' %}
       <td data-etichetta="{{ t['field_' ~ campo] }}" class="fonti-cella">{{ w.oa_url or '' }}</td>
+    {% elif campo == 'citazioni' %}
+      <td data-etichetta="{{ t['field_' ~ campo] }}" class="numero-citazioni" title="{{ t.citations_openalex }}">{% if w.citazioni is not none %}{{ w.citazioni|numero }}{% if w.molto_citato %} <span class="marchio piccolo" title="{{ t.record_top10 }}">10%</span>{% endif %}{% else %}—{% endif %}</td>
+    {% elif campo == 'ritirato' %}
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ t.value_yes if w.ritirato else t.value_no }}</td>
+    {% elif campo == 'decisione' %}
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.decisione or '—' }}</td>
+    {% elif campo == 'motivo' %}
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.motivo or '' }}</td>
     {% endif %}
     {% endfor %}
     <td class="cella-pdf" data-etichetta="{{ t.pdf_column }}">{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>

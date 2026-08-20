@@ -119,19 +119,25 @@ def _pdf_candidati(item: dict) -> list[str]:
 
 def work_da(item: dict) -> Work:
     location = item.get("primary_location") or {}
-    venue = (location.get("source") or {}).get("display_name")
+    source = location.get("source") or {}
+    venue = source.get("display_name")
+    paternita = [
+        a.get("author") or {}
+        for a in item.get("authorships", [])
+        if (a.get("author") or {}).get("display_name")
+    ]
     candidati = _pdf_candidati(item)
     percentile = item.get("citation_normalized_percentile") or {}
     return Work(
         title=clean(item.get("title")) or "(senza titolo)",
-        authors=[
-            a["author"]["display_name"]
-            for a in item.get("authorships", [])
-            if a.get("author", {}).get("display_name")
-        ],
+        authors=[a["display_name"] for a in paternita],
+        author_ids=[openalex_api.id_breve(a.get("id")) for a in paternita],
         year=item.get("publication_year"),
         doi=clean(item.get("doi")),
         venue=clean(venue),
+        # Le "sources" OpenAlex comprendono anche repository e convegni:
+        # la pagina Riviste collega soltanto gli oggetti dichiarati journal.
+        venue_id=(openalex_api.id_breve(source.get("id")) if source.get("type") == "journal" else ""),
         url=clean(item.get("id")),
         abstract=openalex_api.abstract_da_indice(item.get("abstract_inverted_index")),
         oa_url=candidati[0] if candidati else None,

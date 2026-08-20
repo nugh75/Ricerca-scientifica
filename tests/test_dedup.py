@@ -76,6 +76,7 @@ def test_la_fusione_tiene_i_campi_di_openalex():
     da_openalex = Work(
         title="Stesso lavoro", doi="10.1/x", sources=["openalex"],
         openalex_id="W9", citazioni=12, ritirato=True, molto_citato=True,
+        authors=["Ada Rossi"], author_ids=["A1"], venue="Journal", venue_id="S1",
         pdf_archivio="https://content.openalex.org/works/W9.pdf",
     )
     unito = merge([da_crossref, da_openalex])[0]
@@ -84,6 +85,8 @@ def test_la_fusione_tiene_i_campi_di_openalex():
     assert unito.ritirato is True
     assert unito.molto_citato is True
     assert unito.pdf_archivio.endswith("W9.pdf")
+    assert unito.author_ids == ["A1"]
+    assert unito.venue_id == "S1"
 
 
 def test_lo_zero_citazioni_non_si_perde_nella_fusione():

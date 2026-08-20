@@ -10,7 +10,7 @@ li esegue la CI una volta a settimana, e si possono lanciare a mano con
 import httpx
 import pytest
 
-from ricerca import keywords, sources
+from ricerca import keywords, profili, sources
 from ricerca.config import Config
 from ricerca.models import Block, Filtri, Strategy
 
@@ -53,6 +53,26 @@ async def test_openalex_risponde_e_i_campi_ci_sono(client):
     works = await _controlla("openalex", client)
     assert any(w.year for w in works), "OpenAlex: nessun anno"
     assert any(w.authors for w in works), "OpenAlex: nessun autore"
+    assert any(w.author_ids for w in works), "OpenAlex: identificativi autori persi"
+
+
+async def test_openalex_restituisce_profili_autore(client):
+    try:
+        trovati = await profili.cerca("autori", "Geoffrey Hinton", CONFIG, client, 2)
+    except httpx.HTTPStatusError as errore:
+        _salta_se_limitata(errore, "openalex")
+    assert trovati and trovati[0]["id"].startswith("A")
+    assert trovati[0]["nome"]
+
+
+async def test_openalex_restituisce_profili_rivista_e_lavori(client):
+    try:
+        trovati = await profili.cerca("riviste", "Nature Human Behaviour", CONFIG, client, 2)
+        profilo, lavori = await profili.leggi("riviste", trovati[0]["id"], CONFIG, client)
+    except httpx.HTTPStatusError as errore:
+        _salta_se_limitata(errore, "openalex")
+    assert profilo["id"].startswith("S") and profilo["issn"]
+    assert lavori and all(lavoro.title for lavoro in lavori)
 
 
 async def test_crossref_risponde_e_i_campi_ci_sono(client):

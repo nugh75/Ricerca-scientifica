@@ -38,6 +38,14 @@ def test_un_abstract_storico_con_marcatura_si_rilegge_pulito():
     assert history.record(id_voce)[0].abstract == "Background Testo leggibile."
 
 
+def test_una_cronologia_vecchia_non_richiede_gli_id_bibliometrici():
+    id_voce = ricerca_finta()
+    record = history.record(id_voce)[0]
+
+    assert record.author_ids == []
+    assert record.venue_id == ""
+
+
 def test_l_elenco_non_porta_i_record():
     ricerca_finta()
     voce = history.elenco()[0]
