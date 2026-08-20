@@ -12,8 +12,9 @@
           hx-swap="outerHTML"
           title="{{ etichetta }}">{{ etichetta }}</button>
   {% endfor %}
-  <textarea id="motivo-{{ indice }}" name="motivo" rows="1"
-            placeholder="{{ t.screening_reason }}" class="motivo">{{ work.motivo }}</textarea>
+  <textarea id="motivo-{{ indice }}" name="motivo" rows="2"
+            placeholder="{{ t.screening_reason }}" aria-label="{{ t.screening_reason }}"
+            class="motivo">{{ work.motivo }}</textarea>
 </span>
 {% if fuori_banda %}
 {% include "partials/prisma.html" %}

@@ -1,7 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/icona.html" import icona %}
 {% block title %}{{ profilo.nome }} · Ricerca{% endblock %}
 {% block content %}
 <article class="profilo">
+  <a class="copia torna-esplora" href="/esplora?tipo={{ tipo }}" data-torna-indietro>
+    {{ icona('previous') }} {{ t.profile_back }}
+  </a>
   <header class="profilo-testa">
     <p class="soprattitolo">{{ t.profile_author if tipo == 'autori' else t.profile_journal }}</p>
     <h1>{{ profilo.nome }}</h1>

@@ -45,9 +45,9 @@ jobs:
           - Results, Field profile and Protocol are separate workspaces, with
             clearer navigation, menus, preferences and notifications.
           - A PRISMA progress rail and explicit bulk-action scope make screening
-            faster and safer; keyword and reason fields are resizable.
+            safer; reasons use full-width, resizable multiline boxes.
           - Author and journal profiles reveal the articles citing each
-            most-cited work on demand.
+            most-cited work and provide contextual back navigation.
 
           Download the archive for your system, extract it and start it.
 
@@ -77,10 +77,10 @@ jobs:
 
           - Risultati, Profilo del campo e Protocollo sono spazi separati, con
             navigazione, menu, preferenze e notifiche più chiari.
-          - Una barra PRISMA e un ambito esplicito rendono lo screening in
-            blocco più rapido e sicuro; termini e motivazioni sono espandibili.
+          - Una barra PRISMA e un ambito esplicito rendono lo screening più
+            sicuro; le motivazioni usano box multilinea larghi ed espandibili.
           - I profili di autori e riviste mostrano su richiesta gli articoli che
-            citano ciascun lavoro più citato.
+            citano ciascun lavoro e offrono un ritorno contestuale a Esplora.
 
           Scarica l'archivio del tuo sistema, estrailo e avvia.
 

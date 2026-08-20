@@ -58,8 +58,14 @@ def test_la_rotta_di_screening_aggiorna_cella_e_conteggi():
 def test_le_motivazioni_sono_aree_di_testo_ridimensionabili():
     id_ricerca = ricerca_con_tre_record()
     pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
-    assert '<textarea id="motivo-0"' in pagina
+    assert '<textarea id="motivo-0"' in pagina and 'rows="2"' in pagina
     assert 'class="motivo"' in pagina
+
+    from pathlib import Path
+    css = (Path(__file__).resolve().parent.parent / "ricerca/static/style.css").read_text()
+    regola = css.split(".motivo {", 1)[1].split("}", 1)[0]
+    assert "width: 100%" in regola
+    assert "resize: vertical" in regola
 
 
 def test_le_decisioni_finiscono_nel_csv():

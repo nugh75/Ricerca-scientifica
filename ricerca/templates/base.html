@@ -202,6 +202,15 @@ document.addEventListener("click", function (event) {
   if (event.target.id === "lettore-chiudi") lettore.close();
   if (event.target.id === "scheda-chiudi") document.getElementById("scheda").close();
 });
+
+// Nei profili si torna alla ricerca o alla pagina da cui il nome è stato
+// aperto. Il collegamento resta un fallback funzionante anche senza JavaScript.
+document.addEventListener("click", function (event) {
+  const indietro = event.target.closest("[data-torna-indietro]");
+  if (!indietro || !document.referrer.startsWith(location.origin)) return;
+  event.preventDefault();
+  history.back();
+});
 lettore.addEventListener("close", function () {
   document.getElementById("lettore-telaio").src = "";  // ferma il caricamento
 });

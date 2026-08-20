@@ -86,6 +86,8 @@ def test_la_pagina_autore_mostra_metriche_e_lavori():
     assert "17" in pagina
     assert "Il lavoro più citato" in pagina
     assert "/esplora/citanti/W9" in pagina
+    assert 'data-torna-indietro' in pagina
+    assert 'href="/esplora?tipo=autori"' in pagina
 
 
 @respx.mock

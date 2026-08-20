@@ -65,8 +65,9 @@ configure later, and reopen it any time from Settings.
   Bulk decisions, downloads, metadata completion, and Zotero export now require
   an explicit selection or an explicit choice to act on every saved record.
 - Keyword suggestions remain visible beside resizable Boolean-block fields;
-  screening reasons are resizable too. Author and journal profiles can reveal,
-  on demand, the articles citing each most-cited work.
+  screening reasons use full-width, multiline boxes. Author and journal
+  profiles can reveal the articles citing each most-cited work and return to
+  the originating Explore page with one control.
 
 ### New in 1.0.0b5
 
@@ -335,9 +336,10 @@ vuole da Impostazioni.
   in blocco richiedono una selezione oppure la scelta esplicita di tutti i
   record salvati.
 - I suggerimenti di parole chiave restano visibili accanto ai campi
-  ridimensionabili dei blocchi booleani; anche le motivazioni di screening sono
-  ridimensionabili. Nei profili di autori e riviste si possono caricare, su
-  richiesta, gli articoli che citano ciascun lavoro più citato.
+  ridimensionabili dei blocchi booleani; le motivazioni di screening usano box
+  multilinea a larghezza piena. Nei profili di autori e riviste si possono
+  caricare gli articoli citanti e tornare con un comando alla pagina Esplora di
+  provenienza.
 
 ### Novità in 1.0.0b5
 
