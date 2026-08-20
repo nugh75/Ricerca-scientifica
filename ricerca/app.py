@@ -23,7 +23,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
+from . import biblioteca, cache, costo, diagnostica, history, i18n, keywords, lavori, macchina, pdf, registro, search, unpaywall, watchdog
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -1122,16 +1122,20 @@ async def svuota_cronologia():
 
 @app.get("/impostazioni", response_class=HTMLResponse)
 async def impostazioni(request: Request, salvato: int = 0):
+    config = current_config()
     return templates.TemplateResponse(
         request,
         "impostazioni.html",
         base_context(
-            current_config(),
+            config,
             presets=PRESETS,
             salvato=bool(salvato),
             diagnosi=diagnostica.dati(),
             percorso=config_module.CONFIG_FILE,
             sources=sources_registry.ALL,
+            credito_speso=costo.speso(),
+            credito_resta=costo.resta(config),
+            credito_budget=costo.budget(config),
         ),
     )
 

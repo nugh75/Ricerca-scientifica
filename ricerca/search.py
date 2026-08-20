@@ -7,7 +7,7 @@ import time
 
 import httpx
 
-from . import sources as sources_registry
+from . import openalex_api, sources as sources_registry
 from .config import Config
 from .cache import client as client_con_cache
 from .dedup import merge
@@ -109,9 +109,11 @@ async def _one(
         return result
 
     inizio = time.monotonic()
+    openalex_api.ULTIMA_OQL.set("")
     for attempt in (1, 2):
         try:
             result.works = await source.search(client, query, limit, config, strategy.filtri)
+            result.oql = openalex_api.ULTIMA_OQL.get("")
             result.error = None
             result.secondi = round(time.monotonic() - inizio, 2)
             annota(
@@ -156,6 +158,7 @@ def statistiche(results: list[SourceResult], works: list[Work]) -> list[dict]:
                 "soltanto": len(soltanto),
                 "secondi": result.secondi,
                 "errore": result.error,
+                "oql": result.oql,
             }
         )
     return righe

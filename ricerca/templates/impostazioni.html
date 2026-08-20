@@ -37,6 +37,7 @@
              placeholder="{% if config.openalex_api_key %}{{ t.key_set }}{% else %}{{ t.key_empty }}{% endif %}">
       {% if config.openalex_api_key %}<label class="rimuovi"><input type="checkbox" name="rimuovi" value="openalex_api_key"> {{ t.key_remove }}</label>{% endif %}
     </span>
+    {% include "partials/credito.html" %}
     <label for="s2_api_key">{{ t.settings_s2 }}</label>
     <span class="chiave">
       <input id="s2_api_key" name="s2_api_key" type="password" autocomplete="off"

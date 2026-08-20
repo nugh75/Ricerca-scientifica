@@ -1,0 +1,6 @@
+<p class="credito">
+  {{ t.credito_speso }}: <b>${{ "%.4f"|format(credito_speso) }}</b> ·
+  {{ t.credito_resta }}: <b>${{ "%.2f"|format(credito_resta) }}</b>
+  {{ t.credito_su }} ${{ "%.2f"|format(credito_budget) }}
+  <small>{{ t.credito_nota }}</small>
+</p>

@@ -118,6 +118,9 @@ class SourceResult:
     works: list[Work] = field(default_factory=list)
     error: str | None = None
     secondi: float = 0.0
+    # La stessa interrogazione riscritta da OpenAlex nel suo linguaggio: è la
+    # strategia riproducibile da allegare a una revisione.
+    oql: str = ""
 
 
 @dataclass

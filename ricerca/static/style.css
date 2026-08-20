@@ -250,6 +250,7 @@ button:disabled { opacity: .5; cursor: default; }
 .blocco input[name="label"] { border: 0; border-bottom: 1px solid var(--bordo); border-radius: 0; padding: .25rem 0; font-weight: 500; background: none; }
 .blocco textarea { margin-top: var(--u1); }
 .aiuto { font-size: .875rem; color: var(--testo-tenue); margin: var(--u1) 0 var(--u2); max-width: 72ch; }
+.credito { font-size: .875rem; color: var(--testo-tenue); margin: var(--u1) 0 var(--u2); }
 
 /* ── gruppi di scelte ─────────────────────────────────────── */
 fieldset { border: 0; border-top: 1px solid var(--riga); margin: var(--u3) 0 0; padding: var(--u2) 0 0; }

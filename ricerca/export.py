@@ -205,6 +205,11 @@ def protocollo(voce: dict, conteggi: dict) -> str:
         stringa = str(fonte.get("query", "")).replace("|", "\\|")
         righe.append(f"| {fonte.get('etichetta', '')} | `{stringa}` | {esito} |")
 
+    oql = [f for f in voce.get("fonti", []) if f.get("oql")]
+    if oql:
+        righe += ["", "## Query OQL (OpenAlex)", ""]
+        righe += [f"- **{f.get('etichetta', '')}**: `{f['oql']}`" for f in oql]
+
     righe += [
         "",
         "## Selezione",
@@ -241,6 +246,11 @@ def protocollo_testo(voce: dict, conteggi: dict) -> str:
         esito = fonte.get("errore") or f"{fonte.get('trovati', 0)} risultati"
         righe.append(f"  {fonte.get('etichetta', '')} — {esito}")
         righe.append(f"    {fonte.get('query', '')}")
+
+    oql = [f for f in voce.get("fonti", []) if f.get("oql")]
+    if oql:
+        righe += ["", "QUERY OQL (OPENALEX)"]
+        righe += [f"  {f.get('etichetta', '')}: {f['oql']}" for f in oql]
 
     righe += [
         "",
