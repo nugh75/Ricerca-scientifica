@@ -16,13 +16,13 @@ strategy, the numbers and the PDFs where you can find them again.
 
 Grab the archive for your system from the
 [Releases](https://github.com/nugh75/Ricerca-scientifica/releases) page,
-extract it and start it:
+extract it and run the installer:
 
 | System | Archive | How to start |
 |---|---|---|
-| macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → *Open* |
-| Windows | `ricerca-*-windows.zip` | double-click `start.bat`; `create-shortcut-windows.bat` puts an icon on the Desktop |
-| Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` adds it to the menu |
+| macOS | `ricerca-*-macos.tar.gz` | double-click `install-or-update.command`; first launch, right-click Ricerca → *Open* if macOS asks |
+| Windows | `ricerca-*-windows.zip` | double-click `install-or-update.bat` |
+| Linux | `ricerca-*-linux.tar.gz` | run `./install-or-update.sh` |
 
 **Python is not required.** On first run the launcher downloads `uv` into the
 app folder and lets it fetch the interpreter and the libraries: no admin
@@ -38,10 +38,12 @@ Chrome and Edge, *Install app* does. Closing the window quits the app, and
 The server listens on `127.0.0.1` only: it is never reachable from another
 machine.
 
-**Upgrading**: download the new archive and start it. The launcher compares the
-version with the installed one and rebuilds the environment when needed. The
-running version is printed at the foot of every page; Settings shows which copy
-is running, and from which folder.
+**Upgrading**: download the new archive and run the same installer. It replaces
+the installed application, keeps one previous copy for recovery, refreshes the
+shortcut, and starts the new version. Searches, review workspaces, settings and
+PDFs stay under `~/.ricerca` (or the equivalent user folder on Windows) and are
+never moved. The running version is printed at the foot of every page; Settings
+shows which copy is running, and from which folder.
 
 ## First launch
 
@@ -320,13 +322,13 @@ selezionare — e poi tiene strategia, numeri e PDF dove si ritrovano.
 ## Scarica e avvia
 
 Dalla pagina [Releases](https://github.com/nugh75/Ricerca-scientifica/releases)
-scarica l'archivio del tuo sistema, estrailo e avvia:
+scarica l'archivio del tuo sistema, estrailo e avvia l'installatore:
 
 | Sistema | Archivio | Avvio |
 |---|---|---|
-| macOS | `ricerca-*-macos.tar.gz` | trascina `Ricerca.app` in Applicazioni; la prima volta clic destro → *Apri* |
-| Windows | `ricerca-*-windows.zip` | doppio clic su `start.bat`; `create-shortcut-windows.bat` mette l'icona sul Desktop |
-| Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` la mette nel menu |
+| macOS | `ricerca-*-macos.tar.gz` | doppio clic su `install-or-update.command`; al primo avvio clic destro su Ricerca → *Apri* se macOS lo richiede |
+| Windows | `ricerca-*-windows.zip` | doppio clic su `install-or-update.bat` |
+| Linux | `ricerca-*-linux.tar.gz` | esegui `./install-or-update.sh` |
 
 **Non serve installare Python.** Al primo avvio il lanciatore scarica `uv`
 nella cartella dell'app e con esso l'interprete e le librerie: nessun permesso
@@ -341,10 +343,13 @@ finestra l'app si chiude, e `ricerca serve --scheda` chiede apposta una scheda.
 
 Il server ascolta solo su `127.0.0.1`: non è raggiungibile da altre macchine.
 
-**Aggiornare**: scarica il nuovo archivio e avvialo. Il lanciatore confronta la
-versione con quella installata e rifà l'ambiente quando serve. La versione in
-esecuzione è scritta in fondo a ogni pagina; Impostazioni dice quale copia sta
-girando, e da quale cartella.
+**Aggiornare**: scarica il nuovo archivio e avvia lo stesso installatore.
+Sostituisce automaticamente l'app installata, conserva una sola copia
+precedente per il ripristino, aggiorna il collegamento e apre la versione nuova.
+Ricerche, workspace di review, impostazioni e PDF restano in `~/.ricerca` (o
+nella cartella utente equivalente su Windows) e non vengono spostati. La
+versione in esecuzione è scritta in fondo a ogni pagina; Impostazioni dice
+quale copia sta girando, e da quale cartella.
 
 ## Prima apertura
 

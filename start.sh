@@ -13,7 +13,7 @@ SCRIVIBILE=1
 # Se la cartella dell'app non è scrivibile (per esempio /Applications o una
 # chiavetta protetta), tutto finisce sotto ~/.ricerca: nessun permesso da
 # chiedere. / If the app folder is read-only, everything goes to ~/.ricerca.
-if [ ! -w "$PWD" ]; then
+if [ ! -w "$PWD" ] || [ -f "$PWD/.installed" ]; then
   SCRIVIBILE=0
   TOOLS="$HOME/.ricerca/tools"
   mkdir -p "$TOOLS"
@@ -66,9 +66,20 @@ if ! command -v "$PYTHON" > /dev/null 2>&1; then
   echo "Installa Python da https://www.python.org/downloads/ e riprova."
   exit 1
 fi
-if [ ! -d .venv ]; then
-  "$PYTHON" -m venv .venv
-  .venv/bin/pip install --quiet --upgrade pip
-  .venv/bin/pip install --quiet -e .
+VENV_FALLBACK="$PWD/.venv"
+if [ "$SCRIVIBILE" = "0" ]; then
+  VENV_FALLBACK="$HOME/.ricerca/venv"
 fi
-exec .venv/bin/ricerca serve "$@"
+VERSIONE="$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)"
+INSTALLATA="$(cat "$VENV_FALLBACK/.versione" 2>/dev/null || true)"
+if [ ! -x "$VENV_FALLBACK/bin/ricerca" ] || [ "$INSTALLATA" != "$VERSIONE" ]; then
+  "$PYTHON" -m venv --clear "$VENV_FALLBACK"
+  "$VENV_FALLBACK/bin/pip" install --quiet --upgrade pip
+  if [ "$SCRIVIBILE" = "1" ]; then
+    "$VENV_FALLBACK/bin/pip" install --quiet -e .
+  else
+    "$VENV_FALLBACK/bin/pip" install --quiet .
+  fi
+  echo "$VERSIONE" > "$VENV_FALLBACK/.versione"
+fi
+exec "$VENV_FALLBACK/bin/ricerca" serve "$@"

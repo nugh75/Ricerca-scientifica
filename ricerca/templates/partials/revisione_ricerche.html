@@ -9,7 +9,7 @@
   </form>
   {% elif not progetto.ricerche %}<p class="nota">{{ t.review_no_saved_searches }}</p>{% endif %}
   {% if progetto.ricerche %}
-  <div class="elenco-ricerche-review">{% for ricerca in progetto.ricerche %}<article><strong>{{ ricerca.topic or '—' }}</strong><span>{{ ricerca.quando|replace('T', ' ') }}</span><small>{{ ricerca.fonti|join(' · ') }}</small><a href="/cronologia/{{ ricerca.id }}">{{ t.review_open_search }}</a></article>{% endfor %}</div>
+  <div class="elenco-ricerche-review">{% for ricerca in progetto.ricerche %}<article><strong>{{ ricerca.topic or '—' }}</strong><span>{{ ricerca.quando|replace('T', ' ') }}</span><small>{{ ricerca.fonti|join(' · ') }}</small><div class="azioni-ricerca-review"><a href="/cronologia/{{ ricerca.id }}">{{ t.review_open_search }}</a><form method="post" action="/revisioni/{{ progetto.id }}/ricerche/{{ ricerca.id }}/rimuovi" data-confirm="{{ t.review_remove_search_confirm }}"><button type="submit">{{ t.review_remove_search }}</button></form></div></article>{% endfor %}</div>
   {% endif %}
   <div class="checklist-review">
     <h3>{{ t.review_prisma_check }}</h3>

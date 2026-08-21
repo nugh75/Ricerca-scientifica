@@ -29,6 +29,8 @@ LINUX="$LAVORO/linux/ricerca"
 sorgente_in "$LINUX"
 cp start.sh "$LINUX/"
 cp packaging/install-shortcut-linux.sh "$LINUX/"
+cp packaging/install-linux.sh "$LINUX/install-or-update.sh"
+chmod +x "$LINUX/start.sh" "$LINUX/install-shortcut-linux.sh" "$LINUX/install-or-update.sh"
 tar -czf "$DIST/ricerca-$VERSIONE-linux.tar.gz" -C "$LAVORO/linux" ricerca
 
 # ── macOS: un vero bundle, si apre senza finestra di Terminale ────────
@@ -43,14 +45,17 @@ sed "s/__VERSIONE__/$VERSIONE/g" packaging/macos/Info.plist > "$BUNDLE/Info.plis
 # Copia dell'unico lanciatore: un secondo file resterebbe indietro.
 cp start.sh "$MAC/start-from-terminal.command"
 chmod +x "$MAC/start-from-terminal.command"
+cp packaging/install-macos.command "$MAC/install-or-update.command"
+chmod +x "$MAC/install-or-update.command"
 cat > "$MAC/READ-ME-FIRST.txt" <<'FINE'
 Ricerca — installing on macOS
 
-1. Drag Ricerca.app into your Applications folder.
-2. First launch: right-click the icon → Open → Open.
+1. Double-click install-or-update.command. It installs Ricerca in your
+   Applications folder and replaces the previous version automatically.
+2. On the first launch: right-click the Ricerca icon → Open → Open.
    Needed because the app is not signed with an Apple Developer ID.
    If macOS calls it “damaged”, run this once in Terminal:
-       xattr -dr com.apple.quarantine /Applications/Ricerca.app
+       xattr -dr com.apple.quarantine "$HOME/Applications/Ricerca.app"
 3. After that a double-click is enough: the browser opens, no Terminal.
    Closing the page quits the app.
 
@@ -58,18 +63,19 @@ Ricerca — installing on macOS
 
 Ricerca — installazione su macOS
 
-1. Trascina Ricerca.app nella cartella Applicazioni.
-2. Al primo avvio: clic destro sull'icona → Apri → Apri.
+1. Fai doppio clic su install-or-update.command. Installa Ricerca nella tua
+   cartella Applicazioni e sostituisce automaticamente la versione precedente.
+2. Al primo avvio: clic destro sull'icona di Ricerca → Apri → Apri.
    Serve perché l'app non è firmata con un Developer ID Apple.
    Se macOS la dice «danneggiata», apri il Terminale una volta sola:
-       xattr -dr com.apple.quarantine /Applications/Ricerca.app
+       xattr -dr com.apple.quarantine "$HOME/Applications/Ricerca.app"
 3. Poi basta il doppio clic: si apre il browser, senza Terminale.
    Chiudendo la pagina l'app si chiude da sola.
 
 Il primo avvio scarica uv e l'interprete Python in ~/.ricerca
 (serve la connessione a internet). Il registro sta in ~/.ricerca/avvio.log.
 FINE
-tar -czf "$DIST/ricerca-$VERSIONE-macos.tar.gz" -C "$MAC" Ricerca.app start-from-terminal.command READ-ME-FIRST.txt
+tar -czf "$DIST/ricerca-$VERSIONE-macos.tar.gz" -C "$MAC" Ricerca.app install-or-update.command start-from-terminal.command READ-ME-FIRST.txt
 
 # ── Windows: sorgente, .bat, icona e creatore di collegamento ─────────
 WIN="$LAVORO/windows/ricerca"
@@ -77,6 +83,8 @@ sorgente_in "$WIN"
 cp start.bat "$WIN/"
 cp packaging/Ricerca.ico "$WIN/"
 cp packaging/create-shortcut-windows.bat "$WIN/"
+cp packaging/install-windows.bat "$WIN/install-or-update.bat"
+cp packaging/install-windows.ps1 "$WIN/install-or-update.ps1"
 ( cd "$LAVORO/windows" && zip -qr "../../ricerca-$VERSIONE-windows.zip" ricerca )
 
 rm -rf "$LAVORO"

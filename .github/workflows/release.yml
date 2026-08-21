@@ -40,23 +40,22 @@ jobs:
           and stored formats can still change between versions. Problems and
           suggestions: open an issue.
 
-          ### New in 1.0.0b7
+          ### New in 1.0.0b8
 
-          - Review workspaces now cover protocol, multi-search provenance,
-            blinded dual screening, extraction and consensus, appraisal,
-            GRADE-style synthesis, and explicit living updates.
-          - A navigable literature wiki and interactive graph compile metadata
-            and abstracts; LLM concepts retain locally validated source evidence.
-          - Conflict-first pagination, contextual actions, and the nine-stage
-            rail keep long reviews clear on desktop and mobile.
+          - One-click installers replace the prior app on macOS, Windows, and
+            Linux while preserving searches, review workspaces, settings, and PDFs.
+          - Protocol fields now include contextual guidance, and connected
+            searches can be removed without deleting corpus records or decisions.
+          - Screening cards open the article page and downloaded PDF; the
+            internal reader returns to the same record and review context.
 
-          Download the archive for your system, extract it and start it.
+          Download the archive for your system, extract it and run the installer.
 
           | System | File | How to start |
           |---|---|---|
-          | macOS | `ricerca-*-macos.tar.gz` | drag `Ricerca.app` into Applications; first launch, right-click → Open |
-          | Windows | `ricerca-*-windows.zip` | double-click `start.bat`; `create-shortcut-windows.bat` puts an icon on the Desktop |
-          | Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` adds it to the menu |
+          | macOS | `ricerca-*-macos.tar.gz` | double-click `install-or-update.command` |
+          | Windows | `ricerca-*-windows.zip` | double-click `install-or-update.bat` |
+          | Linux | `ricerca-*-linux.tar.gz` | run `./install-or-update.sh` |
 
           Python is not required: on first run the launcher downloads `uv` into
           the app folder, with no system changes and no admin rights. Only an
@@ -74,23 +73,22 @@ jobs:
           file e formati salvati possono ancora cambiare da una versione
           all'altra. Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 1.0.0b7
+          ### Novità in 1.0.0b8
 
-          - I workspace di review coprono protocollo, provenienze da più
-            ricerche, doppio screening cieco, estrazione e consenso,
-            valutazione, sintesi GRADE e aggiornamenti espliciti.
-          - Una wiki navigabile e un grafo interattivo compilano metadati e
-            abstract; i concetti LLM conservano evidenze validate localmente.
-          - Paginazione con conflitti in testa, azioni contestuali e traccia in
-            nove fasi mantengono chiare le review lunghe su desktop e mobile.
+          - Gli installatori sostituiscono con un clic la copia precedente su
+            macOS, Windows e Linux, preservando ricerche, review, impostazioni e PDF.
+          - I campi del protocollo hanno guide contestuali e le ricerche si
+            possono scollegare senza eliminare record o valutazioni del corpus.
+          - Le schede di screening aprono pagina e PDF dell'articolo; il lettore
+            interno ritorna allo stesso record e allo stesso contesto di review.
 
-          Scarica l'archivio del tuo sistema, estrailo e avvia.
+          Scarica l'archivio del tuo sistema, estrailo e avvia l'installatore.
 
           | Sistema | File | Come si avvia |
           |---|---|---|
-          | macOS | `ricerca-*-macos.tar.gz` | trascina `Ricerca.app` in Applicazioni; la prima volta clic destro → Apri |
-          | Windows | `ricerca-*-windows.zip` | doppio clic su `start.bat`; `create-shortcut-windows.bat` mette l'icona sul Desktop |
-          | Linux | `ricerca-*-linux.tar.gz` | `./start.sh`; `install-shortcut-linux.sh` la mette nel menu |
+          | macOS | `ricerca-*-macos.tar.gz` | doppio clic su `install-or-update.command` |
+          | Windows | `ricerca-*-windows.zip` | doppio clic su `install-or-update.bat` |
+          | Linux | `ricerca-*-linux.tar.gz` | esegui `./install-or-update.sh` |
 
           Non serve installare Python: al primo avvio il lanciatore scarica
           `uv` nella cartella dell'app, senza toccare il sistema e senza

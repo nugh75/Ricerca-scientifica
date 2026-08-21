@@ -244,6 +244,25 @@ def collega_ricerca(id_progetto: str, id_ricerca: str) -> int:
     return int(risultato or 0)
 
 
+def scollega_ricerca(id_progetto: str, id_ricerca: str) -> bool:
+    """Toglie la ricerca dal workspace senza cancellare il corpus costruito.
+
+    Record, provenienze e decisioni restano: la ricerca salvata può essere
+    collegata di nuovo senza perdere il lavoro già svolto.
+    """
+
+    def applica(progetto_corrente: dict):
+        ricerche = progetto_corrente.setdefault("ricerche", [])
+        restanti = [ricerca for ricerca in ricerche if ricerca.get("id") != id_ricerca]
+        if len(restanti) == len(ricerche):
+            return False
+        progetto_corrente["ricerche"] = restanti
+        _evento(progetto_corrente, "ricerca scollegata", id_ricerca)
+        return True
+
+    return bool(_modifica(id_progetto, applica))
+
+
 def integra_aggiornamento(id_progetto: str, id_ricerca: str, nuovi_lavori: list[Work]) -> dict:
     """Integra una nuova esecuzione conservando le versioni dei metadati."""
 

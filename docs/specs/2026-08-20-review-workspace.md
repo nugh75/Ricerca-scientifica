@@ -1,7 +1,7 @@
 # Workspace per review della letteratura — specifica
 
 **Data:** 2026-08-20
-**Stato:** implementata per la versione 1.0.0b7
+**Stato:** implementata per la versione 1.0.0b7; orientamento e lettura estesi in 1.0.0b8
 
 ## Obiettivo
 
@@ -65,6 +65,18 @@ righe di icone ripetute. Gli stati usano testo e numeri, non il solo colore.
 Su schermi stretti la traccia scorre orizzontalmente e tutti i moduli diventano
 monocolonna. Focus da tastiera e riduzione del movimento seguono le regole già
 presenti nell'app.
+
+La compilazione del protocollo offre una guida breve e contestuale per ogni
+campo, accessibile anche da tastiera e su schermi tattili. Nella fase Ricerche
+una fonte può essere scollegata dal workspace senza eliminare il corpus già
+costruito, le provenienze o le valutazioni: torna semplicemente fra le ricerche
+disponibili e può essere collegata di nuovo.
+
+Durante lo screening, la scheda del record mantiene insieme decisione e
+lettura: la pagina dell'articolo si apre in una scheda esterna, mentre un PDF
+già scaricato si apre nel lettore interno. Il comando «Torna alla valutazione»
+chiude il lettore e riporta il focus sullo stesso record, conservando fase,
+pagina e revisore attivo.
 
 La wiki si apre in una pagina dedicata: la review principale mostra soltanto
 stato, dimensioni e azioni. Nel grafo sono attivi inizialmente articoli e

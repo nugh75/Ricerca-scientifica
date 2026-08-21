@@ -175,6 +175,32 @@ def test_i_lanciatori_hanno_nomi_inglesi():
     assert (RADICE / "packaging/create-shortcut-windows.bat").exists()
 
 
+def test_ogni_archivio_porta_un_installatore_che_sostituisce_la_copia_precedente():
+    installatori = {
+        "packaging/install-linux.sh": ".local/share/ricerca",
+        "packaging/install-macos.command": "Applications/Ricerca.app",
+        "packaging/install-windows.ps1": "LOCALAPPDATA",
+    }
+    for nome, destinazione in installatori.items():
+        testo = (RADICE / nome).read_text()
+        assert destinazione in testo, nome
+        assert "previous" in testo.lower(), nome
+
+    costruzione = (RADICE / "scripts/crea-release.sh").read_text()
+    assert 'install-or-update.sh' in costruzione
+    assert 'install-or-update.command' in costruzione
+    assert 'Ricerca.app install-or-update.command' in costruzione
+    assert 'install-or-update.bat' in costruzione
+    assert 'install-or-update.ps1' in costruzione
+
+
+def test_le_copie_installate_tengono_l_ambiente_fuori_dalla_cartella_sostituibile():
+    assert '.installed' in (RADICE / "packaging/install-linux.sh").read_text()
+    assert '.installed' in (RADICE / "packaging/install-windows.ps1").read_text()
+    assert '.installed' in (RADICE / "start.sh").read_text()
+    assert '.installed' in (RADICE / "start.bat").read_text()
+
+
 def test_l_archivio_non_contiene_nomi_italiani():
     """Solo i nomi dei file copiati: i commenti dello script restano in
     italiano come tutto il codice."""

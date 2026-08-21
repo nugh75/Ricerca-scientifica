@@ -910,6 +910,19 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
   border: 1px solid var(--bordo); border-radius: var(--raggio);
 }
 .form-revisione label { min-width: 0; color: var(--testo-tenue); }
+.campo-protocollo { min-width: 0; }
+.etichetta-campo { display: flex; align-items: center; gap: .4rem; }
+.guida-campo {
+  width: 1.35rem; height: 1.35rem; padding: 0; border-radius: 50%;
+  color: var(--accento); font: 600 .7rem/1 var(--mono);
+}
+.guida-campo.tooltip::after {
+  left: 0; bottom: calc(100% + .4rem); width: min(22rem, 72vw); max-width: none;
+  transform: translateY(.25rem); white-space: normal;
+}
+.guida-campo.tooltip:hover::after, .guida-campo.tooltip:focus-visible::after {
+  transform: translateY(0);
+}
 .form-revisione input, .form-revisione textarea, .form-revisione select { margin-top: .35rem; color: var(--testo); }
 .form-revisione textarea { min-height: 4.5rem; }
 .form-revisione .campo-largo { grid-column: 1 / -1; }
@@ -930,6 +943,10 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .elenco-ricerche-review { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--u2); }
 .elenco-ricerche-review article { display: grid; gap: .25rem; padding: var(--u2); border: 1px solid var(--bordo); border-radius: var(--raggio); }
 .elenco-ricerche-review span, .elenco-ricerche-review small { color: var(--testo-tenue); font-size: .8125rem; }
+.azioni-ricerca-review, .azioni-articolo-review { display: flex; align-items: center; flex-wrap: wrap; gap: var(--u1); }
+.azioni-ricerca-review { margin-top: var(--u1); }
+.azioni-ricerca-review form { margin: 0; }
+.azioni-ricerca-review button { padding: .35rem .55rem; color: var(--testo-tenue); font-size: .75rem; }
 .checklist-review { margin-top: var(--u4); }
 .checklist-review h3 { font-size: 1rem; }
 .checklist-review ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem var(--u3); list-style: none; padding: 0; }
@@ -956,6 +973,9 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .record-review.deciso { border-left: 3px solid var(--accento); }
 .record-review.conflitto { border-left: 3px solid var(--errore); }
 .record-review-testo h3 { max-width: 62rem; margin: 0 0 .25rem; font-size: 1rem; line-height: 1.4; }
+.record-review:focus { outline: 2px solid var(--accento); outline-offset: 3px; }
+.azioni-articolo-review { margin: var(--u1) 0; }
+.azioni-articolo-review .tasto, .azioni-articolo-review button { padding: .45rem .65rem; font-size: .75rem; }
 .record-review-testo details { max-width: 72ch; }
 .record-review-testo details > summary { cursor: pointer; color: var(--accento); font-size: .8125rem; }
 .stato-fulltext { display: grid; grid-template-columns: minmax(10rem, .45fr) minmax(16rem, 1fr) auto; gap: var(--u1); align-items: end; margin-top: var(--u2); padding: var(--u2); background: var(--accento-tenue); }
@@ -1086,6 +1106,7 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
   .registro-emendamenti li, .timeline-aggiornamenti li { grid-template-columns: 1fr; gap: .2rem; padding: var(--u2) 0; }
   .timeline-aggiornamenti li p { grid-column: auto; }
   .collega-ricerca, .collega-report, .risolvi-conflitto { grid-template-columns: 1fr; }
+  .lettore-torna { max-width: 9rem; white-space: normal; }
   .stato-fulltext { grid-template-columns: 1fr; }
   .progetto-misure { white-space: normal; }
   .aggiornamento-automatico { align-items: stretch; flex-direction: column; }

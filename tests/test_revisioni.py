@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from ricerca import history, revisioni
+from ricerca import history, pdf, revisioni
 from ricerca.app import app
 from ricerca.models import Block, SourceResult, Strategy, Work
 
@@ -54,6 +54,23 @@ def test_un_progetto_unisce_ricerche_e_deduplica_il_corpus():
     assert len(progetto["ricerche"]) == 2
     assert len(progetto["record"]) == 3
     assert len(progetto["record"][0]["provenienze"]) == 2
+
+
+def test_scollegare_una_ricerca_conserva_corpus_provenienze_e_decisioni():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    item = revisioni.progetto(id_progetto)["record"][0]["id"]
+    revisioni.decidi(id_progetto, item, "abstract", "Ada", "incluso", "pertinente")
+
+    assert revisioni.scollega_ricerca(id_progetto, id_ricerca) is True
+
+    progetto = revisioni.progetto(id_progetto)
+    assert progetto["ricerche"] == []
+    assert len(progetto["record"]) == 2
+    assert progetto["record"][0]["provenienze"][0]["ricerca"] == id_ricerca
+    assert progetto["decisioni"][item]["abstract"]["Ada"]["stato"] == "incluso"
+    assert progetto["registro"][-1]["azione"] == "ricerca scollegata"
 
 
 def test_protocollo_versiona_gli_emendamenti_e_controlla_i_campi():
@@ -201,6 +218,49 @@ def test_le_pagine_del_workspace_coprono_tutte_le_fasi():
     assert pagina.status_code == 200
     for testo in ("Protocol", "Searches", "Abstract screening", "Full text", "Extraction", "Quality", "Synthesis", "Updates"):
         assert testo in pagina.text
+
+
+def test_il_protocollo_offre_guide_contestuali_accessibili():
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+
+    pagina = client.get(f"/revisioni/{id_progetto}")
+
+    assert 'aria-label="Help for Review question"' in pagina.text
+    assert "State population, concept or intervention, and expected outcome" in pagina.text
+
+
+def test_una_ricerca_si_scollega_dalla_rotta_e_torna_disponibile():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+
+    pagina = client.post(
+        f"/revisioni/{id_progetto}/ricerche/{id_ricerca}/rimuovi",
+        follow_redirects=True,
+    )
+
+    assert pagina.status_code == 200
+    assert revisioni.progetto(id_progetto)["ricerche"] == []
+    assert f'<option value="{id_ricerca}">' in pagina.text
+
+
+def test_lo_screening_apre_pagina_e_pdf_senza_perdere_il_record():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    item = revisioni.progetto(id_progetto)["record"][0]
+    work = revisioni.lavori(revisioni.progetto(id_progetto))[0]["work"]
+    percorso = pdf.cartella() / pdf.nome_file(work)
+    percorso.write_bytes(b"%PDF-1.4\n%%EOF")
+
+    pagina = client.get(f"/revisioni/{id_progetto}")
+
+    assert 'href="https://doi.org/10.1/a"' in pagina.text
+    assert f'data-pdf="/revisioni/{id_progetto}/pdf/{item["id"]}"' in pagina.text
+    assert f'data-ritorno="#item-abstract-{item["id"]}"' in pagina.text
+    risposta_pdf = client.get(f'/revisioni/{id_progetto}/pdf/{item["id"]}')
+    assert risposta_pdf.status_code == 200
+    assert risposta_pdf.content.startswith(b"%PDF")
 
 
 def test_lo_screening_mostra_soltanto_il_revisore_attivo():

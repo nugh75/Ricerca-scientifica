@@ -1,37 +1,40 @@
+{% macro etichetta_guidata(campo, testo) -%}
+<span class="etichetta-campo"><label for="{{ campo }}">{{ testo }}</label><button type="button" class="guida-campo tooltip" aria-label="{{ t.review_field_help.format(campo=testo) }}" data-tooltip="{{ t['review_help_' ~ campo] }}">?</button></span>
+{%- endmacro %}
 <section id="protocollo" class="fase-review">
   <div class="fase-testa">
     <div><p class="occhiello">{{ t.review_foundation }}</p><h2>{{ t.review_phase_protocol }}</h2><p>{{ t.review_protocol_help }}</p></div>
     {% if protocollo_mancanti %}<span class="stato-fase">{{ t.review_missing_fields.format(quanti=protocollo_mancanti|length) }}</span>{% else %}<span class="stato-fase completo">{{ t.review_complete }}</span>{% endif %}
   </div>
   <form method="post" action="/revisioni/{{ progetto.id }}/protocollo" class="form-revisione">
-    <label class="campo-largo">{{ t.review_question }}<textarea name="domanda" rows="3">{{ progetto.protocollo.domanda|default('') }}</textarea></label>
-    <label>{{ t.review_framework }}
-      <select name="framework">
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('domanda', t.review_question) }}<textarea id="domanda" name="domanda" rows="3">{{ progetto.protocollo.domanda|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('framework', t.review_framework) }}
+      <select id="framework" name="framework">
         {% for valore in ('PICO', 'PICOS', 'PCC', 'Libero') %}<option {% if progetto.protocollo.framework|default('') == valore %}selected{% endif %}>{{ valore }}</option>{% endfor %}
       </select>
-    </label>
-    <label>{{ t.review_population }}<textarea name="popolazione" rows="2">{{ progetto.protocollo.popolazione|default('') }}</textarea></label>
-    <label>{{ t.review_concept }}<textarea name="concetto" rows="2">{{ progetto.protocollo.concetto|default('') }}</textarea></label>
-    <label>{{ t.review_intervention }}<textarea name="intervento" rows="2">{{ progetto.protocollo.intervento|default('') }}</textarea></label>
-    <label>{{ t.review_comparator }}<textarea name="comparatore" rows="2">{{ progetto.protocollo.comparatore|default('') }}</textarea></label>
-    <label>{{ t.review_outcomes }}<textarea name="outcome" rows="2">{{ progetto.protocollo.outcome|default('') }}</textarea></label>
-    <label>{{ t.review_context }}<textarea name="contesto" rows="2">{{ progetto.protocollo.contesto|default('') }}</textarea></label>
-    <label>{{ t.review_designs }}<textarea name="disegni" rows="2">{{ progetto.protocollo.disegni|default('') }}</textarea></label>
-    <label class="campo-largo">{{ t.review_include_criteria }}<textarea name="criteri_inclusione" rows="4">{{ progetto.protocollo.criteri_inclusione|default('') }}</textarea></label>
-    <label class="campo-largo">{{ t.review_exclude_criteria }}<textarea name="criteri_esclusione" rows="4">{{ progetto.protocollo.criteri_esclusione|default('') }}</textarea></label>
-    <label class="campo-largo">{{ t.review_planned_sources }}<textarea name="fonti_previste" rows="3">{{ progetto.protocollo.fonti_previste|default('') }}</textarea></label>
-    <label class="campo-largo">{{ t.review_search_peer_review }}<textarea name="peer_review_strategia" rows="2" placeholder="{{ t.review_search_peer_review_placeholder }}">{{ progetto.protocollo.peer_review_strategia|default('') }}</textarea></label>
-    <label class="campo-largo">{{ t.review_sentinel_articles }}<textarea name="articoli_sentinella" rows="3" placeholder="{{ t.review_sentinel_placeholder }}">{{ progetto.protocollo.articoli_sentinella|default('') }}</textarea></label>
-    <label class="campo-largo">{{ t.review_synthesis_plan }}<textarea name="piano_sintesi" rows="4">{{ progetto.protocollo.piano_sintesi|default('') }}</textarea></label>
-    <label>{{ t.review_registration }}<input name="registrazione" value="{{ progetto.protocollo.registrazione|default('') }}" placeholder="PROSPERO, OSF, DOI…"></label>
-    <label>{{ t.review_frequency }}
-      <select name="frequenza_aggiornamento">
+    </div>
+    <div class="campo-protocollo">{{ etichetta_guidata('popolazione', t.review_population) }}<textarea id="popolazione" name="popolazione" rows="2">{{ progetto.protocollo.popolazione|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('concetto', t.review_concept) }}<textarea id="concetto" name="concetto" rows="2">{{ progetto.protocollo.concetto|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('intervento', t.review_intervention) }}<textarea id="intervento" name="intervento" rows="2">{{ progetto.protocollo.intervento|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('comparatore', t.review_comparator) }}<textarea id="comparatore" name="comparatore" rows="2">{{ progetto.protocollo.comparatore|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('outcome', t.review_outcomes) }}<textarea id="outcome" name="outcome" rows="2">{{ progetto.protocollo.outcome|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('contesto', t.review_context) }}<textarea id="contesto" name="contesto" rows="2">{{ progetto.protocollo.contesto|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('disegni', t.review_designs) }}<textarea id="disegni" name="disegni" rows="2">{{ progetto.protocollo.disegni|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('criteri_inclusione', t.review_include_criteria) }}<textarea id="criteri_inclusione" name="criteri_inclusione" rows="4">{{ progetto.protocollo.criteri_inclusione|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('criteri_esclusione', t.review_exclude_criteria) }}<textarea id="criteri_esclusione" name="criteri_esclusione" rows="4">{{ progetto.protocollo.criteri_esclusione|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('fonti_previste', t.review_planned_sources) }}<textarea id="fonti_previste" name="fonti_previste" rows="3">{{ progetto.protocollo.fonti_previste|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('peer_review_strategia', t.review_search_peer_review) }}<textarea id="peer_review_strategia" name="peer_review_strategia" rows="2" placeholder="{{ t.review_search_peer_review_placeholder }}">{{ progetto.protocollo.peer_review_strategia|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('articoli_sentinella', t.review_sentinel_articles) }}<textarea id="articoli_sentinella" name="articoli_sentinella" rows="3" placeholder="{{ t.review_sentinel_placeholder }}">{{ progetto.protocollo.articoli_sentinella|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('piano_sintesi', t.review_synthesis_plan) }}<textarea id="piano_sintesi" name="piano_sintesi" rows="4">{{ progetto.protocollo.piano_sintesi|default('') }}</textarea></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('registrazione', t.review_registration) }}<input id="registrazione" name="registrazione" value="{{ progetto.protocollo.registrazione|default('') }}" placeholder="PROSPERO, OSF, DOI…"></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('frequenza_aggiornamento', t.review_frequency) }}
+      <select id="frequenza_aggiornamento" name="frequenza_aggiornamento">
         {% for valore, etichetta in [('', t.review_frequency_none), ('settimanale', t.review_frequency_weekly), ('mensile', t.review_frequency_monthly), ('trimestrale', t.review_frequency_quarterly)] %}
         <option value="{{ valore }}" {% if progetto.protocollo.frequenza_aggiornamento|default('') == valore %}selected{% endif %}>{{ etichetta }}</option>
         {% endfor %}
       </select>
-    </label>
-    {% if progetto.protocollo %}<label class="campo-largo">{{ t.review_amendment_reason }}<textarea name="motivo_emendamento" rows="2" placeholder="{{ t.review_amendment_placeholder }}"></textarea></label>{% endif %}
+    </div>
+    {% if progetto.protocollo %}<div class="campo-protocollo campo-largo">{{ etichetta_guidata('motivo_emendamento', t.review_amendment_reason) }}<textarea id="motivo_emendamento" name="motivo_emendamento" rows="2" placeholder="{{ t.review_amendment_placeholder }}"></textarea></div>{% endif %}
     <div class="campo-largo azioni"><button class="primario" type="submit">{{ t.review_save_protocol }}</button></div>
   </form>
   {% if progetto.emendamenti %}

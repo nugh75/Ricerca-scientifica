@@ -70,6 +70,7 @@
   <div class="lettore-testa">
     <strong id="lettore-titolo"></strong>
     <span class="lettore-azioni">
+      <button type="button" class="copia lettore-torna" id="lettore-torna" hidden>{{ t.pdf_viewer_back_to_review }}</button>
       <a id="lettore-fuori" class="copia solo-icona tooltip" href="#" target="_blank" rel="noreferrer"
          aria-label="{{ t.pdf_viewer_external }}" data-tooltip="{{ t.pdf_viewer_external }}">{{ icona('external') }}</a>
       <button type="button" class="copia solo-icona tooltip" id="lettore-chiudi"
@@ -190,15 +191,29 @@ document.body.addEventListener("avviso", function (evento) {
 // Il PDF si legge dentro l'app: una finestra del browser di sistema
 // porterebbe fuori dall'applicazione.
 const lettore = document.getElementById("lettore");
+let origineLettore = null;
+let ritornoLettore = null;
 document.addEventListener("click", function (event) {
   const apri = event.target.closest("[data-pdf]");
   if (apri) {
+    event.preventDefault();
     const indirizzo = apri.getAttribute("data-pdf");
+    origineLettore = apri;
+    ritornoLettore = apri.getAttribute("data-ritorno");
+    document.getElementById("lettore-torna").hidden = !ritornoLettore;
     document.getElementById("lettore-titolo").textContent = apri.getAttribute("data-titolo") || "";
     document.getElementById("lettore-fuori").href = indirizzo;
     document.getElementById("lettore-telaio").src = indirizzo;
     lettore.showModal();
     return;
+  }
+  if (event.target.id === "lettore-torna") {
+    const destinazione = ritornoLettore && document.querySelector(ritornoLettore);
+    lettore.close();
+    if (destinazione) {
+      destinazione.scrollIntoView({ block: "center" });
+      destinazione.focus({ preventScroll: true });
+    }
   }
   if (event.target.id === "lettore-chiudi") lettore.close();
   if (event.target.id === "scheda-chiudi") document.getElementById("scheda").close();
@@ -214,6 +229,15 @@ document.addEventListener("click", function (event) {
 });
 lettore.addEventListener("close", function () {
   document.getElementById("lettore-telaio").src = "";  // ferma il caricamento
+  document.getElementById("lettore-torna").hidden = true;
+  if (origineLettore) origineLettore.focus();
+  origineLettore = null;
+  ritornoLettore = null;
+});
+
+document.addEventListener("submit", function (event) {
+  const messaggio = event.target.getAttribute && event.target.getAttribute("data-confirm");
+  if (messaggio && !window.confirm(messaggio)) event.preventDefault();
 });
 
 document.addEventListener("click", function (event) {

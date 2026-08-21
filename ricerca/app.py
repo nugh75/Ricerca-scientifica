@@ -167,8 +167,23 @@ def _contesto_revisione(
     }
     for item in revisioni.lavori(progetto):
         id_item = item.get("id", "")
+        work = item["work"]
+        doi = (work.doi or "").strip()
+        url_articolo = (
+            doi if doi.startswith(("http://", "https://"))
+            else f"https://doi.org/{doi}" if doi
+            else next(
+                (
+                    url for url in (work.url, work.oa_url)
+                    if url and url.startswith(("http://", "https://"))
+                ),
+                "",
+            )
+        )
         record.append({
             **item,
+            "url_articolo": url_articolo,
+            "pdf_scaricato": pdf.gia_scaricato(work) is not None,
             "decisioni_abstract": revisioni.decisioni_item(progetto, id_item, "abstract"),
             "decisioni_fulltext": revisioni.decisioni_item(progetto, id_item, "fulltext"),
             "stato_abstract": revisioni.stato_finale(progetto, id_item, "abstract"),
@@ -1731,6 +1746,33 @@ async def collega_ricerca_revisione(
 ):
     revisioni.collega_ricerca(id_progetto, id_ricerca)
     return RedirectResponse(f"/revisioni/{id_progetto}#ricerche", status_code=303)
+
+
+@app.post("/revisioni/{id_progetto}/ricerche/{id_ricerca}/rimuovi")
+async def scollega_ricerca_revisione(id_progetto: str, id_ricerca: str):
+    revisioni.scollega_ricerca(id_progetto, id_ricerca)
+    return RedirectResponse(f"/revisioni/{id_progetto}#ricerche", status_code=303)
+
+
+@app.get("/revisioni/{id_progetto}/pdf/{id_item}")
+async def apri_pdf_revisione(id_progetto: str, id_item: str):
+    progetto = revisioni.progetto(id_progetto)
+    if progetto is None:
+        return PlainTextResponse("progetto inesistente", status_code=404)
+    voce = next(
+        (item for item in revisioni.lavori(progetto) if item.get("id") == id_item),
+        None,
+    )
+    if voce is None:
+        return PlainTextResponse("record inesistente", status_code=404)
+    percorso = pdf.gia_scaricato(voce["work"])
+    if percorso is None:
+        return PlainTextResponse("PDF non ancora scaricato", status_code=404)
+    return FileResponse(
+        percorso,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{percorso.name}"'},
+    )
 
 
 @app.post("/revisioni/{id_progetto}/screening/{id_item}")
