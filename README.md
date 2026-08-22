@@ -4,7 +4,7 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Version 2.5.** Stable: interfaces, file names and stored
+> **Version 2.6.** Stable: interfaces, file names and stored
 > formats stay put, and what you save today opens tomorrow. Problems and
 > suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
@@ -81,6 +81,15 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.6.0
+
+- The review protocol declares reading filters: a year range, keywords, title
+  and abstract. The text fields accept boolean expressions — AND, OR, NOT —
+  with an explanation of the syntax always within reach.
+- During screening, a filter bar starts from the protocol values and narrows
+  the view on the fly: the corpus and the decisions stay untouched, and the
+  count shows how many records pass.
 
 ### New in 2.5.0
 
@@ -392,7 +401,7 @@ they are read.
 
 # Italiano
 
-> **Versione 2.5.** Stabile: interfaccia, nomi dei file e
+> **Versione 2.6.** Stabile: interfaccia, nomi dei file e
 > formati salvati restano al loro posto, e quello che salvi oggi si riapre
 > domani. Problemi e proposte:
 > [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
@@ -470,6 +479,16 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.6.0
+
+- Il protocollo della review dichiara i filtri di lettura: intervallo di anni,
+  parole chiave, titolo e abstract. I campi di testo accettano espressioni
+  booleane — AND, OR, NOT — con la spiegazione della sintassi sempre a portata
+  di clic.
+- Nello screening una barra dei filtri parte dai valori del protocollo e
+  restringe la vista al volo: corpus e decisioni restano intatti, e il
+  conteggio mostra quanti record passano.
 
 ### Novità in 2.5.0
 
