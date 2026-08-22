@@ -4,7 +4,7 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Version 2.4.** Stable: interfaces, file names and stored
+> **Version 2.5.** Stable: interfaces, file names and stored
 > formats stay put, and what you save today opens tomorrow. Problems and
 > suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
@@ -81,6 +81,12 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.5.0
+
+- The topic box on the front page is a resizable area that grows with the
+  text: a description can run over several lines, and Enter breaks the line
+  instead of starting the search.
 
 ### New in 2.4.0
 
@@ -386,7 +392,7 @@ they are read.
 
 # Italiano
 
-> **Versione 2.4.** Stabile: interfaccia, nomi dei file e
+> **Versione 2.5.** Stabile: interfaccia, nomi dei file e
 > formati salvati restano al loro posto, e quello che salvi oggi si riapre
 > domani. Problemi e proposte:
 > [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
@@ -464,6 +470,12 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.5.0
+
+- Il box dell'argomento in prima pagina è un'area ridimensionabile che cresce
+  col testo: la descrizione può stare su più righe, e Invio va a capo invece
+  di avviare la ricerca.
 
 ### Novità in 2.4.0
 

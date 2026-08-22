@@ -42,7 +42,13 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.4.0
+          ### New in 2.5.0
+
+          - The topic box on the front page is a resizable area that grows
+            with the text: a description can run over several lines, and Enter
+            breaks the line instead of starting the search.
+
+          ### In 2.4.0
 
           - On the reviews page the form for a new review sits in the page
             flow, under the list of projects, instead of in a panel pinned to
@@ -146,7 +152,13 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.4.0
+          ### Novità in 2.5.0
+
+          - Il box dell'argomento in prima pagina è un'area ridimensionabile
+            che cresce col testo: la descrizione può stare su più righe, e
+            Invio va a capo invece di avviare la ricerca.
+
+          ### Nella 2.4.0
 
           - Nella pagina delle review il modulo per crearne una nuova sta nel
             flusso della pagina, sotto l'elenco dei progetti, invece che in un
