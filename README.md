@@ -4,7 +4,7 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Version 2.2.** Stable: interfaces, file names and stored
+> **Version 2.3.** Stable: interfaces, file names and stored
 > formats stay put, and what you save today opens tomorrow. Problems and
 > suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
@@ -81,6 +81,20 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.3.0
+
+- Settings chooses how the app opens: a window of its own, without address bar
+  or tabs, or an ordinary browser tab like any other site.
+- It also chooses which browser to lean on, among those found on the machine —
+  listed by name, not by executable — or the system default, which always opens
+  a tab. Only Chromium-family browsers can give a window of its own, so picking
+  the default switches to a tab rather than failing to open.
+- The choice lives in the configuration, so it holds for the launcher too, which
+  starts the app without options. `--scheda` and the new `--browser` override it
+  for a single launch.
+- A browser chosen and later uninstalled no longer stands in the way: the app
+  goes back to looking on its own, and Settings still shows what had been picked.
 
 ### New in 2.2.0
 
@@ -367,7 +381,7 @@ they are read.
 
 # Italiano
 
-> **Versione 2.2.** Stabile: interfaccia, nomi dei file e
+> **Versione 2.3.** Stabile: interfaccia, nomi dei file e
 > formati salvati restano al loro posto, e quello che salvi oggi si riapre
 > domani. Problemi e proposte:
 > [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
@@ -445,6 +459,22 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.3.0
+
+- In Impostazioni si sceglie come si apre l'app: in una finestra propria, senza
+  barra degli indirizzi né schede, oppure in una normale scheda del browser,
+  come un sito qualsiasi.
+- Si sceglie anche su quale browser appoggiarsi, fra quelli trovati sulla
+  macchina — elencati per nome, non per eseguibile — oppure quello predefinito
+  di sistema, che apre sempre una scheda. La finestra propria la sanno dare solo
+  i browser della famiglia Chromium: scegliendo il predefinito si passa alla
+  scheda invece di non aprire niente.
+- La scelta vive nella configurazione, quindi vale anche per il lanciatore, che
+  avvia l'app senza opzioni. `--scheda` e il nuovo `--browser` la scavalcano per
+  un avvio soltanto.
+- Un browser scelto e poi disinstallato non blocca più l'avvio: si torna a
+  cercare, e Impostazioni continua a mostrare che cosa era stato scelto.
 
 ### Novità in 2.2.0
 

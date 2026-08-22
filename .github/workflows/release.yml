@@ -42,7 +42,21 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.2.0
+          ### New in 2.3.0
+
+          - Settings chooses how the app opens: a window of its own, without
+            address bar or tabs, or an ordinary browser tab like any other site.
+          - It also chooses which browser to lean on, among those found on the
+            machine — listed by name, not by executable — or the system default,
+            which always opens a tab. Only Chromium-family browsers can give a
+            window of its own, so picking the default switches to a tab rather
+            than failing to open.
+          - The choice lives in the configuration, so it holds for the launcher
+            too. `--scheda` and the new `--browser` override it for one launch.
+          - A browser chosen and later uninstalled no longer stands in the way:
+            the app goes back to looking on its own.
+
+          ### In 2.2.0
 
           - Every record carries a free note: what this article is for, which
             page to reread, what does not add up. It stays with the record, can
@@ -126,7 +140,24 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.2.0
+          ### Novità in 2.3.0
+
+          - In Impostazioni si sceglie come si apre l'app: in una finestra
+            propria, senza barra degli indirizzi né schede, oppure in una
+            normale scheda del browser, come un sito qualsiasi.
+          - Si sceglie anche su quale browser appoggiarsi, fra quelli trovati
+            sulla macchina — elencati per nome, non per eseguibile — oppure
+            quello predefinito di sistema, che apre sempre una scheda. La
+            finestra propria la sanno dare solo i browser della famiglia
+            Chromium: scegliendo il predefinito si passa alla scheda invece di
+            non aprire niente.
+          - La scelta vive nella configurazione, quindi vale anche per il
+            lanciatore. `--scheda` e il nuovo `--browser` la scavalcano per un
+            avvio soltanto.
+          - Un browser scelto e poi disinstallato non blocca più l'avvio: si
+            torna a cercare.
+
+          ### Nella 2.2.0
 
           - Ogni record porta un appunto libero: a che cosa serve questo
             articolo, quale pagina rileggere, che cosa non torna. Sta con il
