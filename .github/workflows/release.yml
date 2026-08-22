@@ -42,7 +42,13 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.6.0
+          ### New in 2.6.1
+
+          - The reading filters live in one place only: the bar right above
+            the record list in screening. The protocol no longer carries a
+            copy, so there is no second set of fields to mistake for another.
+
+          ### In 2.6.0
 
           - The review protocol declares reading filters: a year range,
             keywords, title and abstract. The text fields accept boolean
@@ -162,7 +168,13 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.6.0
+          ### Novità in 2.6.1
+
+          - I filtri di lettura stanno in un punto solo: la barra appena sopra
+            l'elenco dei record, nello screening. Il protocollo non ne porta
+            più una copia.
+
+          ### Nella 2.6.0
 
           - Il protocollo della review dichiara i filtri di lettura: intervallo
             di anni, parole chiave, titolo e abstract. I campi di testo

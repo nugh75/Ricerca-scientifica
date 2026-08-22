@@ -82,6 +82,12 @@ configure later, and reopen it any time from Settings.
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
 
+### New in 2.6.1
+
+- The reading filters live in one place only: the bar right above the record
+  list in screening. The protocol no longer carries a copy, so there is no
+  second set of fields to mistake for another.
+
 ### New in 2.6.0
 
 - The review protocol declares reading filters: a year range, keywords, title
@@ -479,6 +485,11 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.6.1
+
+- I filtri di lettura stanno in un punto solo: la barra appena sopra l'elenco
+  dei record, nello screening. Il protocollo non ne porta più una copia.
 
 ### Novità in 2.6.0
 
