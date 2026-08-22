@@ -896,6 +896,7 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .filtri-review label { display: block; color: var(--testo-tenue); font-size: .8125rem; }
 .filtri-review input { margin-top: .25rem; width: auto; min-width: 8rem; }
 .filtri-review .sintassi-filtri { flex-basis: 100%; }
+.filtri-review .conteggio-filtri { flex-basis: 100%; margin: 0; }
 
 /* Riprendere una ricerca di ieri non deve costare un passaggio da un'altra
    pagina: le ultime stanno sotto il campo dell'argomento. */

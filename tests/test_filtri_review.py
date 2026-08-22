@@ -122,21 +122,32 @@ def test_i_filtri_si_combinano_in_and():
     assert not filtra_record(record(abstract="altro"), filtri)
 
 
-def test_i_filtri_del_protocollo_restringono_lo_screening():
+def test_senza_parametri_lo_screening_mostra_tutto():
     id_progetto = _progetto_con_records()
-    revisioni.salva_protocollo(id_progetto, {"filtro_anno_da": "2024"})
     risposta = client.get(f"/revisioni/{id_progetto}")
     assert risposta.status_code == 200
+    assert "AI literacy in teacher education" in risposta.text
+    assert "Responsible AI competence" in risposta.text
+
+
+def test_i_parametri_query_restringono_lo_screening():
+    id_progetto = _progetto_con_records()
+    risposta = client.get(
+        f"/revisioni/{id_progetto}", params={"filtro_anno_da": "2024"}
+    )
     assert "AI literacy in teacher education" in risposta.text
     assert "Responsible AI competence" not in risposta.text
 
 
-def test_i_parametri_query_scavalcano_il_protocollo_senza_riscriverlo():
+def test_i_filtri_non_finiscono_nel_protocollo():
+    id_progetto = _progetto_con_records()
+    client.get(f"/revisioni/{id_progetto}", params={"filtro_titolo": "Responsible"})
+    protocollo = revisioni.progetto(id_progetto)["protocollo"]
+    assert all(f"filtro_{campo}" not in protocollo for campo in ("anno_da", "anno_a", "keywords", "titolo", "abstract"))
+
+
+def test_il_protocollo_non_piu_fonte_dei_filtri():
     id_progetto = _progetto_con_records()
     revisioni.salva_protocollo(id_progetto, {"filtro_anno_da": "2024"})
-    risposta = client.get(
-        f"/revisioni/{id_progetto}", params={"filtro_titolo": "Responsible"}
-    )
+    risposta = client.get(f"/revisioni/{id_progetto}")
     assert "Responsible AI competence" in risposta.text
-    assert "AI literacy in teacher education" not in risposta.text
-    assert revisioni.progetto(id_progetto)["protocollo"]["filtro_anno_da"] == "2024"

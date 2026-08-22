@@ -10,6 +10,15 @@
     <small>{{ t.review_blind_help }}</small>
   </div>
   {% include "partials/revisione_metriche_fase.html" %}
+  <p class="aiuto scorciatoie">{{ t.shortcuts_hint }}</p>
+
+  {% if fase == 'abstract' and priorita_assistita %}
+  <details class="assistenza-screening"><summary>{{ t.review_assisted_priority }} <span>{{ t.review_assisted_count.format(quanti=priorita_assistita|length) }}</span></summary>
+    <p class="aiuto">{{ t.review_assisted_help }}</p>
+    <ol>{% for item in priorita_assistita[:8] %}<li>{{ item.work.title }}<small>{{ t.review_score }} {{ '%.3f'|format(item.punteggio) }}{% if item.termini %} · {{ item.termini|join(', ') }}{% endif %}</small></li>{% endfor %}</ol>
+  </details>
+  {% endif %}
+
   <form method="get" action="/revisioni/{{ progetto.id }}" class="filtri-review" aria-label="{{ t.review_filters_title }}">
     <input type="hidden" name="revisore" value="{{ revisore_attivo }}">
     <label>{{ t.review_filters_year_from }}<input name="filtro_anno_da" type="number" min="1800" max="2100" value="{{ filtri_review.filtro_anno_da }}" placeholder="2019"></label>
@@ -20,15 +29,8 @@
     <button type="submit" class="tasto">{{ t.review_filters_apply }}</button>
     {% if filtri_attivi %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}#{{ ancora }}">{{ t.review_filters_reset }}</a>{% endif %}
     <details class="aiuto sintassi-filtri"><summary>{{ t.review_filters_syntax_summary }}</summary><p>{{ t.review_filters_syntax }}</p></details>
+    <p class="aiuto conteggio-filtri">{{ t.review_filters_showing.format(filtrati=totale_filtrati, totale=totale_record) }}</p>
   </form>
-  <p class="aiuto scorciatoie">{{ t.review_filters_showing.format(filtrati=totale_filtrati, totale=totale_record) }}</p>
-
-  {% if fase == 'abstract' and priorita_assistita %}
-  <details class="assistenza-screening"><summary>{{ t.review_assisted_priority }} <span>{{ t.review_assisted_count.format(quanti=priorita_assistita|length) }}</span></summary>
-    <p class="aiuto">{{ t.review_assisted_help }}</p>
-    <ol>{% for item in priorita_assistita[:8] %}<li>{{ item.work.title }}<small>{{ t.review_score }} {{ '%.3f'|format(item.punteggio) }}{% if item.termini %} · {{ item.termini|join(', ') }}{% endif %}</small></li>{% endfor %}</ol>
-  </details>
-  {% endif %}
 
   {% if record_screening %}<div class="record-screening-review">
     {% for item in record_screening %}

@@ -215,10 +215,10 @@ def _contesto_revisione(
         inizio = (pagina - 1) * per_pagina
         return candidati[inizio : inizio + per_pagina], pagina, pagine
 
-    protocollo = progetto.get("protocollo", {})
-    filtri = {campo: protocollo.get(campo, "") for campo in revisioni.CAMPI_FILTRI_REVIEW}
-    if filtri_override is not None:
-        filtri = {campo: filtri_override.get(campo, "") for campo in revisioni.CAMPI_FILTRI_REVIEW}
+    filtri = {
+        campo: (filtri_override or {}).get(campo, "")
+        for campo in revisioni.CAMPI_FILTRI_REVIEW
+    }
     filtrati = [voce for voce in record if filtri_review.filtra_record(voce, filtri)]
 
     record_abstract, pagina_abstract, pagine_abstract = pagina_screening(

@@ -42,8 +42,6 @@ CAMPI_PROTOCOLLO = (
     "comparatore", "outcome", "contesto", "disegni", "criteri_inclusione",
     "criteri_esclusione", "fonti_previste", "piano_sintesi", "registrazione",
     "frequenza_aggiornamento", "peer_review_strategia", "articoli_sentinella",
-    "filtro_anno_da", "filtro_anno_a", "filtro_keywords", "filtro_titolo",
-    "filtro_abstract",
 )
 
 CAMPI_FILTRI_REVIEW = (
