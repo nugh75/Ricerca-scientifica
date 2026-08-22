@@ -6,8 +6,8 @@
   <p>{{ t.step1_intro }}</p>
 
   <form hx-post="/suggerimenti" hx-target="#passo-due" hx-indicator="#attesa" class="topic-form">
-    <input id="topic" name="topic" required autofocus value="{{ topic|default('') }}"
-           placeholder="{{ t.topic_placeholder }}" aria-label="{{ t.topic_aria }}">
+    <textarea id="topic" name="topic" required autofocus rows="3"
+              placeholder="{{ t.topic_placeholder }}" aria-label="{{ t.topic_aria }}">{{ topic|default('') }}</textarea>
     <button type="submit" class="primario">{{ t.btn_suggest }}</button>
   </form>
   <p id="attesa" class="htmx-indicator">{{ t.waiting_sources }}</p>

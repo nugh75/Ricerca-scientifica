@@ -301,7 +301,10 @@ header .tooltip:focus-visible::after { transform: translate(-50%, 0); }
 
 /* ── argomento ────────────────────────────────────────────── */
 .topic-form { display: flex; gap: var(--u1); flex-wrap: wrap; margin: var(--u3) 0 var(--u2); }
-.topic-form input { flex: 1 1 26rem; font-size: 1rem; padding: .75rem .875rem; }
+.topic-form input, .topic-form textarea {
+  flex: 1 1 26rem; font-size: 1rem; padding: .75rem .875rem;
+  font-family: var(--testo-famiglia); line-height: 1.5;
+}
 
 /* ── blocchi booleani ─────────────────────────────────────── */
 .blocchi { border-left: 1px solid var(--riga); padding-left: var(--u3); margin: var(--u1) 0 var(--u3); }
