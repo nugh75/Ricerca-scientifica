@@ -4,9 +4,9 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Beta.** It works and is used daily, but interfaces, file names and stored
-> formats can still change between versions. Problems and suggestions:
-> [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
+> **Version 2.0.** The first stable release: interfaces, file names and stored
+> formats stay put, and what you save today opens tomorrow. Problems and
+> suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
 **English** · [Italiano](#italiano)
 
@@ -76,6 +76,23 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.0.0
+
+- First stable release. The name of every stored file and the shape of every
+  saved format are now fixed: what this version writes, later versions read.
+- Screening a record swaps that record alone. The keyboard flow survives the
+  decision, so «i», «f», «e» and the arrows keep working down a long list
+  instead of dying after the first click.
+- The reason field opens when there is a decision to explain, and stays out of
+  the way on the rows that have none.
+- The search strings are shown right above **Run the search**, and they follow
+  the blocks as they are edited: no button to remember, and nothing is sent
+  before it has been read. Niche OpenAlex filters start folded.
+- The closing stages of a review — extraction, appraisal, synthesis, wiki,
+  updates — arrive when they come into view, so opening a large project no
+  longer means building thousands of fields nobody is looking at.
+- A filter that matches nothing now offers the way back out.
 
 ### New in 1.0.0b7
 
@@ -311,9 +328,10 @@ they are read.
 
 # Italiano
 
-> **Beta.** Funziona e si usa tutti i giorni, ma interfaccia, nomi dei file e
-> formati salvati possono ancora cambiare da una versione all'altra. Problemi e
-> proposte: [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
+> **Versione 2.0.** La prima release stabile: interfaccia, nomi dei file e
+> formati salvati restano al loro posto, e quello che salvi oggi si riapre
+> domani. Problemi e proposte:
+> [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
 
 Assistente di ricerca bibliografica. Trasforma un argomento in parole chiave,
 stringhe di ricerca pronte per ogni banca dati e un elenco di articoli da
@@ -382,6 +400,23 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.0.0
+
+- Prima release stabile. I nomi dei file salvati e la forma dei formati sono
+  fermi: quello che scrive questa versione, le prossime lo rileggono.
+- Valutare un record scambia quel record soltanto. Il lavoro da tastiera
+  sopravvive alla decisione: «i», «f», «e» e le frecce continuano a funzionare
+  lungo tutto l'elenco invece di spegnersi al primo clic.
+- Il campo del motivo si apre quando c'è una decisione da spiegare e resta
+  chiuso sulle righe che non ne hanno.
+- Le stringhe di ricerca stanno appena sopra **Avvia la ricerca** e seguono i
+  blocchi mentre li si modifica: nessun bottone da ricordare, e niente parte
+  prima di essere stato letto. I filtri OpenAlex di nicchia partono chiusi.
+- Le fasi finali di una review — estrazione, valutazione, sintesi, wiki,
+  aggiornamenti — arrivano quando si guardano: aprire un progetto grande non
+  significa più costruire migliaia di campi che nessuno sta leggendo.
+- Un filtro che non trova nulla propone l'uscita.
 
 ### Novità in 1.0.0b7
 

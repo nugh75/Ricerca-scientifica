@@ -28,26 +28,36 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Le versioni con lettere (b1, rc1) sono anteprime: GitHub le
-          # segnala come tali e non le propone come ultima stabile.
+          # segnala come tali e non le propone come ultima stabile. La «v»
+          # del tag non conta, altrimenti sarebbero anteprime tutte.
+          VERSIONE="${GITHUB_REF_NAME#v}"
           ANTEPRIMA=""
-          case "${{ github.ref_name }}" in *[a-z]*[0-9]) ANTEPRIMA="--prerelease" ;; esac
+          case "$VERSIONE" in *[a-z]*) ANTEPRIMA="--prerelease" ;; esac
           gh release create "${{ github.ref_name }}" dist/* $ANTEPRIMA \
-            --title "Ricerca ${{ github.ref_name }} — beta" \
+            --title "Ricerca ${{ github.ref_name }}" \
             --notes "$(cat <<'NOTE'
           ## English
 
-          **Beta.** It works and it is used daily, but interfaces, file names
-          and stored formats can still change between versions. Problems and
-          suggestions: open an issue.
+          **First stable release.** The name of every stored file and the shape
+          of every saved format are now fixed: what this version writes, later
+          versions read. Problems and suggestions: open an issue.
 
-          ### New in 1.0.0b8
+          ### New in 2.0.0
 
-          - One-click installers replace the prior app on macOS, Windows, and
-            Linux while preserving searches, review workspaces, settings, and PDFs.
-          - Protocol fields now include contextual guidance, and connected
-            searches can be removed without deleting corpus records or decisions.
-          - Screening cards open the article page and downloaded PDF; the
-            internal reader returns to the same record and review context.
+          - Screening a record swaps that record alone. The keyboard flow
+            survives the decision, so «i», «f», «e» and the arrows keep working
+            down a long list instead of dying after the first click.
+          - The reason field opens when there is a decision to explain, and
+            stays out of the way on the rows that have none.
+          - The search strings are shown right above **Run the search**, and
+            they follow the blocks as they are edited: no button to remember,
+            and nothing is sent before it has been read. Niche OpenAlex filters
+            start folded.
+          - The closing stages of a review — extraction, appraisal, synthesis,
+            wiki, updates — arrive when they come into view, so opening a large
+            project no longer means building thousands of fields nobody is
+            looking at.
+          - A filter that matches nothing now offers the way back out.
 
           Download the archive for your system, extract it and run the installer.
 
@@ -56,6 +66,9 @@ jobs:
           | macOS | `ricerca-*-macos.tar.gz` | double-click `install-or-update.command` |
           | Windows | `ricerca-*-windows.zip` | double-click `install-or-update.bat` |
           | Linux | `ricerca-*-linux.tar.gz` | run `./install-or-update.sh` |
+
+          Upgrading from a 1.0.0bN beta: run the same installer. Searches,
+          review workspaces, settings and PDFs stay in place.
 
           Python is not required: on first run the launcher downloads `uv` into
           the app folder, with no system changes and no admin rights. Only an
@@ -69,18 +82,27 @@ jobs:
 
           ## Italiano
 
-          **Beta.** Funziona e si usa tutti i giorni, ma interfaccia, nomi dei
-          file e formati salvati possono ancora cambiare da una versione
-          all'altra. Problemi e proposte: apri una segnalazione.
+          **Prima release stabile.** I nomi dei file salvati e la forma dei
+          formati sono fermi: quello che scrive questa versione, le prossime lo
+          rileggono. Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 1.0.0b8
+          ### Novità in 2.0.0
 
-          - Gli installatori sostituiscono con un clic la copia precedente su
-            macOS, Windows e Linux, preservando ricerche, review, impostazioni e PDF.
-          - I campi del protocollo hanno guide contestuali e le ricerche si
-            possono scollegare senza eliminare record o valutazioni del corpus.
-          - Le schede di screening aprono pagina e PDF dell'articolo; il lettore
-            interno ritorna allo stesso record e allo stesso contesto di review.
+          - Valutare un record scambia quel record soltanto. Il lavoro da
+            tastiera sopravvive alla decisione: «i», «f», «e» e le frecce
+            continuano a funzionare lungo tutto l'elenco invece di spegnersi al
+            primo clic.
+          - Il campo del motivo si apre quando c'è una decisione da spiegare e
+            resta chiuso sulle righe che non ne hanno.
+          - Le stringhe di ricerca stanno appena sopra **Avvia la ricerca** e
+            seguono i blocchi mentre li si modifica: nessun bottone da
+            ricordare, e niente parte prima di essere stato letto. I filtri
+            OpenAlex di nicchia partono chiusi.
+          - Le fasi finali di una review — estrazione, valutazione, sintesi,
+            wiki, aggiornamenti — arrivano quando si guardano: aprire un
+            progetto grande non significa più costruire migliaia di campi che
+            nessuno sta leggendo.
+          - Un filtro che non trova nulla propone l'uscita.
 
           Scarica l'archivio del tuo sistema, estrailo e avvia l'installatore.
 
@@ -89,6 +111,9 @@ jobs:
           | macOS | `ricerca-*-macos.tar.gz` | doppio clic su `install-or-update.command` |
           | Windows | `ricerca-*-windows.zip` | doppio clic su `install-or-update.bat` |
           | Linux | `ricerca-*-linux.tar.gz` | esegui `./install-or-update.sh` |
+
+          Se arrivi da una beta 1.0.0bN: avvia lo stesso installatore. Ricerche,
+          workspace di review, impostazioni e PDF restano dove sono.
 
           Non serve installare Python: al primo avvio il lanciatore scarica
           `uv` nella cartella dell'app, senza toccare il sistema e senza
