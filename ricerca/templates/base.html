@@ -157,6 +157,22 @@ document.addEventListener("keydown", function (evento) {
   }
 });
 
+// Chi valuta a tastiera parte da una riga: dopo lo scambio il bottone premuto
+// non esiste più e il fuoco cadrebbe sul corpo della pagina, spegnendo le
+// scorciatoie. Lo si rimette sulla riga da cui l'operazione è partita.
+let rigaDelFuoco = null;
+document.body.addEventListener("htmx:beforeRequest", function (evento) {
+  const partenza = evento.detail.elt;
+  const riga = partenza.closest && partenza.closest("tr[data-riga]");
+  rigaDelFuoco = riga ? riga.id : null;
+});
+document.body.addEventListener("htmx:afterSettle", function () {
+  if (!rigaDelFuoco) return;
+  const riga = document.getElementById(rigaDelFuoco);
+  rigaDelFuoco = null;
+  if (riga && !riga.contains(document.activeElement)) riga.focus({ preventScroll: true });
+});
+
 // Dopo ogni operazione il registro si aggiorna: così si vede che cosa è
 // appena successo, e soprattutto che cosa non ha funzionato.
 document.body.addEventListener("htmx:afterRequest", function (evento) {

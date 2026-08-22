@@ -42,6 +42,31 @@ def test_suggerimenti_costruisce_i_blocchi_senza_llm():
     assert "TITLE-ABS-KEY(" in page.text  # la stringa Scopus e' gia' pronta
 
 
+@respx.mock
+def test_le_stringhe_si_leggono_prima_di_lanciare_la_ricerca():
+    """Chi lancia deve vedere che cosa sta lanciando."""
+
+    respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS_TITLES))
+    respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json=MESH))
+
+    pagina = client.post("/suggerimenti", data={"topic": "AI literacy"}).text
+
+    assert pagina.index('class="anteprima-query"') < pagina.index("Where to search")
+    assert 'hx-trigger="change delay:400ms"' in pagina   # l'anteprima segue le modifiche
+    assert "Update the strings" not in pagina            # niente bottone da ricordare
+
+
+@respx.mock
+def test_i_filtri_di_nicchia_partono_chiusi():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(return_value=httpx.Response(200, json=WORKS_TITLES))
+    respx.get(url__startswith="https://eutils.ncbi.nlm.nih.gov").mock(return_value=httpx.Response(200, json=MESH))
+
+    pagina = client.post("/suggerimenti", data={"topic": "AI literacy"}).text
+
+    assert '<details class="filtri-avanzati">' in pagina
+    assert "OpenAlex filters" in pagina
+
+
 def test_query_rende_le_stringhe_per_ogni_motore():
     page = client.post("/query", data={"label": ["Concetto"], "terms": ["AI literacy, AI competence"], "mesh": ""})
     assert '(&#34;AI literacy&#34; OR &#34;AI competence&#34;)' in page.text

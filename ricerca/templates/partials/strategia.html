@@ -31,7 +31,8 @@
     {% for nota in suggestions.notes %}<p class="nota">{{ nota }}</p>{% endfor %}
   </div>
 
-  <form class="scheda" id="form-strategia">
+  <form class="scheda" id="form-strategia"
+        hx-post="/query" hx-trigger="change delay:400ms" hx-target="#query-box">
     <input type="hidden" name="topic" value="{{ topic }}">
     <h3>{{ t.card_blocks }}</h3>
     <p class="aiuto">{{ t.blocks_help }}</p>
@@ -65,10 +66,6 @@
     <label for="mesh" class="aiuto">{{ t.mesh_label }}</label>
     <textarea id="mesh" name="mesh" rows="2">{{ strategy.mesh|join(', ') }}</textarea>
 
-    <div class="azioni">
-      <button type="button" hx-post="/query" hx-include="#form-strategia" hx-target="#query-box">{{ t.btn_update_queries }}</button>
-    </div>
-
     <fieldset>
       <legend>{{ t.legend_filters }}</legend>
       <div class="filtri">
@@ -78,8 +75,9 @@
       </div>
     </fieldset>
 
-    <fieldset class="filtri-openalex">
-      <legend>{{ t.filtri_openalex }}</legend>
+    <details class="filtri-avanzati">
+      <summary>{{ t.filtri_openalex }}</summary>
+      <div class="filtri-openalex">
       <label>{{ t.filtro_lingua }}
         <select name="lingua">
           <option value="">{{ t.filtro_lingua_tutte }}</option>
@@ -101,7 +99,12 @@
       {% endfor %}
       <label>{{ t.campione }} <input name="campione" type="number" min="1" max="100" placeholder="{{ t.campione_vuoto }}"></label>
       <label>{{ t.seme }} <input name="seme" type="number" min="1" max="999999" placeholder="7"></label>
-    </fieldset>
+      </div>
+    </details>
+
+    <div id="query-box">
+      {% include "partials/query.html" %}
+    </div>
 
     <fieldset>
       <legend>{{ t.legend_sources }}</legend>
@@ -129,10 +132,6 @@
       </div>
     </fieldset>
   </form>
-
-  <div id="query-box">
-    {% include "partials/query.html" %}
-  </div>
 </section>
 
 <div id="passo-tre"></div>

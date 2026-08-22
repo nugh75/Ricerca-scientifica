@@ -25,11 +25,20 @@
     {% with fase='fulltext', ancora='fulltext', titolo=t.review_phase_fulltext %}
       {% include "partials/revisione_screening.html" %}
     {% endwith %}
-    {% include "partials/revisione_estrazione.html" %}
-    {% include "partials/revisione_qualita.html" %}
-    {% include "partials/revisione_sintesi.html" %}
-    {% include "partials/revisione_wiki.html" %}
-    {% include "partials/revisione_aggiornamenti.html" %}
+    {% for nome, etichetta in [
+      ('estrazione', t.review_phase_extraction),
+      ('qualita', t.review_phase_quality),
+      ('sintesi', t.review_phase_synthesis),
+      ('wiki', t.review_phase_wiki),
+      ('aggiornamenti', t.review_phase_updates)
+    ] %}
+    <section id="{{ nome }}" class="fase-review fase-differita"
+             hx-get="/revisioni/{{ progetto.id }}/fase/{{ nome }}?revisore={{ revisore_attivo|urlencode }}"
+             hx-trigger="intersect once" hx-swap="outerHTML">
+      <div class="fase-testa"><div><h2>{{ etichetta }}</h2></div></div>
+      <span class="barra" aria-hidden="true"></span>
+    </section>
+    {% endfor %}
   </div>
 </section>
 {% endblock %}

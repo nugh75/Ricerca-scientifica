@@ -1,6 +1,6 @@
 {% from "partials/icona.html" import icona %}
-<div class="scheda">
-  <h3>{{ t.card_queries }}</h3>
+<fieldset class="anteprima-query">
+  <legend>{{ t.card_queries }}</legend>
   <div class="query">
     {% for source in sources %}
     <div class="riga-query">
@@ -19,4 +19,4 @@
     </div>
     {% endfor %}
   </div>
-</div>
+</fieldset>

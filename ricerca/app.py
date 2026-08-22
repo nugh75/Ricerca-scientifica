@@ -1107,8 +1107,12 @@ async def screening(
     works = history.record(id_ricerca)
     if indice >= len(works):
         return HTMLResponse("")
-    if aggiorna_elenco:
-        return _elenco(
+    # L'elenco intero si ridisegna solo se la decisione cambia ciò che si vede:
+    # un filtro per stato fa uscire il record, le colonne decisione e motivo lo
+    # raccontano. Negli altri casi si scambia la sola cella, così il fuoco resta
+    # sulla riga e le scorciatoie continuano a funzionare.
+    if aggiorna_elenco and (filtro_stato or {"decisione", "motivo"} & set(campo)):
+        risposta = _elenco(
             request, id_ricerca, campo, vista,
             filtro_testo=filtro_testo,
             filtro_anno_da=filtro_anno_da,
@@ -1116,6 +1120,9 @@ async def screening(
             filtro_fonte=filtro_fonte,
             filtro_stato=filtro_stato,
         )
+        risposta.headers["HX-Retarget"] = f"#blocco-{id_ricerca}"
+        risposta.headers["HX-Reswap"] = "outerHTML"
+        return risposta
     return templates.TemplateResponse(
         request,
         "partials/screening.html",
@@ -1125,6 +1132,9 @@ async def screening(
             indice=indice,
             id_ricerca=id_ricerca,
             conteggi=history.conteggi(id_ricerca),
+            aggiorna_elenco=aggiorna_elenco,
+            vista=vista,
+            filtro_stato=filtro_stato,
             fuori_banda=True,
         ),
     )
@@ -1724,6 +1734,28 @@ async def revisione_pagina(
             **_contesto_revisione(
                 id_progetto, revisore, pagina_abstract, pagina_fulltext
             ),
+        ),
+    )
+
+
+FASI_DIFFERITE = ("estrazione", "qualita", "sintesi", "wiki", "aggiornamenti")
+
+
+@app.get("/revisioni/{id_progetto}/fase/{nome}", response_class=HTMLResponse)
+async def revisione_fase(request: Request, id_progetto: str, nome: str, revisore: str = ""):
+    """Una fase sola, chiesta quando arriva sullo schermo.
+
+    Le fasi finali disegnano un modulo per ogni record incluso: tenerle tutte
+    nella pagina significa costruire migliaia di campi che nessuno guarderà.
+    """
+
+    if nome not in FASI_DIFFERITE or revisioni.progetto(id_progetto) is None:
+        return Response(status_code=404)
+    return templates.TemplateResponse(
+        request,
+        f"partials/revisione_{nome}.html",
+        base_context(
+            current_config(), **_contesto_revisione(id_progetto, revisore)
         ),
     )
 

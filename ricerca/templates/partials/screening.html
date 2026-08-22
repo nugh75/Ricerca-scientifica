@@ -5,16 +5,19 @@
           hx-vals='{"stato": "{{ stato }}"{% if aggiorna_elenco|default(false) %}, "aggiorna_elenco": "1"{% endif %}}'
           {% if aggiorna_elenco|default(false) %}
           hx-include="#motivo-{{ indice }}, #campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
-          hx-target="#blocco-{{ id_ricerca }}"
           {% else %}
-          hx-include="#motivo-{{ indice }}" hx-target="#screening-{{ indice }}"
+          hx-include="#motivo-{{ indice }}"
           {% endif %}
+          hx-target="#screening-{{ indice }}"
           hx-swap="outerHTML"
           title="{{ etichetta }}">{{ etichetta }}</button>
   {% endfor %}
-  <textarea id="motivo-{{ indice }}" name="motivo" rows="2"
-            placeholder="{{ t.screening_reason }}" aria-label="{{ t.screening_reason }}"
-            class="motivo">{{ work.motivo }}</textarea>
+  <details class="motivo-avvolto" {% if work.decisione or work.motivo %}open{% endif %}>
+    <summary>{{ t.screening_reason }}</summary>
+    <textarea id="motivo-{{ indice }}" name="motivo" rows="2"
+              placeholder="{{ t.screening_reason }}" aria-label="{{ t.screening_reason }}"
+              class="motivo">{{ work.motivo }}</textarea>
+  </details>
 </span>
 {% if fuori_banda %}
 {% include "partials/prisma.html" %}

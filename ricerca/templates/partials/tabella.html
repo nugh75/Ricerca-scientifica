@@ -84,6 +84,7 @@
     </span>
   </div>
   <p class="aiuto">{{ t.bulk_scope_hint }}</p>
+  <p class="aiuto scorciatoie">{{ t.shortcuts_hint }}</p>
 </form>
 <div class="scorre">
 <table class="risultati">
@@ -94,7 +95,7 @@
   </tr></thead>
   <tbody>
   {% for riga, w in righe %}
-  <tr tabindex="0" data-riga="{{ riga }}">
+  <tr tabindex="0" data-riga="{{ riga }}" id="riga-{{ riga }}">
     <td class="spunta"><input type="checkbox" form="massa-{{ id_ricerca }}" name="selezione" value="{{ riga }}"
                               onchange="aggiornaMassa('{{ id_ricerca }}')"
                               aria-label="{{ t.bulk_title }} {{ riga + 1 }}"></td>
@@ -146,7 +147,6 @@
   </tbody>
 </table>
 </div>
-<p class="aiuto">{{ t.shortcuts_hint }}</p>
 {% endif %}
 {% if pagine > 1 %}
 <div class="pagine">
@@ -166,5 +166,14 @@
 </div>
 {% endif %}
 {% else %}
-<p class="nota">{{ t.result_filter_empty if filtri_attivi else t.empty_results }}</p>
+<div class="elenco-vuoto">
+  {{ icona('results') }}
+  <p class="nota">{{ t.result_filter_empty if filtri_attivi else t.empty_results }}</p>
+  {% if filtri_attivi %}
+  <button type="button" class="primario" hx-post="/risultati/{{ id_ricerca }}"
+          hx-include="#campi-{{ id_ricerca }}, #filtri-{{ id_ricerca }}"
+          hx-vals='{"vista": "{{ vista }}", "azzera_filtri": "1"}'
+          hx-target="#blocco-{{ id_ricerca }}" hx-swap="outerHTML">{{ t.result_filter_reset }}</button>
+  {% endif %}
+</div>
 {% endif %}

@@ -94,7 +94,7 @@ Scale:
 Voice recognition UI, gesture detection, AI predictions (smooth reveal), progressive disclosure, smart suggestions
 
 - **Physics:** Ease-out curves, 200-300ms duration. Smooth and predictable.
-- **Entry animations:** Fade + translate-Y (16px → 0) over 420ms ease-out. Staggered cascades for lists: 80ms between items.
+- **Entry animations:** Fade + translate-Y (8px → 0) over 240ms with a strong ease-out (`cubic-bezier(0.23, 1, 0.32, 1)`). Blocks that reappear many times a session stay under 300ms. Staggered cascades for lists: 80ms between items.
 - **Hover states:** Subtle color shift + shadow adjustment over 200ms.
 - **Page transitions:** Fade only (200ms).
 - **Performance:** Only transform and opacity animated. No layout-triggering properties.
@@ -107,7 +107,7 @@ Base corner radius: 8px. See rounded tokens in front matter for the full scale.
 
 ## Components
 
-- **Primary Button:** Subtly rounded (0.5rem) shape. Accent color fill. Hover: 8% darken + subtle lift shadow. Active: -1px translate tactile press. Font weight 600. No outer glows.
+- **Primary Button:** Subtly rounded (0.5rem) shape. Accent color fill. Hover: 8% darken + subtle lift shadow. Active: scale(0.97) tactile press. Font weight 600. No outer glows.
 - **Secondary / Ghost Button:** Outline variant. 1.5px border in muted color. Text in primary color. Hover: subtle background fill.
 - **Cards:** Subtly rounded (0.5rem) corners. Surface background. Subtle shadow (0 2px 12px rgba(0,0,0,0.06)). 1px border stroke.
 - **Inputs:** Label above input. 1px border stroke. Focus ring: 2px accent color offset 2px. Error text below in semantic red. No floating labels.

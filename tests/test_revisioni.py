@@ -290,3 +290,23 @@ def test_il_workspace_permette_il_flusso_completo_dalle_rotte():
     assert esportato.status_code == 200
     assert "Review AI" in esportato.text
     assert "PRISMA-S" in esportato.text
+
+
+def test_le_fasi_finali_arrivano_quando_si_guardano():
+    """Un modulo per record incluso, moltiplicato per nove fasi, non serve subito."""
+
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+
+    pagina = client.get(f"/revisioni/{id_progetto}").text
+    assert f'hx-get="/revisioni/{id_progetto}/fase/estrazione?revisore=Ada"' in pagina
+    assert 'hx-trigger="intersect once"' in pagina
+    assert 'id="estrazione"' in pagina                  # l'ancora della traccia resta
+    assert "Study data" not in pagina                   # il contenuto della fase no
+
+    fase = client.get(f"/revisioni/{id_progetto}/fase/estrazione?revisore=Ada")
+    assert fase.status_code == 200
+    assert '<section id="estrazione" class="fase-review">' in fase.text
+    assert "Study data" in fase.text
+    assert client.get(f"/revisioni/{id_progetto}/fase/inventata").status_code == 404

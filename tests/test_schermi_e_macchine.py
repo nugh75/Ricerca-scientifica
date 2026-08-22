@@ -276,3 +276,24 @@ async def test_il_marcatore_interno_non_finisce_nel_registro():
     righe = " ".join(f"{v.azione} {v.dettaglio}" for v in registro.ultime())
     assert search.SENZA_RETE not in righe
     assert "unreachable" in righe
+
+
+def test_le_scorciatoie_si_leggono_dove_si_lavora():
+    """In fondo alla tabella, con cinquanta righe sopra, nessuno le vede."""
+
+    id_ricerca = ricerca_con(3)
+    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+
+    comandi = pagina.split('class="comandi barra-comandi"', 1)[1].split("</form>", 1)[0]
+    assert "«i» includes" in comandi
+
+
+def test_un_elenco_vuoto_propone_l_uscita():
+    id_ricerca = ricerca_con(3)
+    pagina = client.post(
+        f"/risultati/{id_ricerca}",
+        data={"vista": "tabella", "filtro_testo": "niente di niente"},
+    ).text
+
+    assert 'class="elenco-vuoto"' in pagina
+    assert "Clear filters" in pagina

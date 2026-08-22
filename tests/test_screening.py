@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import httpx
 import respx
 from fastapi.testclient import TestClient
@@ -112,3 +114,68 @@ def test_l_affinamento_dice_quando_non_c_e_nulla_di_nuovo():
         [SourceResult("openalex", "OpenAlex", "q", works=works)], works,
     )
     assert "no terms" in client.post(f"/affina/{id_ricerca}").text
+
+
+def test_una_decisione_scambia_la_sola_cella():
+    """Ridisegnare l'elenco intero spegne il fuoco e le scorciatoie."""
+
+    id_ricerca = ricerca_con_tre_record()
+    risposta = client.post(
+        f"/screening/{id_ricerca}/0",
+        data={"stato": "incluso", "motivo": "", "aggiorna_elenco": "1", "campo": ["titolo"]},
+    )
+
+    assert "HX-Retarget" not in risposta.headers
+    assert 'id="screening-0"' in risposta.text
+    assert f'id="blocco-{id_ricerca}"' not in risposta.text
+    assert f'id="prisma-{id_ricerca}"' in risposta.text          # i conteggi seguono lo stesso
+
+
+def test_con_un_filtro_di_stato_l_elenco_si_ridisegna():
+    """Il record deciso deve uscire dall'elenco: la cella non basta."""
+
+    id_ricerca = ricerca_con_tre_record()
+    risposta = client.post(
+        f"/screening/{id_ricerca}/0",
+        data={
+            "stato": "incluso", "motivo": "", "aggiorna_elenco": "1",
+            "campo": ["titolo"], "filtro_stato": "da_valutare",
+        },
+    )
+
+    assert risposta.headers["HX-Retarget"] == f"#blocco-{id_ricerca}"
+    assert risposta.headers["HX-Reswap"] == "outerHTML"
+    assert f'id="blocco-{id_ricerca}"' in risposta.text
+
+
+def test_le_colonne_decisione_e_motivo_obbligano_a_ridisegnare():
+    id_ricerca = ricerca_con_tre_record()
+    risposta = client.post(
+        f"/screening/{id_ricerca}/0",
+        data={
+            "stato": "incluso", "motivo": "utile", "aggiorna_elenco": "1",
+            "campo": ["titolo", "decisione"],
+        },
+    )
+
+    assert risposta.headers["HX-Retarget"] == f"#blocco-{id_ricerca}"
+
+
+def test_il_motivo_resta_chiuso_finche_non_c_e_una_decisione():
+    id_ricerca = ricerca_con_tre_record()
+    history.decide(id_ricerca, 1, "escluso", "fuori tema")
+    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+
+    aperto = pagina.split('id="screening-1"', 1)[1].split("</span>", 1)[0]
+    chiuso = pagina.split('id="screening-0"', 1)[1].split("</span>", 1)[0]
+    assert '<details class="motivo-avvolto" open>' in aperto
+    assert '<details class="motivo-avvolto" >' in chiuso
+
+
+def test_la_riga_ha_un_ancoraggio_per_il_fuoco():
+    id_ricerca = ricerca_con_tre_record()
+    pagina = client.post(f"/risultati/{id_ricerca}", data={"vista": "tabella"}).text
+
+    assert 'data-riga="0" id="riga-0"' in pagina
+    base = (Path(__file__).resolve().parent.parent / "ricerca/templates/base.html").read_text()
+    assert "rigaDelFuoco" in base
