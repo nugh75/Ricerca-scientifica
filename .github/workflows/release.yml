@@ -42,7 +42,13 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.3.0
+          ### New in 2.4.0
+
+          - On the reviews page the form for a new review sits in the page
+            flow, under the list of projects, instead of in a panel pinned to
+            the right.
+
+          ### In 2.3.0
 
           - Settings chooses how the app opens: a window of its own, without
             address bar or tabs, or an ordinary browser tab like any other site.
@@ -140,7 +146,13 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.3.0
+          ### Novità in 2.4.0
+
+          - Nella pagina delle review il modulo per crearne una nuova sta nel
+            flusso della pagina, sotto l'elenco dei progetti, invece che in un
+            pannello ancorato a destra.
+
+          ### Nella 2.3.0
 
           - In Impostazioni si sceglie come si apre l'app: in una finestra
             propria, senza barra degli indirizzi né schede, oppure in una

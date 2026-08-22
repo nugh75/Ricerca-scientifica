@@ -4,7 +4,7 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Version 2.3.** Stable: interfaces, file names and stored
+> **Version 2.4.** Stable: interfaces, file names and stored
 > formats stay put, and what you save today opens tomorrow. Problems and
 > suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
@@ -81,6 +81,11 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.4.0
+
+- On the reviews page the form for a new review sits in the page flow, under
+  the list of projects, instead of in a panel pinned to the right.
 
 ### New in 2.3.0
 
@@ -381,7 +386,7 @@ they are read.
 
 # Italiano
 
-> **Versione 2.3.** Stabile: interfaccia, nomi dei file e
+> **Versione 2.4.** Stabile: interfaccia, nomi dei file e
 > formati salvati restano al loro posto, e quello che salvi oggi si riapre
 > domani. Problemi e proposte:
 > [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
@@ -459,6 +464,12 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.4.0
+
+- Nella pagina delle review il modulo per crearne una nuova sta nel flusso
+  della pagina, sotto l'elenco dei progetti, invece che in un pannello
+  ancorato a destra.
 
 ### Novità in 2.3.0
 
