@@ -42,7 +42,24 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.1.0
+          ### New in 2.2.0
+
+          - Every record carries a free note: what this article is for, which
+            page to reread, what does not add up. It stays with the record, can
+            be shown as a column and travels into the CSV.
+          - A review corpus now follows the searches it came from. A name fixed
+            by hand or a field filled in by Unpaywall reaches the project
+            instead of stopping at the photograph taken on the day of linking.
+          - It does not follow them silently: every departure from the linked
+            version is recorded with the previous value and the date, readable
+            on the record under **Metadata changed** and written into the
+            Markdown export.
+          - The note is shared and written from both sides — from the record
+            card and from the screening card.
+          - A retraction is never undone by the alignment, and if the original
+            search has been deleted the corpus still stands on the copy it kept.
+
+          ### In 2.1.0
 
           - Deleting asks first. Clearing the history or removing a saved
             search wants a confirmation; a review project — protocol,
@@ -109,7 +126,24 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.1.0
+          ### Novità in 2.2.0
+
+          - Ogni record porta un appunto libero: a che cosa serve questo
+            articolo, quale pagina rileggere, che cosa non torna. Sta con il
+            record, si può mostrare come colonna e finisce nel CSV.
+          - Il corpus di una review segue ora le ricerche da cui viene. Un nome
+            sistemato a mano o un campo completato da Unpaywall arriva nel
+            progetto, invece di fermarsi alla fotografia del giorno del
+            collegamento.
+          - Non le segue in silenzio: ogni scostamento dalla versione collegata
+            viene registrato con il valore di prima e la data, si legge sul
+            record sotto **Metadati cambiati** ed entra nell'export Markdown.
+          - L'appunto è condiviso e si scrive dai due lati — dalla scheda del
+            record e da quella dello screening.
+          - Un ritiro non viene mai annullato dall'allineamento, e se la ricerca
+            d'origine è stata cancellata il corpus regge sulla copia conservata.
+
+          ### Nella 2.1.0
 
           - Le cancellazioni chiedono. Svuotare la cronologia o togliere una
             ricerca salvata vuole una conferma; un progetto di review —

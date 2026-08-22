@@ -4,7 +4,7 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Version 2.1.** Stable: interfaces, file names and stored
+> **Version 2.2.** Stable: interfaces, file names and stored
 > formats stay put, and what you save today opens tomorrow. Problems and
 > suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
@@ -76,6 +76,23 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.2.0
+
+- Every record carries a free note: what this article is for, which page to
+  reread, what does not add up. It stays with the record, can be shown as a
+  column and travels into the CSV.
+- A review corpus now follows the searches it came from. A name fixed by hand
+  or a field filled in by Unpaywall reaches the project instead of stopping at
+  the photograph taken on the day of linking.
+- It does not follow them silently: every departure from the linked version is
+  recorded with the previous value and the date, readable on the record under
+  **Metadata changed** and written into the Markdown export. A review must be
+  able to say what changed and when.
+- The note is shared and written from both sides — from the record card and
+  from the screening card. It is the same note wherever it is touched.
+- A retraction is never undone by the alignment, and if the original search has
+  been deleted the corpus still stands on the copy it kept.
 
 ### New in 2.1.0
 
@@ -345,7 +362,7 @@ they are read.
 
 # Italiano
 
-> **Versione 2.1.** Stabile: interfaccia, nomi dei file e
+> **Versione 2.2.** Stabile: interfaccia, nomi dei file e
 > formati salvati restano al loro posto, e quello che salvi oggi si riapre
 > domani. Problemi e proposte:
 > [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
@@ -417,6 +434,23 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.2.0
+
+- Ogni record porta un appunto libero: a che cosa serve questo articolo, quale
+  pagina rileggere, che cosa non torna. Sta con il record, si può mostrare come
+  colonna e finisce nel CSV.
+- Il corpus di una review segue ora le ricerche da cui viene. Un nome sistemato
+  a mano o un campo completato da Unpaywall arriva nel progetto, invece di
+  fermarsi alla fotografia del giorno del collegamento.
+- Non le segue in silenzio: ogni scostamento dalla versione collegata viene
+  registrato con il valore di prima e la data, si legge sul record sotto
+  **Metadati cambiati** ed entra nell'export Markdown. Una revisione deve poter
+  dire che cosa è cambiato e quando.
+- L'appunto è condiviso e si scrive dai due lati — dalla scheda del record e da
+  quella dello screening. È lo stesso appunto ovunque lo si tocchi.
+- Un ritiro non viene mai annullato dall'allineamento, e se la ricerca d'origine
+  è stata cancellata il corpus regge sulla copia che ha conservato.
 
 ### Novità in 2.1.0
 
