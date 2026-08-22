@@ -220,6 +220,10 @@ def _contesto_revisione(
         for campo in revisioni.CAMPI_FILTRI_REVIEW
     }
     filtrati = [voce for voce in record if filtri_review.filtra_record(voce, filtri)]
+    priorita_filtrata = [
+        item for item in revisioni.priorita_assistita(progetto)
+        if filtri_review.filtra_record({"work": item["work"]}, filtri)
+    ]
 
     record_abstract, pagina_abstract, pagine_abstract = pagina_screening(
         filtrati, pagina_abstract, "abstract"
@@ -246,10 +250,8 @@ def _contesto_revisione(
         "articoli_sentinella": revisioni.controlla_sentinelle(progetto),
         "protocollo_mancanti": revisioni.campi_protocollo_mancanti(progetto),
         "ricerche_disponibili": [r for r in history.elenco() if r.get("id") not in collegate],
-        "priorita_assistita": [
-            item for item in revisioni.priorita_assistita(progetto)
-            if filtri_review.filtra_record({"work": item["work"]}, filtri)
-        ],
+        "priorita_assistita": priorita_filtrata,
+        "priorita_attiva": any(item["punteggio"] > 0 for item in priorita_filtrata),
         "aggiornamento_dovuto": revisioni.aggiornamento_dovuto(progetto),
         "wiki_statistiche": wiki.statistiche(progetto.get("wiki", {})),
         "wiki_obsoleta": wiki.obsoleta(progetto),

@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from ricerca import history, pdf, revisioni
-from ricerca.app import app
+from ricerca.app import _contesto_revisione, app
 from ricerca.models import Block, SourceResult, Strategy, Work
 
 
@@ -177,6 +177,25 @@ def test_disponibilita_del_testo_completo_resta_tracciata():
     item = revisioni.progetto(id_progetto)["record"][0]["id"]
     revisioni.salva_testo_completo(id_progetto, item, "richiesto", "email all'autrice")
     assert revisioni.progetto(id_progetto)["testi_completi"][item]["stato"] == "richiesto"
+
+
+def test_priorita_attiva_solo_dopo_le_decisioni():
+    lavori = [
+        Work(title="Teacher training with technology", doi="10.1/x", sources=["openalex"]),
+        Work(title="Teacher workload and burnout", doi="10.1/y", sources=["openalex"]),
+    ]
+    id_ricerca = history.salva(
+        "teacher",
+        Strategy([Block("Concetto", ["teacher"])]),
+        [SourceResult("openalex", "OpenAlex", "teacher", works=lavori)],
+        lavori,
+    )
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    assert _contesto_revisione(id_progetto)["priorita_attiva"] is False
+    item = revisioni.progetto(id_progetto)["record"][0]["id"]
+    revisioni.decidi(id_progetto, item, "abstract", "Ada", "incluso", "")
+    assert _contesto_revisione(id_progetto)["priorita_attiva"] is True
 
 
 def test_priorita_assistita_spiega_perche_un_record_sale():
