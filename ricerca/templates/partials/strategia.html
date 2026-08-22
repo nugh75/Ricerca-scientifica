@@ -69,27 +69,28 @@
     <fieldset>
       <legend>{{ t.legend_filters }}</legend>
       <div class="filtri">
-        <label class="limite">{{ t.filter_from }} <input type="number" name="anno_da" min="1900" max="2100" placeholder="2019"></label>
-        <label class="limite">{{ t.filter_to }} <input type="number" name="anno_a" min="1900" max="2100" placeholder="2026"></label>
-        <label class="fonte"><input type="checkbox" name="solo_articoli" value="true"> {{ t.filter_articles }}</label>
+        <label class="limite">{{ t.filter_from }} <input type="number" name="anno_da" min="1900" max="2100" placeholder="2019" value="{{ strategy.filtri.anno_da or '' }}"></label>
+        <label class="limite">{{ t.filter_to }} <input type="number" name="anno_a" min="1900" max="2100" placeholder="2026" value="{{ strategy.filtri.anno_a or '' }}"></label>
+        <label class="fonte"><input type="checkbox" name="solo_articoli" value="true" {% if strategy.filtri.solo_articoli %}checked{% endif %}> {{ t.filter_articles }}</label>
       </div>
     </fieldset>
 
-    <details class="filtri-avanzati">
+    <details class="filtri-avanzati"{% if strategy.filtri.lingua or strategy.filtri.escludi_ritirati or strategy.filtri.solo_oa or strategy.filtri.con_pdf or strategy.filtri.rivista_id or strategy.filtri.ateneo_id or strategy.filtri.finanziatore_id or strategy.filtri.campione %} open{% endif %}>
       <summary>{{ t.filtri_openalex }}</summary>
       <div class="filtri-openalex">
       <label>{{ t.filtro_lingua }}
         <select name="lingua">
           <option value="">{{ t.filtro_lingua_tutte }}</option>
-          {% for codice in lingue %}<option value="{{ codice }}">{{ codice }}</option>{% endfor %}
+          {% for codice in lingue %}<option value="{{ codice }}" {% if strategy.filtri.lingua == codice %}selected{% endif %}>{{ codice }}</option>{% endfor %}
         </select>
       </label>
-      <label><input type="checkbox" name="escludi_ritirati" value="1"> {{ t.filtro_ritirati }}</label>
-      <label><input type="checkbox" name="solo_oa" value="1"> {{ t.filtro_oa }}</label>
-      <label><input type="checkbox" name="con_pdf" value="1"> {{ t.filtro_pdf }}</label>
+      <label><input type="checkbox" name="escludi_ritirati" value="1" {% if strategy.filtri.escludi_ritirati %}checked{% endif %}> {{ t.filtro_ritirati }}</label>
+      <label><input type="checkbox" name="solo_oa" value="1" {% if strategy.filtri.solo_oa %}checked{% endif %}> {{ t.filtro_oa }}</label>
+      <label><input type="checkbox" name="con_pdf" value="1" {% if strategy.filtri.con_pdf %}checked{% endif %}> {{ t.filtro_pdf }}</label>
       {% for campo, entita, etichetta in [("rivista", "sources", t.filtro_rivista), ("ateneo", "institutions", t.filtro_ateneo), ("finanziatore", "funders", t.filtro_finanziatore)] %}
         <label>{{ etichetta }}
           <input name="{{ campo }}" list="lista-{{ campo }}" placeholder="{{ t.filtro_entita_aiuto }}"
+                 value="{{ strategy.filtri[campo ~ '_id'] }}"
                  hx-get="/autocompleta?entita={{ entita }}"
                  hx-trigger="keyup changed delay:300ms"
                  hx-vals='js:{q: event.target.value}'
@@ -97,8 +98,8 @@
           <datalist id="lista-{{ campo }}"></datalist>
         </label>
       {% endfor %}
-      <label>{{ t.campione }} <input name="campione" type="number" min="1" max="100" placeholder="{{ t.campione_vuoto }}"></label>
-      <label>{{ t.seme }} <input name="seme" type="number" min="1" max="999999" placeholder="7"></label>
+      <label>{{ t.campione }} <input name="campione" type="number" min="1" max="100" placeholder="{{ t.campione_vuoto }}" value="{{ strategy.filtri.campione or '' }}"></label>
+      <label>{{ t.seme }} <input name="seme" type="number" min="1" max="999999" placeholder="7" value="{{ strategy.filtri.seme or '' }}"></label>
       </div>
     </details>
 

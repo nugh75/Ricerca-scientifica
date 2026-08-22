@@ -181,3 +181,20 @@ def test_l_attesa_non_si_annida_a_ogni_giro():
     for _ in range(3):
         frammento = client.get(f"/lavoro/{lavoro.id}").text
         assert frammento.count("<section") == 1
+
+
+@respx.mock
+def test_i_risultati_prendono_l_indirizzo_della_ricerca_salvata():
+    respx.get(url__startswith="https://api.openalex.org/works").mock(
+        return_value=httpx.Response(200, json=WORKS))
+
+    risposta = client.post("/cerca", data={"label": ["C"], "terms": ["x"], "mesh": "",
+                                           "fonte": ["openalex"], "limite": "5", "topic": "indirizzo"})
+    id_lavoro = re.search(r"/lavoro/([A-Za-z0-9_-]+)", risposta.text).group(1)
+    lavoro = lavori.attendi(id_lavoro, timeout=30)
+
+    finita = client.get(f"/lavoro/{id_lavoro}")
+
+    assert finita.headers["HX-Push-Url"] == f"/cronologia/{lavoro.risultato}"
+    # E quell'indirizzo apre davvero la ricerca, ricaricando la pagina.
+    assert "indirizzo" in client.get(f"/cronologia/{lavoro.risultato}").text

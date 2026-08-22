@@ -8,6 +8,16 @@
     <p>{{ t.history_intro }}</p>
   </div>
 
+  {% if totale_tutte %}
+  <form method="get" class="topic-form filtro-cronologia">
+    <input type="search" name="q" value="{{ query }}"
+           placeholder="{{ t.history_filter_placeholder }}" aria-label="{{ t.history_topic }}">
+    <button type="submit" class="primario">{{ t.result_filter_apply }}</button>
+    {% if query %}<a class="tasto" href="/cronologia">{{ t.result_filter_reset }}</a>
+    <span class="conteggi">{{ t.history_filter_count.format(mostrate=totale, totale=totale_tutte) }}</span>{% endif %}
+  </form>
+  {% endif %}
+
   {% if voci %}
   <div class="sezione-pagina">
     <div class="scorre">
@@ -26,7 +36,7 @@
           {% for fonte in voce.fonti %}{{ fonte.etichetta }}{% if fonte.errore %} <span class="errore">({{ fonte.errore }})</span>{% else %} {{ fonte.trovati }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}
         </td>
         <td>
-          <form method="post" action="/cronologia/{{ voce.id }}/elimina">
+          <form method="post" action="/cronologia/{{ voce.id }}/elimina" data-confirm="{{ t.history_delete_confirm }}">
             <button type="submit" class="copia">{{ t.history_delete }}</button>
           </form>
         </td>
@@ -36,9 +46,18 @@
     </table>
     </div>
   </div>
-  <form method="post" action="/cronologia/svuota" class="azioni">
+  {% if pagine > 1 %}
+  <nav class="pagine" aria-label="{{ t.page_of.format(pagina=pagina, pagine=pagine) }}">
+    {% if pagina > 1 %}<a class="tasto" href="/cronologia?q={{ query|urlencode }}&amp;pagina={{ pagina - 1 }}">{{ t.page_previous }}</a>{% endif %}
+    <span class="conteggi">{{ t.page_of.format(pagina=pagina, pagine=pagine) }}</span>
+    {% if pagina < pagine %}<a class="tasto" href="/cronologia?q={{ query|urlencode }}&amp;pagina={{ pagina + 1 }}">{{ t.page_next }}</a>{% endif %}
+  </nav>
+  {% endif %}
+  <form method="post" action="/cronologia/svuota" class="azioni" data-confirm="{{ t.history_clear_confirm }}">
     <button type="submit">{{ t.history_clear }}</button>
   </form>
+  {% elif query %}
+  <p class="nota">{{ t.history_filter_empty }}</p>
   {% else %}
   <p class="nota">{{ t.history_empty }}</p>
   {% endif %}

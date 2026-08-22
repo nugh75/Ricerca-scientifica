@@ -19,7 +19,12 @@
     <div class="sezione-pagina">
       {% for trovato in trovati %}
       <div class="gruppo-chip">
-        <h3>{{ trovato.file }} — {{ t.library_count.format(quante=trovato.occorrenze) }}</h3>
+        <h3>
+          <button type="button" class="titolo-record"
+                  data-pdf="/biblioteca/{{ trovato.file|urlencode }}/file"
+                  data-titolo="{{ trovato.file }}" title="{{ t.pdf_open }}">{{ trovato.file }}</button>
+          <span class="conteggi">{{ t.library_count.format(quante=trovato.occorrenze) }}</span>
+        </h3>
         <p class="aiuto">…{{ trovato.estratto }}…</p>
       </div>
       {% endfor %}

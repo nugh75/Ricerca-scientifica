@@ -118,3 +118,62 @@ def test_le_decisioni_gia_prese_restano_sul_record_giusto():
     record = history.record(id_voce)
     assert record[1].title == "Secondo"
     assert record[1].decisione == "incluso"
+
+
+def test_la_cronologia_si_filtra_per_argomento_e_si_divide_in_pagine():
+    from fastapi.testclient import TestClient
+    from ricerca.app import app
+
+    client = TestClient(app)
+    for numero in range(30):
+        history.salva(
+            f"autoefficacia {numero}",
+            Strategy([Block("C", ["x"])]),
+            [],
+            [Work(title=f"W{numero}", sources=["openalex"])],
+        )
+    history.salva("orientamento scolastico", Strategy([Block("C", ["y"])]), [], [])
+
+    prima = client.get("/cronologia")
+    assert "orientamento scolastico" in prima.text
+    assert "page 1 of 2" in prima.text
+
+    filtrata = client.get("/cronologia", params={"q": "ORIENTAMENTO"})
+    assert "orientamento scolastico" in filtrata.text
+    assert "autoefficacia" not in filtrata.text
+
+    assert "No search on this topic" in client.get("/cronologia", params={"q": "zzz"}).text
+
+
+def test_una_ricerca_salvata_si_riapre_pronta_da_rilanciare():
+    from fastapi.testclient import TestClient
+    from ricerca.app import app
+    from ricerca.models import Filtri
+
+    client = TestClient(app)
+    strategia = Strategy(
+        blocks=[Block("Concetto", ["self-efficacy", "autoefficacia"])],
+        mesh=["Self Efficacy"],
+        filtri=Filtri(anno_da=2019, solo_articoli=True, solo_oa=True),
+    )
+    id_ricerca = history.salva("autoefficacia docenti", strategia, [], [])
+
+    pagina = client.get(f"/cronologia/{id_ricerca}/riesegui").text
+
+    assert 'value="autoefficacia docenti"' in pagina          # l'argomento torna
+    assert "self-efficacy, autoefficacia" in pagina           # e i blocchi
+    assert 'name="anno_da" min="1900" max="2100" placeholder="2019" value="2019"' in pagina
+    assert 'name="solo_articoli" value="true" checked' in pagina
+    assert 'name="solo_oa" value="1" checked' in pagina
+    assert '<details class="filtri-avanzati" open>' in pagina  # il filtro attivo si vede
+    assert "Strategy taken from the search" in pagina
+
+
+def test_riesegui_una_ricerca_che_non_esiste_torna_alla_cronologia():
+    from fastapi.testclient import TestClient
+    from ricerca.app import app
+
+    client = TestClient(app)
+    risposta = client.get("/cronologia/inesistente/riesegui", follow_redirects=False)
+    assert risposta.status_code == 303
+    assert risposta.headers["location"] == "/cronologia"

@@ -6,7 +6,7 @@
   <p>{{ t.step1_intro }}</p>
 
   <form hx-post="/suggerimenti" hx-target="#passo-due" hx-indicator="#attesa" class="topic-form">
-    <input id="topic" name="topic" required autofocus
+    <input id="topic" name="topic" required autofocus value="{{ topic|default('') }}"
            placeholder="{{ t.topic_placeholder }}" aria-label="{{ t.topic_aria }}">
     <button type="submit" class="primario">{{ t.btn_suggest }}</button>
   </form>
@@ -17,7 +17,22 @@
   {% if not llm_enabled %}
   <p class="nota">{{ t.llm_missing }} <a href="/impostazioni">{{ t.nav_settings }}</a> {{ t.llm_missing_tail }}</p>
   {% endif %}
+
+  {% if ultime %}
+  <div class="ricerche-recenti">
+    <h2>{{ t.home_recent }}</h2>
+    <ul>
+      {% for voce in ultime %}
+      <li>
+        <a href="/cronologia/{{ voce.id }}">{{ voce.topic or '—' }}</a>
+        <small>{{ voce.quando|replace('T', ' ') }} · {{ voce.totale }} {{ t.history_records|lower }}</small>
+      </li>
+      {% endfor %}
+    </ul>
+    <a class="tasto" href="/cronologia">{{ t.history_title }}</a>
+  </div>
+  {% endif %}
 </section>
 
-<div id="passo-due"></div>
+<div id="passo-due">{% if strategy is defined %}{% include "partials/strategia.html" %}{% endif %}</div>
 {% endblock %}

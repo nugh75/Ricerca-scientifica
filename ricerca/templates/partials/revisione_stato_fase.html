@@ -1,0 +1,3 @@
+{% set conteggi_fase = riepilogo_revisione[fase] %}
+<span id="stato-fase-{{ fase }}" class="stato-fase {% if conteggi_fase.conflitti %}attenzione{% endif %}"
+      {% if fuori_banda|default(false) %}hx-swap-oob="outerHTML"{% endif %}>{{ conteggi_fase.da_valutare }} {{ t.review_to_screen }} · {{ conteggi_fase.conflitti }} {{ t.review_conflicts }}</span>

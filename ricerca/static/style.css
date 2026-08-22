@@ -882,6 +882,31 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .crea-revisione label { display: block; margin: 0 0 var(--u2); color: var(--testo-tenue); }
 .crea-revisione input, .crea-revisione select { margin-top: .35rem; color: var(--testo); }
 .elenco-progetti { border-top: 1px solid var(--bordo); }
+
+/* Riprendere una ricerca di ieri non deve costare un passaggio da un'altra
+   pagina: le ultime stanno sotto il campo dell'argomento. */
+.ricerche-recenti { margin-top: var(--u6); }
+.filtro-cronologia { align-items: center; flex-wrap: wrap; gap: var(--u1); }
+
+/* Tre articoli buoni dentro duecento non giustificano il collegamento
+   dell'intera ricerca: da qui il singolo record entra nel corpus. */
+.aggiungi-a-review .azioni { margin: 0; }
+.aggiungi-a-review select { flex: 1 1 14rem; min-width: 0; }
+
+/* Il titolo di una revisione si assesta lavorandoci: sta a portata di mano,
+   ma piegato, perché si cambia una volta ogni tanto. */
+.rinomina-progetto summary { font-size: .8125rem; color: var(--testo-tenue); cursor: pointer; }
+.rinomina-progetto form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--u1); margin-top: var(--u1); }
+.rinomina-progetto label { flex-basis: 100%; margin: 0; }
+.rinomina-progetto input { flex: 1 1 20rem; min-width: 0; }
+.ricerche-recenti h2 { font-size: .8125rem; letter-spacing: .06em; text-transform: uppercase; color: var(--testo-tenue); }
+.ricerche-recenti ul { list-style: none; margin: var(--u2) 0; padding: 0; border-top: 1px solid var(--bordo); }
+.ricerche-recenti li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--u2);
+  padding: var(--u1) var(--u1); border-bottom: 1px solid var(--riga);
+}
+.ricerche-recenti small { color: var(--testo-tenue); white-space: nowrap; font-size: .8125rem; }
+@media (max-width: 34rem) { .ricerche-recenti li { flex-direction: column; gap: .2rem; } }
 .progetto-riga {
   display: flex; justify-content: space-between; align-items: baseline; gap: var(--u3);
   padding: var(--u3) var(--u1); border-bottom: 1px solid var(--bordo); text-decoration: none;

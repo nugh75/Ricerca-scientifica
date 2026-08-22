@@ -7,6 +7,15 @@
       <p class="occhiello">{{ t.reviews_workspace }} · {{ t['review_type_' ~ progetto.tipo] }}</p>
       <h1>{{ progetto.titolo }}</h1>
       <p>{{ t.review_team }}: {{ progetto.revisori|join(', ') }}</p>
+      <details class="rinomina-progetto">
+        <summary>{{ t.review_rename }}</summary>
+        <form method="post" action="/revisioni/{{ progetto.id }}/rinomina">
+          <input type="hidden" name="revisore" value="{{ revisore_attivo }}">
+          <label for="titolo-progetto">{{ t.review_rename_label }}</label>
+          <input id="titolo-progetto" name="titolo" value="{{ progetto.titolo }}" required>
+          <button type="submit">{{ t.btn_save }}</button>
+        </form>
+      </details>
     </div>
     <div class="azioni">
       <a class="tasto" href="/revisioni/{{ progetto.id }}.md">{{ t.review_export_md }}</a>

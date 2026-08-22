@@ -130,16 +130,20 @@ function aggiornaMassa(id) {
 // Tasti rapidi per lo screening: con centocinquanta record da valutare,
 // spostare il mouse su tre bottoni per riga è il grosso del lavoro.
 const SCORCIATOIE = { i: "incluso", f: "forse", e: "escluso" };
+// Righe della ricerca salvata e schede della review: due forme diverse dello
+// stesso gesto, e chi valuta non deve cambiare mano passando dall'una all'altra.
+const VALUTABILE = "tr[data-riga], article[data-record-review]";
 document.addEventListener("keydown", function (evento) {
   if (evento.metaKey || evento.ctrlKey || evento.altKey) return;
   const dentroUnCampo = /^(input|textarea|select)$/i.test((evento.target.tagName || ""));
   if (dentroUnCampo) return;
-  const riga = evento.target.closest && evento.target.closest("tr[data-riga]");
+  const riga = evento.target.closest && evento.target.closest(VALUTABILE);
   if (!riga) return;
 
   if (evento.key === "ArrowDown" || evento.key === "ArrowUp") {
-    const vicina = evento.key === "ArrowDown" ? riga.nextElementSibling : riga.previousElementSibling;
-    if (vicina && vicina.hasAttribute("data-riga")) {
+    const tutte = [...document.querySelectorAll(VALUTABILE)];
+    const vicina = tutte[tutte.indexOf(riga) + (evento.key === "ArrowDown" ? 1 : -1)];
+    if (vicina) {
       vicina.focus();
       evento.preventDefault();
     }
@@ -148,6 +152,16 @@ document.addEventListener("keydown", function (evento) {
 
   const stato = SCORCIATOIE[evento.key.toLowerCase()];
   if (!stato) return;
+  if (riga.hasAttribute("data-record-review")) {
+    // Nella review la decisione è un gruppo di radio con il suo modulo: si
+    // sceglie e si invia, così il motivo già scritto parte insieme al giudizio.
+    const scelta = riga.querySelector('.decisione-revisore input[name="stato"][value="' + stato + '"]');
+    if (!scelta) return;
+    scelta.checked = true;
+    scelta.form.requestSubmit();
+    evento.preventDefault();
+    return;
+  }
   const bottone = [...riga.querySelectorAll(".segno")].find(
     (b) => (b.getAttribute("hx-vals") || "").includes('"' + stato + '"')
   );
@@ -163,7 +177,7 @@ document.addEventListener("keydown", function (evento) {
 let rigaDelFuoco = null;
 document.body.addEventListener("htmx:beforeRequest", function (evento) {
   const partenza = evento.detail.elt;
-  const riga = partenza.closest && partenza.closest("tr[data-riga]");
+  const riga = partenza.closest && partenza.closest(VALUTABILE);
   rigaDelFuoco = riga ? riga.id : null;
 });
 document.body.addEventListener("htmx:afterSettle", function () {
@@ -252,7 +266,17 @@ lettore.addEventListener("close", function () {
 });
 
 document.addEventListener("submit", function (event) {
-  const messaggio = event.target.getAttribute && event.target.getAttribute("data-confirm");
+  const modulo = event.target;
+  if (!modulo.getAttribute) return;
+  // Quando la perdita è grossa — un progetto di review intero — non basta un
+  // sì: si riscrive il titolo, così il clic distratto non arriva in fondo.
+  const atteso = modulo.getAttribute("data-conferma-testo");
+  if (atteso) {
+    const scritto = window.prompt(modulo.getAttribute("data-conferma-invito") || "");
+    if ((scritto || "").trim() !== atteso.trim()) event.preventDefault();
+    return;
+  }
+  const messaggio = modulo.getAttribute("data-confirm");
   if (messaggio && !window.confirm(messaggio)) event.preventDefault();
 });
 

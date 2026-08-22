@@ -80,3 +80,20 @@ def cerca(query: str, massimo: int = 50) -> list[dict]:
         if len(trovati) >= massimo:
             break
     return sorted(trovati, key=lambda t: -t["occorrenze"])
+
+
+def percorso_pdf(nome: str) -> Path | None:
+    """Il PDF di un risultato, per nome di file.
+
+    Il nome arriva dall'indirizzo: si accetta soltanto un file che stia
+    davvero nella cartella dei PDF, senza passare per «..» o per un
+    collegamento che porti altrove.
+    """
+
+    if not nome.endswith(".pdf") or "/" in nome or "\\" in nome:
+        return None
+    cartella_pdf = cartella().resolve()
+    candidato = (cartella_pdf / nome).resolve()
+    if candidato.parent != cartella_pdf or not candidato.is_file():
+        return None
+    return candidato

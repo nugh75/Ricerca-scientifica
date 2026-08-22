@@ -1,0 +1,15 @@
+{% if pagine_operative|default(1) > 1 %}
+<nav class="pagine pagine-review" aria-label="{{ t.page_of.format(pagina=pagina_operativa, pagine=pagine_operative) }}">
+  {% if pagina_operativa > 1 %}
+  <button type="button" class="tasto"
+          hx-get="/revisioni/{{ progetto.id }}/fase/{{ nome_fase }}?revisore={{ revisore_attivo|urlencode }}&pagina={{ pagina_operativa - 1 }}"
+          hx-target="#{{ nome_fase }}" hx-swap="outerHTML">{{ t.page_previous }}</button>
+  {% endif %}
+  <span class="conteggi">{{ t.page_of.format(pagina=pagina_operativa, pagine=pagine_operative) }}</span>
+  {% if pagina_operativa < pagine_operative %}
+  <button type="button" class="tasto"
+          hx-get="/revisioni/{{ progetto.id }}/fase/{{ nome_fase }}?revisore={{ revisore_attivo|urlencode }}&pagina={{ pagina_operativa + 1 }}"
+          hx-target="#{{ nome_fase }}" hx-swap="outerHTML">{{ t.page_next }}</button>
+  {% endif %}
+</nav>
+{% endif %}

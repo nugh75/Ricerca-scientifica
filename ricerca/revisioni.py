@@ -130,6 +130,29 @@ def crea(titolo: str, tipo: str = "sistematica", revisori: list[str] | None = No
     return progetto_nuovo["id"]
 
 
+def rinomina(id_progetto: str, titolo: str) -> bool:
+    """Cambia il titolo di un progetto già avviato.
+
+    Il titolo di una revisione si assesta lavorandoci: quello scelto il primo
+    giorno raramente è quello che finisce nel report. Cambia solo l'etichetta
+    — id, corpus, decisioni e registro restano dove sono.
+    """
+
+    titolo = titolo.strip()
+    if not titolo:
+        return False
+
+    def applica(progetto_corrente: dict):
+        precedente = progetto_corrente.get("titolo", "")
+        if precedente == titolo:
+            return False
+        progetto_corrente["titolo"] = titolo
+        _evento(progetto_corrente, "progetto rinominato", f"«{precedente}» → «{titolo}»")
+        return True
+
+    return bool(_modifica(id_progetto, applica))
+
+
 def elenco() -> list[dict]:
     return [
         {
@@ -242,6 +265,42 @@ def collega_ricerca(id_progetto: str, id_ricerca: str) -> int:
 
     risultato = _modifica(id_progetto, applica)
     return int(risultato or 0)
+
+
+def aggiungi_record(id_progetto: str, id_ricerca: str, indice: int) -> bool:
+    """Porta un solo record nel corpus, con la sua provenienza.
+
+    Chi trova tre articoli buoni dentro duecento non deve collegare l'intera
+    ricerca per averli: la deduplica è la stessa, e un record già presente
+    guadagna una provenienza in più invece di un doppione.
+    """
+
+    lavori_salvati = history.record(id_ricerca)
+    if not 0 <= indice < len(lavori_salvati):
+        return False
+    lavoro = lavori_salvati[indice]
+
+    def applica(progetto_corrente: dict):
+        record = progetto_corrente.setdefault("record", [])
+        provenienza = {"ricerca": id_ricerca, "indice": indice}
+        chiave = _key(lavoro)
+        for item in record:
+            if _key(Work(**_campi_work(item.get("record", {})))) != chiave:
+                continue
+            origini = item.setdefault("provenienze", [])
+            if provenienza not in origini:
+                origini.append(provenienza)
+            _evento(progetto_corrente, "record già nel corpus", lavoro.title[:60])
+            return False
+        record.append({
+            "id": secrets.token_urlsafe(7),
+            "record": asdict(lavoro),
+            "provenienze": [provenienza],
+        })
+        _evento(progetto_corrente, "record aggiunto", lavoro.title[:60])
+        return True
+
+    return bool(_modifica(id_progetto, applica))
 
 
 def scollega_ricerca(id_progetto: str, id_ricerca: str) -> bool:

@@ -41,6 +41,19 @@
   </div>
   <div id="citazioni-{{ indice }}"></div>
 
+  {% if progetti_revisione %}
+  <form class="scheda-riquadro aggiungi-a-review" hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/revisione"
+        hx-target="#scheda-corpo">
+    <h3>{{ t.review_add_record }}</h3>
+    <div class="azioni">
+      <select name="id_progetto" aria-label="{{ t.review_add_record }}">
+        {% for progetto_review in progetti_revisione %}<option value="{{ progetto_review.id }}">{{ progetto_review.titolo }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="copia">{{ t.review_add_record_action }}</button>
+    </div>
+  </form>
+  {% endif %}
+
   <div class="scheda-riquadro">
     <h3>{{ t.screening_title }}</h3>
     {% with fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}

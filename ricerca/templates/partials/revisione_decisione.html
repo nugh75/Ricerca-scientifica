@@ -1,0 +1,6 @@
+{# Risposta a una decisione di screening: il record che è cambiato, e fuori
+   banda i soli conteggi che quel giudizio sposta. #}
+{% include "partials/revisione_record.html" %}
+{% with fuori_banda = True %}{% include "partials/revisione_stato_fase.html" %}{% endwith %}
+{% with fuori_banda = True %}{% include "partials/revisione_metriche_fase.html" %}{% endwith %}
+{% with fuori_banda = True %}{% include "partials/revisione_fasi.html" %}{% endwith %}

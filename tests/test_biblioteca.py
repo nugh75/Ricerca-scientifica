@@ -54,3 +54,21 @@ def test_un_pdf_illeggibile_non_ferma_l_estrazione(tmp_path):
     finto = biblioteca.cartella() / "rotto.pdf"
     finto.write_bytes(b"%PDF-1.7 ma non valido")
     assert biblioteca.estrai(finto) is None
+
+
+def test_il_risultato_apre_il_pdf_nel_lettore():
+    scrivi_testo("uno.txt", "Il costrutto di self-efficacy negli insegnanti")
+    (biblioteca.cartella() / "uno.pdf").write_bytes(b"%PDF-1.7 finto")
+
+    pagina = client.get("/biblioteca", params={"q": "self-efficacy"})
+    assert 'data-pdf="/biblioteca/uno.pdf/file"' in pagina.text
+
+    risposta = client.get("/biblioteca/uno.pdf/file")
+    assert risposta.status_code == 200
+    assert risposta.headers["content-type"] == "application/pdf"
+
+
+def test_la_biblioteca_non_serve_file_fuori_dalla_sua_cartella():
+    assert client.get("/biblioteca/mancante.pdf/file").status_code == 404
+    assert client.get("/biblioteca/uno.txt/file").status_code == 404
+    assert biblioteca.percorso_pdf("../../etc/passwd.pdf") is None

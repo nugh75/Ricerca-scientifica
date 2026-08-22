@@ -1,7 +1,7 @@
 <section id="estrazione" class="fase-review">
   <div class="fase-testa"><div><p class="occhiello">{{ t.review_analysis }}</p><h2>{{ t.review_phase_extraction }}</h2><p>{{ t.review_extraction_help }}</p></div><span class="stato-fase">{{ riepilogo_revisione.estratti }} / {{ riepilogo_revisione.record }}</span></div>
   <div class="selettore-revisore" aria-label="{{ t.review_active_reviewer }}"><span>{{ t.review_active_reviewer }}</span>{% for revisore in progetto.revisori %}<a href="/revisioni/{{ progetto.id }}?revisore={{ revisore|urlencode }}#estrazione" class="{% if revisore == revisore_attivo %}attivo{% endif %}">{{ revisore }}</a>{% endfor %}<small>{{ t.review_extraction_blind_help }}</small></div>
-  {% for item in record_revisione if item.stato_fulltext == 'incluso' or (not riepilogo_revisione.fulltext.incluso and item.stato_abstract == 'incluso') %}
+  {% for item in record_operativi %}
   <details class="record-operativo"><summary><span><strong>{{ item.work.title }}</strong>{% if item.studio_principale %}<small>{{ t.review_report_of }}: {{ item.studio_principale }}</small>{% endif %}</span><span>{{ progetto.estrazioni.get(item.id, {})|length }} {{ t.review_extractions_short }}</span></summary>
     <div class="record-operativo-corpo">
       <form method="post" action="/revisioni/{{ progetto.id }}/report/{{ item.id }}" class="collega-report"><label>{{ t.review_link_report }}<select name="id_studio" required><option value="">—</option>{% for candidato in record_revisione if candidato.id != item.id %}<option value="{{ candidato.id }}">{{ candidato.work.title }}</option>{% endfor %}</select></label><button type="submit">{{ t.review_link }}</button></form>
@@ -18,4 +18,5 @@
     </div>
   </details>
   {% else %}<p class="nota">{{ t.review_no_included_records }}</p>{% endfor %}
+  {% include "partials/revisione_pagine_fase.html" %}
 </section>

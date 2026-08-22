@@ -310,3 +310,168 @@ def test_le_fasi_finali_arrivano_quando_si_guardano():
     assert '<section id="estrazione" class="fase-review">' in fase.text
     assert "Study data" in fase.text
     assert client.get(f"/revisioni/{id_progetto}/fase/inventata").status_code == 404
+
+
+def test_una_decisione_htmx_rimanda_solo_il_record_e_i_conteggi():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada", "Luca"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    item = revisioni.progetto(id_progetto)["record"][0]["id"]
+
+    risposta = client.post(
+        f"/revisioni/{id_progetto}/screening/{item}",
+        data={"fase": "abstract", "revisore": "Ada", "stato": "incluso", "motivo": "pertinente"},
+        headers={"hx-request": "true"},
+    )
+
+    assert risposta.status_code == 200
+    assert f'id="item-abstract-{item}"' in risposta.text
+    # Il protocollo e le altre fasi non vengono ricostruiti.
+    assert 'id="protocollo"' not in risposta.text
+    assert 'id="ricerche"' not in risposta.text
+    # I conteggi si aggiornano fuori banda.
+    assert 'id="metriche-abstract"' in risposta.text
+    assert 'hx-swap-oob="outerHTML"' in risposta.text
+    assert 'id="traccia-review"' in risposta.text
+    assert revisioni.stato_finale(revisioni.progetto(id_progetto), item, "abstract") == ""
+
+
+def test_senza_htmx_la_decisione_torna_alla_pagina_intera():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    item = revisioni.progetto(id_progetto)["record"][0]["id"]
+
+    risposta = client.post(
+        f"/revisioni/{id_progetto}/screening/{item}",
+        data={"fase": "abstract", "revisore": "Ada", "stato": "incluso", "motivo": ""},
+        follow_redirects=False,
+    )
+
+    assert risposta.status_code == 303
+    assert risposta.headers["location"].startswith(f"/revisioni/{id_progetto}")
+
+
+def test_il_consenso_e_lo_stato_del_testo_completo_rispondono_a_frammento():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada", "Luca"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    item = revisioni.progetto(id_progetto)["record"][0]["id"]
+    revisioni.decidi(id_progetto, item, "abstract", "Ada", "incluso", "")
+    revisioni.decidi(id_progetto, item, "abstract", "Luca", "escluso", "")
+
+    consenso = client.post(
+        f"/revisioni/{id_progetto}/consenso/{item}",
+        data={"fase": "abstract", "stato": "incluso", "motivo": "discusso", "revisore": "Ada"},
+        headers={"hx-request": "true"},
+    )
+    assert consenso.status_code == 200
+    assert f'id="item-abstract-{item}"' in consenso.text
+
+    testo = client.post(
+        f"/revisioni/{id_progetto}/testo-completo/{item}",
+        data={"stato": "disponibile", "nota": "in biblioteca", "revisore": "Ada"},
+        headers={"hx-request": "true"},
+    )
+    assert testo.status_code == 200
+    assert f'id="item-fulltext-{item}"' in testo.text
+
+
+def test_un_solo_record_entra_nel_corpus_dalla_scheda():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+
+    scheda = client.get(f"/scheda/{id_ricerca}/0")
+    assert "Add to a review" in scheda.text
+
+    risposta = client.post(
+        f"/scheda/{id_ricerca}/0/revisione", data={"id_progetto": id_progetto}
+    )
+
+    assert risposta.status_code == 200
+    progetto = revisioni.progetto(id_progetto)
+    assert len(progetto["record"]) == 1
+    assert progetto["record"][0]["record"]["title"] == "AI literacy in teacher education"
+    # Il resto della ricerca resta fuori: si è scelto un record, non la ricerca.
+    assert progetto["ricerche"] == []
+
+
+def test_lo_stesso_record_aggiunto_due_volte_non_si_sdoppia():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+
+    assert revisioni.aggiungi_record(id_progetto, id_ricerca, 0) is True
+    assert revisioni.aggiungi_record(id_progetto, id_ricerca, 0) is False
+
+    record = revisioni.progetto(id_progetto)["record"]
+    assert len(record) == 1
+    assert len(record[0]["provenienze"]) == 1
+
+
+def test_un_indice_fuori_dai_record_non_aggiunge_nulla():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Review AI", "sistematica", ["Ada"])
+    assert revisioni.aggiungi_record(id_progetto, id_ricerca, 99) is False
+    assert revisioni.progetto(id_progetto)["record"] == []
+
+
+def test_estrazione_e_qualita_si_dividono_in_pagine():
+    from ricerca import app as modulo_app
+
+    lavori_finti = [
+        Work(title=f"Studio {n}", doi=f"10.9/{n}", sources=["openalex"]) for n in range(25)
+    ]
+    id_ricerca = history.salva(
+        "molti inclusi",
+        Strategy([Block("C", ["x"])]),
+        [SourceResult("openalex", "OpenAlex", "x", works=lavori_finti)],
+        lavori_finti,
+    )
+    id_progetto = revisioni.crea("Review grande", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    for item in revisioni.progetto(id_progetto)["record"]:
+        revisioni.decidi(id_progetto, item["id"], "abstract", "Ada", "incluso", "")
+
+    prima = client.get(f"/revisioni/{id_progetto}/fase/estrazione?revisore=Ada").text
+    assert prima.count("estrazione-form") == modulo_app.PER_PAGINA_FASE
+    # Il titolo compare come intestazione del record soltanto nella sua pagina;
+    # l'elenco «collega report» resta invece sull'intero corpus, come deve.
+    assert "<strong>Studio 0</strong>" in prima
+    assert "<strong>Studio 24</strong>" not in prima
+    assert "page 1 of 2" in prima
+
+    seconda = client.get(f"/revisioni/{id_progetto}/fase/estrazione?revisore=Ada&pagina=2").text
+    assert "<strong>Studio 24</strong>" in seconda
+    assert "<strong>Studio 0</strong>" not in seconda
+
+    qualita = client.get(f"/revisioni/{id_progetto}/fase/qualita?revisore=Ada").text
+    assert qualita.count("bias-form") == modulo_app.PER_PAGINA_FASE
+
+
+def test_un_progetto_si_rinomina_senza_perdere_nulla():
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea("Titolo provvisorio", "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    item = revisioni.progetto(id_progetto)["record"][0]["id"]
+    revisioni.decidi(id_progetto, item, "abstract", "Ada", "incluso", "pertinente")
+
+    risposta = client.post(
+        f"/revisioni/{id_progetto}/rinomina",
+        data={"titolo": "  Autoefficacia e IA  ", "revisore": "Ada"},
+        follow_redirects=False,
+    )
+
+    assert risposta.status_code == 303
+    progetto = revisioni.progetto(id_progetto)
+    assert progetto["titolo"] == "Autoefficacia e IA"
+    assert progetto["id"] == id_progetto
+    assert len(progetto["record"]) == 2
+    assert revisioni.decisioni_item(progetto, item, "abstract")["Ada"]["stato"] == "incluso"
+    assert any("rinominato" in voce["azione"] for voce in progetto["registro"])
+    assert "Autoefficacia e IA" in client.get("/revisioni").text
+
+
+def test_un_titolo_vuoto_non_cancella_quello_buono():
+    id_progetto = revisioni.crea("Titolo buono", "sistematica", ["Ada"])
+    assert revisioni.rinomina(id_progetto, "   ") is False
+    assert revisioni.progetto(id_progetto)["titolo"] == "Titolo buono"

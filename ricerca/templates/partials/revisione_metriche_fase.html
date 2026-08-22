@@ -1,0 +1,3 @@
+{% set conteggi_fase = riepilogo_revisione[fase] %}
+<div id="metriche-{{ fase }}" class="metriche-fase" aria-live="polite"
+     {% if fuori_banda|default(false) %}hx-swap-oob="outerHTML"{% endif %}><span><b>{{ conteggi_fase.incluso }}</b>{{ t.screening_include }}</span><span><b>{{ conteggi_fase.forse }}</b>{{ t.screening_maybe }}</span><span><b>{{ conteggi_fase.escluso }}</b>{{ t.screening_exclude }}</span><span><b>{{ conteggi_fase.conflitti }}</b>{{ t.review_conflicts }}</span></div>

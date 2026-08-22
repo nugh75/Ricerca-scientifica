@@ -41,7 +41,7 @@ from .export import (
     to_csv,
 )
 from .llm import LLMClient, LLMError
-from .models import Strategy, Work
+from .models import Strategy, Suggestions, Work
 from .strategy import LINGUE, heuristic_strategy, strategy_from_form
 
 BASE_DIR = Path(__file__).parent
@@ -221,10 +221,19 @@ def _contesto_revisione(
         candidati_fulltext, pagina_fulltext, "fulltext"
     )
     collegate = {r.get("id") for r in progetto.get("ricerche", [])}
+    riepilogo = revisioni.riepilogo(progetto)
+    # Le fasi finali lavorano sugli inclusi: finché il testo completo non ha
+    # deciso nulla valgono gli inclusi dell'abstract.
+    inclusi = [
+        voce for voce in record
+        if voce.get("stato_fulltext") == "incluso"
+        or (not riepilogo["fulltext"]["incluso"] and voce.get("stato_abstract") == "incluso")
+    ]
     return {
         "progetto": progetto,
+        "record_inclusi": inclusi,
         "record_revisione": record,
-        "riepilogo_revisione": revisioni.riepilogo(progetto),
+        "riepilogo_revisione": riepilogo,
         "checklist_prisma_s": revisioni.checklist_prisma_s(progetto),
         "articoli_sentinella": revisioni.controlla_sentinelle(progetto),
         "protocollo_mancanti": revisioni.campi_protocollo_mancanti(progetto),
@@ -358,6 +367,7 @@ async def home(request: Request):
             copy_only=sources_registry.copy_only(),
             selected=sources_registry.DEFAULT_SELECTED,
             llm_enabled=config.llm_enabled,
+            ultime=history.elenco()[:5],
         ),
     )
 
@@ -564,7 +574,7 @@ async def stato_lavoro(request: Request, id_lavoro: str):
             base_context(config, lavoro=lavoro),
         )
 
-    return templates.TemplateResponse(
+    risposta = templates.TemplateResponse(
         request,
         "partials/risultati.html",
         base_context(
@@ -574,6 +584,11 @@ async def stato_lavoro(request: Request, id_lavoro: str):
             **contesto_elenco(lavoro.risultato, [], "tabella"),
         ),
     )
+    # I risultati arrivano dentro la pagina della strategia, che non ha un
+    # indirizzo suo: un aggiornamento del browser li faceva sparire. Da qui in
+    # poi la barra indica la ricerca salvata, che si ricarica e si condivide.
+    risposta.headers["HX-Push-Url"] = f"/cronologia/{lavoro.risultato}"
+    return risposta
 
 
 # Parole che in inglese non esistono: bastano a capire che il topic è italiano.
@@ -1050,7 +1065,28 @@ def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = Fals
             sintesi=history.sintesi(id_ricerca, indice),
             sintesi_in_corso=lavori.per_descrizione(f"sintesi:{id_ricerca}:{indice}") is not None,
             ha_testo=bool(_testo_da_riassumere(work).strip()),
+            progetti_revisione=revisioni.elenco(),
         ),
+    )
+
+
+@app.post("/scheda/{id_ricerca}/{indice}/revisione", response_class=HTMLResponse)
+async def aggiungi_scheda_a_revisione(
+    request: Request,
+    id_ricerca: str,
+    indice: int,
+    id_progetto: str = Form(...),
+):
+    """Porta questo record nel corpus di una review, senza collegare tutto."""
+
+    testi = i18n.strings(current_config().lang)
+    if revisioni.progetto(id_progetto) is None:
+        return avvisa(_scheda(request, id_ricerca, indice), testi["review_add_record_missing"])
+    aggiunto = revisioni.aggiungi_record(id_progetto, id_ricerca, indice)
+    return avvisa(
+        _scheda(request, id_ricerca, indice),
+        testi["review_add_record_done"] if aggiunto else testi["review_add_record_already"],
+        "buono" if aggiunto else "errore",
     )
 
 
@@ -1564,6 +1600,24 @@ async def biblioteca_pagina(request: Request, q: str = ""):
     )
 
 
+@app.get("/biblioteca/{nome}/file")
+async def biblioteca_file(nome: str):
+    """Il PDF trovato dalla ricerca a testo pieno, aperto nel lettore interno.
+
+    Senza questa rotta la biblioteca sapeva dire in quale file stava la frase
+    ma non sapeva mostrarlo.
+    """
+
+    percorso = biblioteca.percorso_pdf(nome)
+    if percorso is None:
+        return PlainTextResponse("PDF non trovato", status_code=404)
+    return FileResponse(
+        percorso,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{percorso.name}"'},
+    )
+
+
 @app.get("/esplora", response_class=HTMLResponse)
 async def esplora(request: Request, tipo: str = "autori", q: str = ""):
     """Cerca autori o riviste OpenAlex senza avviare una revisione."""
@@ -1741,22 +1795,50 @@ async def revisione_pagina(
 FASI_DIFFERITE = ("estrazione", "qualita", "sintesi", "wiki", "aggiornamenti")
 
 
+PER_PAGINA_FASE = 20
+
+
 @app.get("/revisioni/{id_progetto}/fase/{nome}", response_class=HTMLResponse)
-async def revisione_fase(request: Request, id_progetto: str, nome: str, revisore: str = ""):
+async def revisione_fase(
+    request: Request, id_progetto: str, nome: str, revisore: str = "", pagina: int = 1
+):
     """Una fase sola, chiesta quando arriva sullo schermo.
 
     Le fasi finali disegnano un modulo per ogni record incluso: tenerle tutte
-    nella pagina significa costruire migliaia di campi che nessuno guarderà.
+    nella pagina significa costruire migliaia di campi che nessuno guarderà,
+    e anche una sola fase va divisa in pagine quando gli inclusi sono molti.
     """
 
     if nome not in FASI_DIFFERITE or revisioni.progetto(id_progetto) is None:
         return Response(status_code=404)
+    contesto = _contesto_revisione(id_progetto, revisore)
+    inclusi = contesto["record_inclusi"]
+    pagine = max(1, -(-len(inclusi) // PER_PAGINA_FASE))
+    pagina = min(max(1, pagina), pagine)
+    inizio = (pagina - 1) * PER_PAGINA_FASE
     return templates.TemplateResponse(
         request,
         f"partials/revisione_{nome}.html",
         base_context(
-            current_config(), **_contesto_revisione(id_progetto, revisore)
+            current_config(),
+            nome_fase=nome,
+            record_operativi=inclusi[inizio : inizio + PER_PAGINA_FASE],
+            pagina_operativa=pagina,
+            pagine_operative=pagine,
+            **contesto,
         ),
+    )
+
+
+@app.post("/revisioni/{id_progetto}/rinomina")
+async def rinomina_revisione(
+    id_progetto: str, titolo: str = Form(...), revisore: str = Form(default="")
+):
+    """Il titolo del progetto, cambiato senza toccare il resto."""
+
+    revisioni.rinomina(id_progetto, titolo)
+    return RedirectResponse(
+        f"/revisioni/{id_progetto}?revisore={quote(revisore)}", status_code=303
     )
 
 
@@ -1807,8 +1889,52 @@ async def apri_pdf_revisione(id_progetto: str, id_item: str):
     )
 
 
+def _esito_decisione_revisione(
+    request: Request,
+    id_progetto: str,
+    id_item: str,
+    fase: str,
+    revisore: str,
+    pagina_abstract: int,
+    pagina_fulltext: int,
+    avviso: str,
+):
+    """Il record appena giudicato, e nient'altro.
+
+    Senza htmx si torna alla pagina intera, che resta la strada di riserva:
+    con htmx si sostituisce la sola scheda toccata, perché ricostruire il
+    workspace a ogni giudizio significa rifare protocollo, ricerche e liste
+    per un dato che cambia in una riga.
+    """
+
+    ancora = "screening-abstract" if fase == "abstract" else "fulltext"
+    if not request.headers.get("hx-request"):
+        return RedirectResponse(
+            f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
+            f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#{ancora}",
+            status_code=303,
+        )
+    contesto = _contesto_revisione(
+        id_progetto, revisore, pagina_abstract, pagina_fulltext
+    )
+    voce = next(
+        (r for r in contesto["record_revisione"] if r.get("id") == id_item), None
+    )
+    if voce is None:
+        return Response(status_code=404)
+    risposta = templates.TemplateResponse(
+        request,
+        "partials/revisione_decisione.html",
+        base_context(
+            current_config(), item=voce, fase=fase, ancora=ancora, **contesto
+        ),
+    )
+    return avvisa(risposta, avviso, "buono")
+
+
 @app.post("/revisioni/{id_progetto}/screening/{id_item}")
 async def screening_revisione(
+    request: Request,
     id_progetto: str,
     id_item: str,
     fase: str = Form(...),
@@ -1819,16 +1945,16 @@ async def screening_revisione(
     pagina_fulltext: int = Form(default=1),
 ):
     revisioni.decidi(id_progetto, id_item, fase, revisore, stato, motivo)
-    ancora = "screening-abstract" if fase == "abstract" else "fulltext"
-    return RedirectResponse(
-        f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
-        f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#{ancora}",
-        status_code=303,
+    return _esito_decisione_revisione(
+        request, id_progetto, id_item, fase, revisore,
+        pagina_abstract, pagina_fulltext,
+        i18n.strings(current_config().lang)["review_decision_saved"],
     )
 
 
 @app.post("/revisioni/{id_progetto}/consenso/{id_item}")
 async def consenso_revisione(
+    request: Request,
     id_progetto: str,
     id_item: str,
     fase: str = Form(...),
@@ -1839,16 +1965,16 @@ async def consenso_revisione(
     pagina_fulltext: int = Form(default=1),
 ):
     revisioni.risolvi(id_progetto, id_item, fase, stato, motivo)
-    ancora = "screening-abstract" if fase == "abstract" else "fulltext"
-    return RedirectResponse(
-        f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
-        f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#{ancora}",
-        status_code=303,
+    return _esito_decisione_revisione(
+        request, id_progetto, id_item, fase, revisore,
+        pagina_abstract, pagina_fulltext,
+        i18n.strings(current_config().lang)["review_consensus_saved"],
     )
 
 
 @app.post("/revisioni/{id_progetto}/testo-completo/{id_item}")
 async def testo_completo_revisione(
+    request: Request,
     id_progetto: str,
     id_item: str,
     stato: str = Form(...),
@@ -1858,10 +1984,10 @@ async def testo_completo_revisione(
     pagina_fulltext: int = Form(default=1),
 ):
     revisioni.salva_testo_completo(id_progetto, id_item, stato, nota)
-    return RedirectResponse(
-        f"/revisioni/{id_progetto}?revisore={quote(revisore)}"
-        f"&pagina_abstract={pagina_abstract}&pagina_fulltext={pagina_fulltext}#fulltext",
-        status_code=303,
+    return _esito_decisione_revisione(
+        request, id_progetto, id_item, "fulltext", revisore,
+        pagina_abstract, pagina_fulltext,
+        i18n.strings(current_config().lang)["review_fulltext_saved"],
     )
 
 
@@ -2097,12 +2223,43 @@ async def elimina_revisione(id_progetto: str):
     return RedirectResponse("/revisioni", status_code=303)
 
 
+PER_PAGINA_CRONOLOGIA = 25
+
+
 @app.get("/cronologia", response_class=HTMLResponse)
-async def cronologia(request: Request):
+async def cronologia(request: Request, q: str = "", pagina: int = 1):
+    """Le ricerche salvate, cercabili per argomento e divise in pagine.
+
+    Dopo qualche mese l'elenco intero non si legge più: il filtro corre
+    sull'argomento con le stesse regole dei record — maiuscole e accenti non
+    contano — e le pagine tengono corta la tabella.
+    """
+
+    tutte = history.elenco()
+    q = q.strip()
+    parole = _normalizza_testo_filtro(q).split()
+    voci = [
+        voce for voce in tutte
+        if all(
+            parola in _normalizza_testo_filtro(voce.get("topic") or "")
+            for parola in parole
+        )
+    ]
+    pagine = max(1, -(-len(voci) // PER_PAGINA_CRONOLOGIA))
+    pagina = min(max(1, pagina), pagine)
+    inizio = (pagina - 1) * PER_PAGINA_CRONOLOGIA
     return templates.TemplateResponse(
         request,
         "cronologia.html",
-        base_context(current_config(), voci=history.elenco()),
+        base_context(
+            current_config(),
+            voci=voci[inizio : inizio + PER_PAGINA_CRONOLOGIA],
+            query=q,
+            totale=len(voci),
+            totale_tutte=len(tutte),
+            pagina=pagina,
+            pagine=pagine,
+        ),
     )
 
 
@@ -2115,6 +2272,50 @@ async def cronologia_voce(request: Request, id_ricerca: str):
         request,
         "ricerca_salvata.html",
         base_context(current_config(), voce=voce, **contesto_elenco(id_ricerca, [], "tabella")),
+    )
+
+
+@app.get("/cronologia/{id_ricerca}/riesegui", response_class=HTMLResponse)
+async def riesegui_ricerca(request: Request, id_ricerca: str):
+    """Riapre la strategia di una ricerca salvata, pronta da rilanciare.
+
+    La strategia è già negli archivi: senza questa strada andava riscritta a
+    mano, argomento e blocchi compresi, per rifare la stessa interrogazione
+    qualche mese dopo.
+    """
+
+    voce = history.voce(id_ricerca)
+    if voce is None:
+        return RedirectResponse("/cronologia", status_code=303)
+    config = current_config()
+    strategy = history.strategia(id_ricerca)
+    strategy.filtri = history.filtri(id_ricerca)
+    topic = voce.get("topic", "")
+    fonti_salvate = [f.get("id") for f in voce.get("fonti", []) if f.get("id")]
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        base_context(
+            config,
+            sources=sources_registry.executable(),
+            copy_only=sources_registry.copy_only(),
+            selected=fonti_salvate or sources_registry.DEFAULT_SELECTED,
+            llm_enabled=config.llm_enabled,
+            ultime=history.elenco()[:5],
+            topic=topic,
+            strategy=strategy,
+            queries=search.queries_for(strategy),
+            limite_predefinito=macchina.limite_consigliato(),
+            suggestions=Suggestions(
+                topic=topic,
+                mesh=list(strategy.mesh),
+                notes=[
+                    i18n.strings(config.lang)["rerun_note"].format(
+                        quando=voce.get("quando", "").replace("T", " ")
+                    )
+                ],
+            ),
+        ),
     )
 
 

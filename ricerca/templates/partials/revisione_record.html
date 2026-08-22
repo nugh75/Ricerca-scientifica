@@ -1,0 +1,63 @@
+{# Un record dello screening. Vive da solo perché ogni decisione ne rimette
+   in pagina soltanto questo pezzo: ricostruire l'intero workspace a ogni
+   giudizio significava ridisegnare protocollo, ricerche e liste intere. #}
+{% set decisioni = item['decisioni_' ~ fase] %}
+{% set conflitto = item['conflitto_' ~ fase] %}
+{% set stato_finale = item['stato_' ~ fase] %}
+{% set decisione = decisioni.get(revisore_attivo, {}) %}
+<article id="item-{{ fase }}-{{ item.id }}" tabindex="0" data-record-review
+         class="record-review {% if conflitto %}conflitto{% elif stato_finale %}deciso{% endif %}">
+  <div class="record-review-testo">
+    <h3>{{ item.work.title }}</h3>
+    <p class="meta">{{ item.work.authors_short }}{% if item.work.year %} · {{ item.work.year }}{% endif %}{% if item.work.venue %} · {{ item.work.venue }}{% endif %}</p>
+    <div class="azioni-articolo-review">
+      {% if item.url_articolo %}<a class="tasto" href="{{ item.url_articolo }}" target="_blank" rel="noopener noreferrer">{{ t.review_open_article }} ↗</a>{% endif %}
+      {% if item.pdf_scaricato %}<button type="button" class="copia" data-pdf="/revisioni/{{ progetto.id }}/pdf/{{ item.id }}" data-titolo="{{ item.work.title }}" data-ritorno="#item-{{ fase }}-{{ item.id }}">{{ t.review_read_pdf }}</button>{% endif %}
+    </div>
+    {% if item.work.abstract %}<details><summary>{{ t.card_abstract }}</summary><p>{{ item.work.abstract }}</p></details>{% endif %}
+  </div>
+
+  {% if fase == 'fulltext' %}
+  <form method="post" action="/revisioni/{{ progetto.id }}/testo-completo/{{ item.id }}" class="stato-fulltext"
+        hx-post="/revisioni/{{ progetto.id }}/testo-completo/{{ item.id }}"
+        hx-target="#item-{{ fase }}-{{ item.id }}" hx-swap="outerHTML">
+    <input type="hidden" name="revisore" value="{{ revisore_attivo }}">
+    <input type="hidden" name="pagina_abstract" value="{{ pagina_abstract }}">
+    <input type="hidden" name="pagina_fulltext" value="{{ pagina_fulltext }}">
+    <label>{{ t.review_fulltext_status }}<select name="stato">{% for stato_testo in ('da_reperire', 'richiesto', 'disponibile', 'non_disponibile') %}<option value="{{ stato_testo }}" {% if item.testo_completo.stato|default('da_reperire') == stato_testo %}selected{% endif %}>{{ t['review_fulltext_' ~ stato_testo] }}</option>{% endfor %}</select></label>
+    <label>{{ t.review_fulltext_note }}<input name="nota" value="{{ item.testo_completo.nota|default('') }}"></label>
+    <button type="submit">{{ t.btn_save }}</button>
+  </form>
+  {% endif %}
+
+  <div class="decisioni-revisori">
+    <form method="post" action="/revisioni/{{ progetto.id }}/screening/{{ item.id }}" class="decisione-revisore"
+          hx-post="/revisioni/{{ progetto.id }}/screening/{{ item.id }}"
+          hx-target="#item-{{ fase }}-{{ item.id }}" hx-swap="outerHTML">
+      <input type="hidden" name="fase" value="{{ fase }}">
+      <input type="hidden" name="revisore" value="{{ revisore_attivo }}">
+      <input type="hidden" name="pagina_abstract" value="{{ pagina_abstract }}">
+      <input type="hidden" name="pagina_fulltext" value="{{ pagina_fulltext }}">
+      <strong>{{ revisore_attivo }}</strong>{% if decisione %}<span class="marchio">{{ t['screening_' ~ decisione.stato] }}</span>{% endif %}
+      <div class="scelte-screening-review">{% for stato in ('incluso', 'forse', 'escluso') %}<label><input type="radio" name="stato" value="{{ stato }}" {% if decisione.stato == stato %}checked{% endif %} required>{{ t['screening_' ~ stato] }}</label>{% endfor %}</div>
+      <textarea name="motivo" rows="2" placeholder="{{ t.screening_reason }}">{{ decisione.motivo|default('') }}</textarea>
+      <button type="submit">{{ t.review_save_decision }}</button>
+    </form>
+  </div>
+
+  {% if conflitto %}
+  <div class="confronto-decisioni" aria-label="{{ t.review_conflict_comparison }}">{% for nome, scelta in decisioni.items() %}<div><strong>{{ nome }}</strong><span class="marchio">{{ t['screening_' ~ scelta.stato] }}</span>{% if scelta.motivo %}<p>{{ scelta.motivo }}</p>{% endif %}</div>{% endfor %}</div>
+  <form method="post" action="/revisioni/{{ progetto.id }}/consenso/{{ item.id }}" class="risolvi-conflitto"
+        hx-post="/revisioni/{{ progetto.id }}/consenso/{{ item.id }}"
+        hx-target="#item-{{ fase }}-{{ item.id }}" hx-swap="outerHTML">
+    <input type="hidden" name="fase" value="{{ fase }}">
+    <input type="hidden" name="revisore" value="{{ revisore_attivo }}">
+    <input type="hidden" name="pagina_abstract" value="{{ pagina_abstract }}">
+    <input type="hidden" name="pagina_fulltext" value="{{ pagina_fulltext }}">
+    <strong>{{ t.review_resolve_conflict }}</strong>
+    <select name="stato" required>{% for stato in ('incluso', 'forse', 'escluso') %}<option value="{{ stato }}">{{ t['screening_' ~ stato] }}</option>{% endfor %}</select>
+    <textarea name="motivo" rows="2" required placeholder="{{ t.review_consensus_reason }}"></textarea>
+    <button class="primario" type="submit">{{ t.review_save_consensus }}</button>
+  </form>
+  {% endif %}
+</article>

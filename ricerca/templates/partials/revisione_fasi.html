@@ -1,4 +1,4 @@
-<nav class="traccia-review" aria-label="{{ t.review_phases }}">
+<nav id="traccia-review" class="traccia-review" aria-label="{{ t.review_phases }}"{% if fuori_banda|default(false) %} hx-swap-oob="outerHTML"{% endif %}>
   {% for ancora, etichetta, valore in [
     ('protocollo', t.review_phase_protocol, riepilogo_revisione.protocollo_mancanti),
     ('ricerche', t.review_phase_searches, riepilogo_revisione.ricerche),
