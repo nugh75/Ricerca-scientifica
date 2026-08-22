@@ -21,3 +21,9 @@ PROJECT-INFO.md
 # Mappa locale rigenerabile di Graphify: report, cache e visualizzazione non
 # fanno parte dell'applicazione né degli archivi pubblicati.
 /graphify-out/
+
+# Output e ambienti della skill bibliography-verify: finiscono qui solo quando
+# la sessione gira con la cwd sbagliata, non appartengono a questo progetto.
+.venv-bib/
+.cache/
+.bib-verify-*/
