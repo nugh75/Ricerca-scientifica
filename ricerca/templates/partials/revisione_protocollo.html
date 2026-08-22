@@ -1,5 +1,6 @@
+{% from "partials/icona.html" import icona %}
 {% macro etichetta_guidata(campo, testo) -%}
-<span class="etichetta-campo"><label for="{{ campo }}">{{ testo }}</label><button type="button" class="guida-campo tooltip" aria-label="{{ t.review_field_help.format(campo=testo) }}" data-tooltip="{{ t['review_help_' ~ campo] }}">?</button></span>
+<span class="etichetta-campo"><label for="{{ campo }}">{{ testo }}</label><button type="button" class="guida-campo tooltip" aria-label="{{ t.review_field_help.format(campo=testo) }}" data-tooltip="{{ t['review_help_' ~ campo] }}">{{ icona('help') }}</button></span>
 {%- endmacro %}
 <section id="protocollo" class="fase-review">
   <div class="fase-testa">

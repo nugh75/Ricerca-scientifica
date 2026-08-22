@@ -945,9 +945,13 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .campo-protocollo { min-width: 0; }
 .etichetta-campo { display: flex; align-items: center; gap: .4rem; }
 .guida-campo {
+  display: inline-grid; place-items: center;
   width: 1.35rem; height: 1.35rem; padding: 0; border-radius: 50%;
-  color: var(--accento); font: 600 .7rem/1 var(--mono);
+  /* Il cerchio lo disegna l'icona: il bordo del bottone ne farebbe un secondo. */
+  border: 0; background: none; color: var(--testo-tenue);
 }
+.guida-campo:hover { background: none; color: var(--accento); }
+.guida-campo .icona { width: 1.1rem; height: 1.1rem; }
 .guida-campo.tooltip::after {
   left: 0; bottom: calc(100% + .4rem); width: min(22rem, 72vw); max-width: none;
   transform: translateY(.25rem); white-space: normal;
