@@ -28,6 +28,15 @@ FASI_SCREENING = ("abstract", "fulltext")
 STATI = ("incluso", "forse", "escluso")
 STATI_TESTO_COMPLETO = ("da_reperire", "richiesto", "disponibile", "non_disponibile")
 
+# Metadati che il corpus tiene allineati alla ricerca di provenienza. Fuori
+# restano l'appunto — che non è parte del corpus schermato — e le decisioni
+# della ricerca, che nella review hanno un percorso tutto loro.
+CAMPI_SINCRONIZZATI = (
+    "title", "authors", "author_ids", "year", "venue", "venue_id", "url",
+    "abstract", "oa_url", "oa_urls", "openalex_id", "ritirato", "citazioni",
+    "molto_citato", "pdf_archivio",
+)
+
 CAMPI_PROTOCOLLO = (
     "domanda", "framework", "popolazione", "concetto", "intervento",
     "comparatore", "outcome", "contesto", "disegni", "criteri_inclusione",
@@ -325,12 +334,6 @@ def scollega_ricerca(id_progetto: str, id_ricerca: str) -> bool:
 def integra_aggiornamento(id_progetto: str, id_ricerca: str, nuovi_lavori: list[Work]) -> dict:
     """Integra una nuova esecuzione conservando le versioni dei metadati."""
 
-    aggiornabili = (
-        "title", "authors", "author_ids", "year", "venue", "venue_id", "url",
-        "abstract", "oa_url", "oa_urls", "openalex_id", "ritirato", "citazioni",
-        "molto_citato", "pdf_archivio",
-    )
-
     def applica(progetto_corrente: dict):
         record = progetto_corrente.setdefault("record", [])
         per_chiave = {
@@ -357,7 +360,7 @@ def integra_aggiornamento(id_progetto: str, id_ricerca: str, nuovi_lavori: list[
             prima = dict(dati)
             fresco = asdict(lavoro)
             cambiati = []
-            for campo in aggiornabili:
+            for campo in CAMPI_SINCRONIZZATI:
                 valore = fresco.get(campo)
                 if campo in ("ritirato", "molto_citato"):
                     valore = bool(dati.get(campo)) or bool(valore)
@@ -418,13 +421,138 @@ def _campi_work(dati: dict) -> dict:
     return {chiave: valore for chiave, valore in dati.items() if chiave in ammessi}
 
 
+def _lavori_delle_ricerche(progetto_corrente: dict) -> dict[str, list[Work]]:
+    """I record, come stanno oggi, delle ricerche da cui viene il corpus."""
+
+    identificativi = {
+        provenienza.get("ricerca")
+        for item in progetto_corrente.get("record", [])
+        for provenienza in item.get("provenienze", [])
+    }
+    return {id_ricerca: history.record(id_ricerca) for id_ricerca in identificativi if id_ricerca}
+
+
+def _versione_viva(item: dict, per_ricerca: dict[str, list[Work]]) -> tuple[Work | None, str]:
+    """Il record nella ricerca da cui è entrato, se quella ricerca c'è ancora.
+
+    Un record deduplicato ha più provenienze: vince la prima che risponde,
+    così la risposta non cambia da una lettura all'altra. Se nessuna
+    risponde — la ricerca è stata cancellata — resta la copia nel corpus.
+    """
+
+    for provenienza in item.get("provenienze", []):
+        lavori_ricerca = per_ricerca.get(provenienza.get("ricerca")) or []
+        indice = provenienza.get("indice", -1)
+        if 0 <= indice < len(lavori_ricerca):
+            return lavori_ricerca[indice], provenienza.get("ricerca", "")
+    return None, ""
+
+
+def _differenze(dati: dict, viva: Work) -> dict:
+    """Che cosa cambierebbe nel record del corpus, senza toccarlo."""
+
+    fresco = asdict(viva)
+    nuovi = {}
+    for campo in CAMPI_SINCRONIZZATI:
+        valore = fresco.get(campo)
+        if campo in ("ritirato", "molto_citato"):
+            # Un ritiro non si annulla: chi ha schermato quel record deve
+            # continuare a vederlo segnalato.
+            valore = bool(dati.get(campo)) or bool(valore)
+        elif valore in (None, "", []):
+            continue
+        if dati.get(campo) != valore:
+            nuovi[campo] = valore
+    unione = sorted(set(dati.get("sources", [])) | set(viva.sources))
+    if unione != dati.get("sources", []):
+        nuovi["sources"] = unione
+    return nuovi
+
+
+def allinea(id_progetto: str) -> int:
+    """Porta nel corpus le correzioni fatte nelle ricerche, e le registra.
+
+    Un autore sistemato a mano o un campo completato da Unpaywall non
+    arrivavano mai qui: il corpus restava alla fotografia del giorno del
+    collegamento. Ora la segue, ma non in silenzio — ogni scostamento entra
+    in `versioni_record` con il valore di prima, perché una revisione deve
+    poter dire che cosa è cambiato e quando.
+    """
+
+    progetto_corrente = progetto(id_progetto)
+    if progetto_corrente is None:
+        return 0
+    per_ricerca = _lavori_delle_ricerche(progetto_corrente)
+
+    def scostamenti(corrente: dict) -> list[tuple[dict, dict, str]]:
+        trovati = []
+        for item in corrente.get("record", []):
+            viva, id_ricerca = _versione_viva(item, per_ricerca)
+            if viva is None:
+                continue
+            nuovi = _differenze(item.get("record", {}), viva)
+            if nuovi:
+                trovati.append((item, nuovi, id_ricerca))
+        return trovati
+
+    if not scostamenti(progetto_corrente):
+        return 0
+
+    def applica(corrente: dict):
+        quanti = 0
+        for item, nuovi, id_ricerca in scostamenti(corrente):
+            dati = item.setdefault("record", {})
+            prima = dict(dati)
+            dati.update(nuovi)
+            corrente.setdefault("versioni_record", {}).setdefault(item["id"], []).append({
+                "quando": _adesso(), "ricerca": id_ricerca,
+                "campi": sorted(nuovi), "prima": prima, "origine": "correzione",
+            })
+            quanti += 1
+        if quanti:
+            _evento(corrente, "corpus allineato", f"{quanti} record")
+        return quanti
+
+    return int(_modifica(id_progetto, applica) or 0)
+
+
 def lavori(progetto_corrente: dict) -> list[dict]:
     """Record del workspace pronti per il template, senza mutare il JSON."""
 
+    per_ricerca = _lavori_delle_ricerche(progetto_corrente)
     risultati = []
     for item in progetto_corrente.get("record", []):
-        risultati.append({**item, "work": Work(**_campi_work(item.get("record", {})))})
+        lavoro = Work(**_campi_work(item.get("record", {})))
+        viva, id_ricerca = _versione_viva(item, per_ricerca)
+        # L'appunto sta nella ricerca e non nel corpus: è dello stesso record,
+        # non della revisione, e non va registrato come variazione dei metadati.
+        if viva is not None:
+            lavoro.nota = viva.nota
+        risultati.append({**item, "work": lavoro, "ricerca_appunto": id_ricerca})
     return risultati
+
+
+def salva_nota(id_progetto: str, id_item: str, testo: str) -> bool:
+    """Scrive l'appunto nella ricerca di provenienza, non nel corpus.
+
+    Così è lo stesso appunto dovunque lo si tocchi: dalla scheda della
+    ricerca o dalla scheda dello screening.
+    """
+
+    progetto_corrente = progetto(id_progetto)
+    if progetto_corrente is None:
+        return False
+    voce_corpus = item(progetto_corrente, id_item)
+    if voce_corpus is None:
+        return False
+    per_ricerca = _lavori_delle_ricerche(progetto_corrente)
+    for provenienza in voce_corpus.get("provenienze", []):
+        id_ricerca = provenienza.get("ricerca")
+        indice = provenienza.get("indice", -1)
+        if 0 <= indice < len(per_ricerca.get(id_ricerca) or []):
+            history.salva_nota(id_ricerca, indice, testo)
+            return True
+    return False
 
 
 def item(progetto_corrente: dict, id_item: str) -> dict | None:
@@ -928,6 +1056,25 @@ def esporta_markdown(progetto_corrente: dict) -> str:
                 f"{voce.get('modificati', 0)} modificati, {voce.get('ritirati', 0)} ritirati"
                 + (f" — {voce.get('nota')}" if voce.get("nota") else "")
             )
+    if progetto_corrente.get("versioni_record"):
+        righe += [
+            "", "## Variazioni dei metadati", "",
+            "I record del corpus seguono le ricerche da cui vengono: qui che",
+            "cosa è cambiato dopo il collegamento, e quando.", "",
+        ]
+        titoli = {r.get("id"): r.get("record", {}).get("title", "") for r in progetto_corrente.get("record", [])}
+        for id_item, versioni in progetto_corrente["versioni_record"].items():
+            righe.append(f"### {titoli.get(id_item, id_item)}")
+            for voce in versioni:
+                prima = voce.get("prima", {})
+                campi = ", ".join(
+                    f"{campo}: «{prima.get(campo, '')}»" for campo in voce.get("campi", [])
+                )
+                righe.append(
+                    f"- {voce.get('quando', '')} ({voce.get('origine', 'aggiornamento')}), "
+                    f"prima — {campi}"
+                )
+            righe.append("")
     if progetto_corrente.get("emendamenti"):
         righe += ["", "## Emendamenti del protocollo", ""]
         for voce in progetto_corrente["emendamenti"]:

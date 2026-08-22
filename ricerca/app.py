@@ -195,6 +195,7 @@ def _contesto_revisione(
             "studio_principale": titoli.get(
                 progetto.get("gruppi_studio", {}).get(id_item, ""), ""
             ),
+            "variazioni": progetto.get("versioni_record", {}).get(id_item, []),
         })
     per_pagina = 25
 
@@ -1802,6 +1803,7 @@ async def revisione_pagina(
 ):
     if revisioni.progetto(id_progetto) is None:
         return RedirectResponse("/revisioni", status_code=303)
+    revisioni.allinea(id_progetto)
     return templates.TemplateResponse(
         request,
         "revisione.html",
@@ -1833,6 +1835,7 @@ async def revisione_fase(
 
     if nome not in FASI_DIFFERITE or revisioni.progetto(id_progetto) is None:
         return Response(status_code=404)
+    revisioni.allinea(id_progetto)
     contesto = _contesto_revisione(id_progetto, revisore)
     inclusi = contesto["record_inclusi"]
     pagine = max(1, -(-len(inclusi) // PER_PAGINA_FASE))
@@ -1952,6 +1955,34 @@ def _esito_decisione_revisione(
         ),
     )
     return avvisa(risposta, avviso, "buono")
+
+
+@app.post("/revisioni/{id_progetto}/nota/{id_item}", response_class=HTMLResponse)
+async def nota_revisione(
+    request: Request,
+    id_progetto: str,
+    id_item: str,
+    nota: str = Form(default=""),
+    fase: str = Form(default="abstract"),
+):
+    """L'appunto scritto dallo screening: finisce nella ricerca d'origine."""
+
+    testi = i18n.strings(current_config().lang)
+    scritto = revisioni.salva_nota(id_progetto, id_item, nota)
+    contesto = _contesto_revisione(id_progetto)
+    voce = next((r for r in contesto["record_revisione"] if r.get("id") == id_item), None)
+    if voce is None:
+        return Response(status_code=404)
+    risposta = templates.TemplateResponse(
+        request,
+        "partials/revisione_nota.html",
+        base_context(current_config(), item=voce, fase=fase, **contesto),
+    )
+    if not scritto:
+        return avvisa(risposta, testi["note_no_source"])
+    return avvisa(
+        risposta, testi["note_saved"] if nota.strip() else testi["note_cleared"], "buono"
+    )
 
 
 @app.post("/revisioni/{id_progetto}/screening/{id_item}")

@@ -894,6 +894,14 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .aggiungi-a-review select { flex: 1 1 14rem; min-width: 0; }
 .appunti textarea { width: 100%; min-height: 4.5rem; resize: vertical; }
 .appunti .azioni { margin-bottom: 0; }
+.appunti-review { display: grid; gap: var(--u1); margin-top: var(--u2); }
+.appunti-review label { font-size: .8125rem; color: var(--testo-tenue); margin: 0; }
+.appunti-review button { justify-self: start; }
+.variazioni-record { margin-top: var(--u2); font-size: .8125rem; }
+.variazioni-record summary { color: var(--testo-tenue); cursor: pointer; }
+.variazioni-record ol { list-style: none; margin: var(--u1) 0 0; padding: 0; }
+.variazioni-record li { display: grid; gap: .1rem; padding: var(--u1) 0; border-top: 1px solid var(--riga); }
+.variazioni-record time { color: var(--testo-tenue); font: 400 .75rem/1 var(--mono); }
 
 /* Il titolo di una revisione si assesta lavorandoci: sta a portata di mano,
    ma piegato, perché si cambia una volta ogni tanto. */

@@ -15,6 +15,23 @@
       {% if item.pdf_scaricato %}<button type="button" class="copia" data-pdf="/revisioni/{{ progetto.id }}/pdf/{{ item.id }}" data-titolo="{{ item.work.title }}" data-ritorno="#item-{{ fase }}-{{ item.id }}">{{ t.review_read_pdf }}</button>{% endif %}
     </div>
     {% if item.work.abstract %}<details><summary>{{ t.card_abstract }}</summary><p>{{ item.work.abstract }}</p></details>{% endif %}
+    {% if item.variazioni %}
+    <details class="variazioni-record">
+      <summary>{{ t.review_metadata_changes.format(quante=item.variazioni|length) }}</summary>
+      <p class="aiuto">{{ t.review_metadata_changes_help }}</p>
+      <ol>
+        {% for voce in item.variazioni|reverse %}
+        <li>
+          <time>{{ voce.quando|replace('T', ' ') }}</time>
+          {% for campo in voce.campi %}
+          <span><b>{{ campo }}</b> — {{ t.review_metadata_before }} «{{ voce.prima.get(campo, '') }}»</span>
+          {% endfor %}
+        </li>
+        {% endfor %}
+      </ol>
+    </details>
+    {% endif %}
+    {% include "partials/revisione_nota.html" %}
   </div>
 
   {% if fase == 'fulltext' %}

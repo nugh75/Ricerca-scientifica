@@ -475,3 +475,136 @@ def test_un_titolo_vuoto_non_cancella_quello_buono():
     id_progetto = revisioni.crea("Titolo buono", "sistematica", ["Ada"])
     assert revisioni.rinomina(id_progetto, "   ") is False
     assert revisioni.progetto(id_progetto)["titolo"] == "Titolo buono"
+
+
+def progetto_con_corpus(titolo="Review AI"):
+    id_ricerca = ricerca_finta()
+    id_progetto = revisioni.crea(titolo, "sistematica", ["Ada"])
+    revisioni.collega_ricerca(id_progetto, id_ricerca)
+    return id_ricerca, id_progetto
+
+
+def test_una_correzione_nella_ricerca_arriva_nel_corpus_e_resta_scritta():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    id_item = revisioni.progetto(id_progetto)["record"][0]["id"]
+
+    history.correggi(id_ricerca, 0, {"authors": ["Rossi, Ada"], "year": 2025})
+
+    assert revisioni.allinea(id_progetto) == 1
+
+    progetto = revisioni.progetto(id_progetto)
+    corpo = next(r for r in progetto["record"] if r["id"] == id_item)["record"]
+    assert corpo["authors"] == ["Rossi, Ada"]
+    assert corpo["year"] == 2025
+
+    versioni = progetto["versioni_record"][id_item]
+    assert len(versioni) == 1
+    assert sorted(versioni[0]["campi"]) == ["authors", "year"]
+    assert versioni[0]["prima"]["authors"] == ["Ada Rossi"]
+    assert versioni[0]["prima"]["year"] == 2024
+    assert versioni[0]["origine"] == "correzione"
+    assert any("allineato" in voce["azione"] for voce in progetto["registro"])
+
+
+def test_allineare_due_volte_non_ripete_la_registrazione():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    history.correggi(id_ricerca, 0, {"year": 2025})
+
+    assert revisioni.allinea(id_progetto) == 1
+    assert revisioni.allinea(id_progetto) == 0
+
+    versioni = revisioni.progetto(id_progetto)["versioni_record"]
+    assert sum(len(v) for v in versioni.values()) == 1
+
+
+def test_il_workspace_si_allinea_da_solo_quando_lo_si_apre():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    history.correggi(id_ricerca, 0, {"title": "Titolo corretto a mano"})
+
+    pagina = client.get(f"/revisioni/{id_progetto}").text
+
+    assert "Titolo corretto a mano" in pagina
+    assert revisioni.progetto(id_progetto)["record"][0]["record"]["title"] == "Titolo corretto a mano"
+
+
+def test_un_ritiro_non_si_annulla_allineando():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    revisioni.progetto(id_progetto)  # il record di partenza non è ritirato
+    from ricerca import revisioni as modulo
+
+    def segna_ritirato(corrente):
+        corrente["record"][0]["record"]["ritirato"] = True
+        return True
+
+    modulo._modifica(id_progetto, segna_ritirato)
+    history.correggi(id_ricerca, 0, {"year": 2025})
+    revisioni.allinea(id_progetto)
+
+    assert revisioni.progetto(id_progetto)["record"][0]["record"]["ritirato"] is True
+
+
+def test_l_appunto_e_lo_stesso_dalla_ricerca_e_dalla_review():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    id_item = revisioni.progetto(id_progetto)["record"][0]["id"]
+
+    # scritto nella ricerca, letto nella review
+    history.salva_nota(id_ricerca, 0, "verificare la tabella 2")
+    lavoro = next(
+        r for r in revisioni.lavori(revisioni.progetto(id_progetto)) if r["id"] == id_item
+    )
+    assert lavoro["work"].nota == "verificare la tabella 2"
+    assert "verificare la tabella 2" in client.get(f"/revisioni/{id_progetto}").text
+
+    # scritto nella review, letto nella ricerca
+    risposta = client.post(
+        f"/revisioni/{id_progetto}/nota/{id_item}",
+        data={"nota": "scritto dallo screening", "fase": "abstract"},
+    )
+    assert risposta.status_code == 200
+    assert history.record(id_ricerca)[0].nota == "scritto dallo screening"
+    assert "scritto dallo screening" in client.get(f"/scheda/{id_ricerca}/0").text
+
+    # l'appunto non finisce fra le variazioni dei metadati
+    assert revisioni.progetto(id_progetto).get("versioni_record", {}) == {}
+
+
+def test_senza_la_ricerca_d_origine_il_corpus_regge_e_lo_dice():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    id_item = revisioni.progetto(id_progetto)["record"][0]["id"]
+    history.salva_nota(id_ricerca, 0, "appunto di ieri")
+
+    assert history.elimina(id_ricerca) is True
+
+    # il corpus resta leggibile grazie alla copia conservata
+    lavori_corpus = revisioni.lavori(revisioni.progetto(id_progetto))
+    assert lavori_corpus[0]["work"].title == "AI literacy in teacher education"
+    assert revisioni.allinea(id_progetto) == 0
+    assert client.get(f"/revisioni/{id_progetto}").status_code == 200
+
+    # ma non c'è più dove scrivere l'appunto, e viene detto
+    assert revisioni.salva_nota(id_progetto, id_item, "nuovo") is False
+    risposta = client.post(
+        f"/revisioni/{id_progetto}/nota/{id_item}", data={"nota": "nuovo", "fase": "abstract"}
+    )
+    assert "cannot be written" in risposta.headers["HX-Trigger"]
+
+
+def test_le_variazioni_si_vedono_nella_scheda_e_nell_export():
+    id_ricerca, id_progetto = progetto_con_corpus()
+    history.correggi(id_ricerca, 0, {"year": 2025})
+
+    pagina = client.get(f"/revisioni/{id_progetto}").text
+    assert "Metadata changed · 1" in pagina
+    assert "was «2024»" in pagina
+
+    esportato = client.get(f"/revisioni/{id_progetto}.md").text
+    assert "## Variazioni dei metadati" in esportato
+    assert "year: «2024»" in esportato
+    assert "(correzione)" in esportato
+
+
+def test_senza_variazioni_la_scheda_non_mostra_il_registro():
+    _, id_progetto = progetto_con_corpus()
+    pagina = client.get(f"/revisioni/{id_progetto}").text
+    assert "Metadata changed" not in pagina
+    assert "## Variazioni dei metadati" not in client.get(f"/revisioni/{id_progetto}.md").text

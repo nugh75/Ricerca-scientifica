@@ -1,0 +1,11 @@
+{# Lo stesso appunto della scheda della ricerca: qui si legge e si scrive,
+   ma il testo resta nella ricerca di provenienza. #}
+<form class="appunti appunti-review" id="nota-review-{{ fase }}-{{ item.id }}"
+      hx-post="/revisioni/{{ progetto.id }}/nota/{{ item.id }}"
+      hx-vals='{"fase": "{{ fase }}"}'
+      hx-target="#nota-review-{{ fase }}-{{ item.id }}" hx-swap="outerHTML">
+  <label for="nota-{{ fase }}-{{ item.id }}">{{ t.note_title }}</label>
+  <textarea id="nota-{{ fase }}-{{ item.id }}" name="nota" rows="2"
+            placeholder="{{ t.note_placeholder }}">{{ item.work.nota }}</textarea>
+  <button type="submit" class="copia">{{ t.note_save }}</button>
+</form>
