@@ -82,6 +82,13 @@ configure later, and reopen it any time from Settings.
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
 
+### New in 2.6.2
+
+- Assisted priority explains itself. Before any decision there is no list of
+  zero scores: a note says the suggested order will appear once screening
+  starts. Afterwards, the explanation shows how included and excluded records
+  reorder the unscreened ones, and every score lists the terms behind it.
+
 ### New in 2.6.1
 
 - The reading filters live in one place only: the bar right above the record
@@ -485,6 +492,13 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.6.2
+
+- La priorità assistita spiega sé stessa. Prima di ogni decisione niente lista
+  di zeri: una nota dice che l'ordine suggerito comparirà all'inizio dello
+  screening. Dopo, la spiegazione mostra come inclusi ed esclusi riordinano i
+  non valutati, e ogni punteggio elenca i termini che lo determinano.
 
 ### Novità in 2.6.1
 

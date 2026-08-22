@@ -42,7 +42,15 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.6.1
+          ### New in 2.6.2
+
+          - Assisted priority explains itself. Before any decision there is
+            no list of zero scores: a note says the suggested order will
+            appear once screening starts. Afterwards, the explanation shows
+            how included and excluded records reorder the unscreened ones,
+            and every score lists the terms behind it.
+
+          ### In 2.6.1
 
           - The reading filters live in one place only: the bar right above
             the record list in screening. The protocol no longer carries a
@@ -168,7 +176,15 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.6.1
+          ### Novità in 2.6.2
+
+          - La priorità assistita spiega sé stessa. Prima di ogni decisione
+            niente lista di zeri: una nota dice che l'ordine suggerito
+            comparirà all'inizio dello screening. Dopo, la spiegazione mostra
+            come inclusi ed esclusi riordinano i non valutati, e ogni
+            punteggio elenca i termini che lo determinano.
+
+          ### Nella 2.6.1
 
           - I filtri di lettura stanno in un punto solo: la barra appena sopra
             l'elenco dei record, nello screening. Il protocollo non ne porta
