@@ -149,3 +149,66 @@ def test_ogni_classe_dei_template_ha_una_regola_di_stile():
     solo_agganci = {"salta"}   # form senza campi, agganciato dai bottoni
 
     assert not (usate - definite - solo_agganci)
+
+
+def test_elenca_i_browser_trovati_con_un_nome_leggibile(monkeypatch, tmp_path):
+    finto = tmp_path / "Google Chrome"
+    finto.write_text("")
+    monkeypatch.setattr(
+        finestra.shutil, "which",
+        lambda nome: "/usr/bin/brave-browser" if nome == "brave-browser" else None,
+    )
+    monkeypatch.setattr(finestra, "PERCORSI", {"Darwin": (str(finto),)})
+
+    trovati = finestra.browser_disponibili("Darwin")
+
+    assert [voce["etichetta"] for voce in trovati] == ["Brave", "Google Chrome"]
+    assert trovati[0]["percorso"] == "/usr/bin/brave-browser"
+
+
+def test_lo_stesso_browser_trovato_due_volte_compare_una_volta_sola(monkeypatch):
+    monkeypatch.setattr(
+        finestra.shutil, "which",
+        lambda nome: f"/usr/bin/{nome}" if nome in ("google-chrome", "google-chrome-stable") else None,
+    )
+    monkeypatch.setattr(finestra, "PERCORSI", {})
+    assert [v["etichetta"] for v in finestra.browser_disponibili("Linux")] == ["Google Chrome"]
+
+
+def test_il_browser_scelto_e_quello_che_parte(monkeypatch):
+    monkeypatch.setattr(finestra.shutil, "which", lambda nome: f"/usr/bin/{nome}")
+    comandi = []
+    monkeypatch.setattr(finestra.subprocess, "Popen", lambda cmd, **kw: comandi.append(cmd))
+
+    assert finestra.apri("http://x", browser="vivaldi") == "finestra"
+    assert comandi[0][:2] == ["/usr/bin/vivaldi", "--app=http://x"]
+
+
+def test_il_browser_scelto_apre_anche_una_scheda_normale(monkeypatch):
+    monkeypatch.setattr(finestra.shutil, "which", lambda nome: f"/usr/bin/{nome}")
+    comandi = []
+    monkeypatch.setattr(finestra.subprocess, "Popen", lambda cmd, **kw: comandi.append(cmd))
+
+    assert finestra.apri("http://x", finestra_propria=False, browser="vivaldi") == "scheda"
+    assert comandi[0] == ["/usr/bin/vivaldi", "http://x"]      # nessun --app
+
+
+def test_chiedendo_il_predefinito_non_si_cerca_nessuna_finestra(monkeypatch):
+    cercati = []
+    monkeypatch.setattr(finestra, "trova_browser", lambda *_: cercati.append("cercato"))
+    aperti = []
+    monkeypatch.setattr(finestra.webbrowser, "open", aperti.append)
+
+    assert finestra.apri("http://x", browser=finestra.PREDEFINITO) == "browser"
+    assert aperti == ["http://x"]
+    assert cercati == []
+
+
+def test_una_scelta_che_non_esiste_piu_non_impedisce_l_avvio(monkeypatch):
+    monkeypatch.setattr(finestra.shutil, "which", lambda _: None)
+    monkeypatch.setattr(finestra, "trova_browser", lambda *_: "/usr/bin/chromium")
+    comandi = []
+    monkeypatch.setattr(finestra.subprocess, "Popen", lambda cmd, **kw: comandi.append(cmd))
+
+    assert finestra.apri("http://x", browser="/opt/browser-sparito") == "finestra"
+    assert comandi[0][0] == "/usr/bin/chromium"

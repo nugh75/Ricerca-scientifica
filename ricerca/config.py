@@ -43,6 +43,11 @@ class Config:
     zotero_api_key: str = ""
     zotero_library_id: str = ""
     zotero_library_type: str = "users"
+    # Come si apre l'app: finestra propria (senza barre) o scheda del browser.
+    apertura: str = "finestra"
+    # Quale browser: vuoto = il primo che si trova, «predefinito» = quello di
+    # sistema, altrimenti il percorso di un programma scelto a mano.
+    browser: str = ""
 
     @property
     def llm_enabled(self) -> bool:

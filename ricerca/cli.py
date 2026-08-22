@@ -9,6 +9,7 @@ import threading
 
 import uvicorn
 
+from . import config as config_module
 from . import diagnostica, finestra, watchdog
 
 
@@ -34,6 +35,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="apri in una scheda del browser invece che in una finestra propria",
     )
+    serve.add_argument(
+        "--browser",
+        default=None,
+        metavar="PROGRAMMA",
+        help=(
+            "quale browser usare: nome o percorso, oppure «predefinito» per "
+            "quello di sistema (senza questa opzione vale la scelta salvata "
+            "in Impostazioni)"
+        ),
+    )
     sub.add_parser("versione", help="stampa versione e percorsi (utile per capire quale copia gira)")
     serve.add_argument(
         "--resta-aperto",
@@ -58,6 +69,14 @@ def main(argv: list[str] | None = None) -> int:
     url = f"http://127.0.0.1:{port}"
     print(f"Ricerca in ascolto su {url}  (Ctrl-C per fermare)")
     if not args.no_browser:
-        threading.Timer(1.0, finestra.apri, args=(url, not args.scheda)).start()
+        # La scelta vive in Impostazioni, così vale anche per il lanciatore,
+        # che avvia l'app senza passare opzioni. I flag la sovrascrivono per
+        # questo avvio soltanto.
+        config = config_module.load()
+        finestra_propria = config.apertura != "scheda" and not args.scheda
+        browser = config.browser if args.browser is None else args.browser
+        threading.Timer(
+            1.0, finestra.apri, args=(url, finestra_propria, browser)
+        ).start()
     uvicorn.run("ricerca.app:app", host="127.0.0.1", port=port, log_level="info")
     return 0

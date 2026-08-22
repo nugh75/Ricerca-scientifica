@@ -35,6 +35,11 @@ it in app mode. With Safari, *Share → Add to Dock* gives the same result; on
 Chrome and Edge, *Install app* does. Closing the window quits the app, and
 `ricerca serve --scheda` asks for a plain tab instead.
 
+**Settings** chooses both: a window of its own or an ordinary browser tab, and
+which browser to lean on among those found on the machine — or the system
+default, which always opens a tab. The choice holds for the launcher too. For a
+single launch, `--scheda` and `--browser` override it from the command line.
+
 The server listens on `127.0.0.1` only: it is never reachable from another
 machine.
 
@@ -392,6 +397,12 @@ schede: il lanciatore cerca un browser della famiglia Chromium e lo avvia in
 modo applicazione. Con Safari lo stesso risultato si ottiene da *Condividi →
 Aggiungi al Dock*; su Chrome ed Edge da *Installa applicazione*. Chiudendo la
 finestra l'app si chiude, e `ricerca serve --scheda` chiede apposta una scheda.
+
+In **Impostazioni** si sceglie tutto e due: finestra propria o normale scheda
+del browser, e su quale browser appoggiarsi fra quelli trovati sulla macchina —
+oppure quello predefinito di sistema, che apre sempre una scheda. La scelta vale
+anche per il lanciatore. Per un avvio soltanto, `--scheda` e `--browser` la
+scavalcano dalla riga di comando.
 
 Il server ascolta solo su `127.0.0.1`: non è raggiungibile da altre macchine.
 

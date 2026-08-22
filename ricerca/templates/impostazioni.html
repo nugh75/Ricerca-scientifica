@@ -30,6 +30,33 @@
     </div>
     <div id="modelli"></div>
 
+    <h3>{{ t.settings_opening }}</h3>
+    <p class="aiuto">{{ t.settings_opening_help }}</p>
+    <div class="apertura">
+      <label class="interruttore">
+        <input type="radio" name="apertura" value="finestra"
+               {% if config.apertura != 'scheda' %}checked{% endif %}>
+        {{ t.settings_opening_window }}
+      </label>
+      <label class="interruttore">
+        <input type="radio" name="apertura" value="scheda"
+               {% if config.apertura == 'scheda' %}checked{% endif %}>
+        {{ t.settings_opening_tab }}
+      </label>
+    </div>
+    <label for="browser">{{ t.settings_browser }}</label>
+    <select id="browser" name="browser">
+      <option value="" {% if not config.browser %}selected{% endif %}>{{ t.settings_browser_auto }}</option>
+      {% for voce in browser_trovati %}
+      <option value="{{ voce.percorso }}" {% if config.browser == voce.percorso %}selected{% endif %}>{{ voce.etichetta }}</option>
+      {% endfor %}
+      <option value="{{ browser_predefinito }}" {% if config.browser == browser_predefinito %}selected{% endif %}>{{ t.settings_browser_default }}</option>
+      {% if config.browser and config.browser != browser_predefinito and config.browser not in browser_trovati|map(attribute='percorso') %}
+      <option value="{{ config.browser }}" selected>{{ t.settings_browser_saved.format(percorso=config.browser) }}</option>
+      {% endif %}
+    </select>
+    {% if not browser_trovati %}<small>{{ t.settings_browser_none }}</small>{% endif %}
+
     <h3>{{ t.settings_sources }}</h3>
     <label for="mailto">{{ t.settings_mailto }}</label>
     <input id="mailto" name="mailto" value="{{ config.mailto }}" placeholder="{{ t.mailto_placeholder }}">

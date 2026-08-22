@@ -74,3 +74,45 @@ def test_l_accento_del_tema_scuro_e_chiaro_abbastanza():
     canali = [int(accento.strip()[-6:][i:i + 2], 16) for i in (0, 2, 4)]
     luminosita = (0.299 * canali[0] + 0.587 * canali[1] + 0.114 * canali[2]) / 255
     assert luminosita > 0.55, f"accento troppo scuro sul fondo scuro: {accento}"
+
+
+def test_le_impostazioni_fanno_scegliere_come_si_apre_e_con_quale_browser(monkeypatch):
+    from ricerca import config as config_module, finestra
+    from ricerca.app import app as applicazione
+    from fastapi.testclient import TestClient as Client
+
+    cliente = Client(applicazione)
+    monkeypatch.setattr(
+        finestra, "browser_disponibili",
+        lambda *_: [{"percorso": "/usr/bin/vivaldi", "etichetta": "Vivaldi"}],
+    )
+
+    pagina = cliente.get("/impostazioni").text
+    assert "How it opens" in pagina
+    assert "Vivaldi" in pagina
+    assert 'value="predefinito"' in pagina
+
+    cliente.post("/impostazioni", data={
+        "mailto": "", "llm_base_url": "", "llm_model": "", "llm_api_key": "",
+        "core_api_key": "", "s2_api_key": "", "ncbi_api_key": "",
+        "apertura": "scheda", "browser": "/usr/bin/vivaldi",
+    })
+
+    salvata = config_module.load()
+    assert salvata.apertura == "scheda"
+    assert salvata.browser == "/usr/bin/vivaldi"
+
+
+def test_un_browser_scelto_e_sparito_resta_visibile_nell_elenco(monkeypatch):
+    from ricerca import config as config_module, finestra
+    from ricerca.app import app as applicazione
+    from ricerca.config import Config
+    from fastapi.testclient import TestClient as Client
+
+    config_module.save(Config(configurato="1", browser="/opt/browser-sparito"))
+    monkeypatch.setattr(finestra, "browser_disponibili", lambda *_: [])
+    pagina = Client(applicazione).get("/impostazioni").text
+
+    assert "/opt/browser-sparito" in pagina
+    assert "no longer found" in pagina
+    assert "No Chromium-family browser found" in pagina

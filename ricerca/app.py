@@ -25,7 +25,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, revisioni, search, unpaywall, watchdog, wiki
+from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, finestra, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, revisioni, search, unpaywall, watchdog, wiki
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -2400,6 +2400,8 @@ async def impostazioni(request: Request, salvato: int = 0):
             credito_speso=costo.speso(),
             credito_resta=costo.resta(config),
             credito_budget=costo.budget(config),
+            browser_trovati=finestra.browser_disponibili(),
+            browser_predefinito=finestra.PREDEFINITO,
         ),
     )
 
@@ -2424,6 +2426,8 @@ async def salva_impostazioni(
     zotero_api_key: str = Form(default=""),
     zotero_library_id: str = Form(default=""),
     zotero_library_type: str = Form(default="users"),
+    apertura: str = Form(default="finestra"),
+    browser: str = Form(default=""),
     rimuovi: list[str] = Form(default=[]),
 ):
     """Un campo chiave lasciato vuoto conserva la chiave gia' salvata.
@@ -2440,6 +2444,8 @@ async def salva_impostazioni(
     config.zotero_library_id = zotero_library_id.strip()
     config.zotero_library_type = zotero_library_type.strip() or "users"
     config.openalex_contenuti = openalex_contenuti.strip()
+    config.apertura = "scheda" if apertura.strip() == "scheda" else "finestra"
+    config.browser = browser.strip()
 
     nuovi = {
         "llm_api_key": llm_api_key.strip(),
