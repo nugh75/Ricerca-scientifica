@@ -874,11 +874,11 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .revisioni-indice, .workspace-revisione { min-width: 0; }
 .sentinelle-review { padding-top: var(--u2); border-top: 1px solid var(--riga); }
 .revisioni-layout {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 25rem);
+  display: grid; grid-template-columns: minmax(0, 1fr);
   gap: var(--u6); align-items: start;
 }
 .sezione-revisione > h2, .crea-revisione > h2 { margin: 0 0 var(--u2); font-size: 1.25rem; }
-.crea-revisione { margin: 0; position: sticky; top: var(--u2); }
+.crea-revisione { margin: 0; max-width: 30rem; }
 .crea-revisione label { display: block; margin: 0 0 var(--u2); color: var(--testo-tenue); }
 .crea-revisione input, .crea-revisione select { margin-top: .35rem; color: var(--testo); }
 .elenco-progetti { border-top: 1px solid var(--bordo); }
@@ -1159,8 +1159,6 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
 .wiki-fonti ul { padding-left: 1.2rem; }
 
 @media (max-width: 64rem) {
-  .revisioni-layout { grid-template-columns: 1fr; }
-  .crea-revisione { position: static; }
   .risolvi-conflitto { grid-template-columns: 1fr 1fr; }
   .risolvi-conflitto textarea { grid-column: 1 / -1; }
   .wiki-telaio { grid-template-columns: 1fr; }
