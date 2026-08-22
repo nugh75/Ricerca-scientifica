@@ -42,11 +42,28 @@ jobs:
           format are fixed: what this version writes, later versions read.
           Problems and suggestions: open an issue.
 
-          ### New in 2.0.1
+          ### New in 2.1.0
 
-          - The guidance mark in the protocol form is a centred icon: the
-            question mark used to sit off-centre inside a second circle drawn
-            by the button border.
+          - Deleting asks first. Clearing the history or removing a saved
+            search wants a confirmation; a review project — protocol,
+            screening, extractions and synthesis — is deleted only by typing
+            its title back.
+          - A screening decision inside a review swaps that record alone, and
+            the counts update around it. «i», «f», «e» and the arrows work
+            there too. Without JavaScript the whole page still comes back.
+          - The library opens the PDF it found the phrase in, in the reader
+            inside the app.
+          - Results take the address of the saved search: reloading no longer
+            loses them, and the last five searches sit on the front page.
+          - The history is filtered by topic and split into pages, and a saved
+            search reopens ready to run again, filters included.
+          - A single record joins a review without linking the whole search, a
+            review project can be renamed, and extraction and critical
+            appraisal are split into pages.
+
+          ### In 2.0.1
+
+          - The guidance mark in the protocol form is a centred icon.
 
           ### In 2.0.0
 
@@ -92,11 +109,28 @@ jobs:
           fermi: quello che scrive questa versione, le prossime lo rileggono.
           Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.0.1
+          ### Novità in 2.1.0
 
-          - Il segno di guida del protocollo è un'icona centrata: il punto
-            interrogativo stava fuori centro, dentro un secondo cerchio
-            disegnato dal bordo del bottone.
+          - Le cancellazioni chiedono. Svuotare la cronologia o togliere una
+            ricerca salvata vuole una conferma; un progetto di review —
+            protocollo, screening, estrazioni e sintesi — si cancella soltanto
+            riscrivendone il titolo.
+          - Una decisione di screening dentro una review scambia quel record
+            soltanto, e i conteggi si aggiornano attorno. Anche lì valgono
+            «i», «f», «e» e le frecce. Senza JavaScript torna la pagina intera.
+          - La biblioteca apre il PDF in cui ha trovato la frase, nel lettore
+            dentro l'app.
+          - I risultati prendono l'indirizzo della ricerca salvata: ricaricare
+            non li perde più, e le ultime cinque stanno in prima pagina.
+          - La cronologia si filtra per argomento e si divide in pagine, e una
+            ricerca salvata si riapre pronta da rilanciare, filtri compresi.
+          - Un singolo record entra in una review senza collegare tutta la
+            ricerca, un progetto di review si può rinominare, ed estrazione e
+            valutazione critica si dividono in pagine.
+
+          ### Nella 2.0.1
+
+          - Il segno di guida del protocollo è un'icona centrata.
 
           ### Nella 2.0.0
 

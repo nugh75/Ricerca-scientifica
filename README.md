@@ -4,7 +4,7 @@ A literature search assistant. It turns a topic into keywords, ready-made
 queries for every database, and a list of articles to screen — then keeps the
 strategy, the numbers and the PDFs where you can find them again.
 
-> **Version 2.0.** The first stable release: interfaces, file names and stored
+> **Version 2.1.** Stable: interfaces, file names and stored
 > formats stay put, and what you save today opens tomorrow. Problems and
 > suggestions: [open an issue](https://github.com/nugh75/Ricerca-scientifica/issues).
 
@@ -76,6 +76,23 @@ configure later, and reopen it any time from Settings.
   terms in prior human decisions, never excludes a record, and leaves the
   corpus order untouched. Complete Markdown and JSON exports preserve the
   audit trail.
+
+### New in 2.1.0
+
+- Deleting asks first. Clearing the history or removing a saved search wants a
+  confirmation; a review project — protocol, screening, extractions and
+  synthesis — is deleted only by typing its title back.
+- A screening decision inside a review swaps that record alone, and the counts
+  update around it. «i», «f», «e» and the arrows work there too. Without
+  JavaScript the whole page still comes back, as before.
+- The library opens the PDF it found the phrase in, in the reader inside the app.
+- Results take the address of the saved search: reloading no longer loses them,
+  and the last five searches sit on the front page.
+- The history is filtered by topic and split into pages.
+- A saved search reopens ready to run again, filters included.
+- A single record joins a review without linking the whole search, and a review
+  project can be renamed once the work has settled its title.
+- Extraction and critical appraisal are split into pages.
 
 ### New in 2.0.0
 
@@ -328,7 +345,7 @@ they are read.
 
 # Italiano
 
-> **Versione 2.0.** La prima release stabile: interfaccia, nomi dei file e
+> **Versione 2.1.** Stabile: interfaccia, nomi dei file e
 > formati salvati restano al loro posto, e quello che salvi oggi si riapre
 > domani. Problemi e proposte:
 > [apri una segnalazione](https://github.com/nugh75/Ricerca-scientifica/issues).
@@ -400,6 +417,24 @@ vuole da Impostazioni.
   punteggio tramite i termini delle precedenti decisioni umane, non esclude mai
   un record e non altera l'ordine del corpus. Gli export Markdown e JSON
   conservano l'intero audit trail.
+
+### Novità in 2.1.0
+
+- Le cancellazioni chiedono. Svuotare la cronologia o togliere una ricerca
+  salvata vuole una conferma; un progetto di review — protocollo, screening,
+  estrazioni e sintesi — si cancella soltanto riscrivendone il titolo.
+- Una decisione di screening dentro una review scambia quel record soltanto, e
+  i conteggi si aggiornano attorno. Anche lì valgono «i», «f», «e» e le frecce.
+  Senza JavaScript torna la pagina intera, come prima.
+- La biblioteca apre il PDF in cui ha trovato la frase, nel lettore dentro l'app.
+- I risultati prendono l'indirizzo della ricerca salvata: ricaricare non li
+  perde più, e le ultime cinque stanno in prima pagina.
+- La cronologia si filtra per argomento e si divide in pagine.
+- Una ricerca salvata si riapre pronta da rilanciare, filtri compresi.
+- Un singolo record entra in una review senza collegare tutta la ricerca, e un
+  progetto di review si può rinominare quando il lavoro ne ha assestato il
+  titolo.
+- Estrazione e valutazione critica si dividono in pagine.
 
 ### Novità in 2.0.0
 
