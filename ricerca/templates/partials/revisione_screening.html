@@ -2,14 +2,26 @@
   {% set record_screening = record_screening_abstract if fase == 'abstract' else record_screening_fulltext %}
   {% set pagina_corrente = pagina_abstract if fase == 'abstract' else pagina_fulltext %}
   {% set pagine_correnti = pagine_abstract if fase == 'abstract' else pagine_fulltext %}
+  {% set fq = '&filtro_anno_da=' ~ filtri_review.filtro_anno_da|urlencode ~ '&filtro_anno_a=' ~ filtri_review.filtro_anno_a|urlencode ~ '&filtro_keywords=' ~ filtri_review.filtro_keywords|urlencode ~ '&filtro_titolo=' ~ filtri_review.filtro_titolo|urlencode ~ '&filtro_abstract=' ~ filtri_review.filtro_abstract|urlencode %}
   <div class="fase-testa"><div><p class="occhiello">{{ t.review_selection }}</p><h2>{{ titolo }}</h2><p>{{ t.review_screening_help }}</p></div>{% include "partials/revisione_stato_fase.html" %}</div>
   <div class="selettore-revisore" aria-label="{{ t.review_active_reviewer }}">
     <span>{{ t.review_active_reviewer }}</span>
-    {% for revisore in progetto.revisori %}<a href="/revisioni/{{ progetto.id }}?revisore={{ revisore|urlencode }}&pagina_abstract={{ pagina_abstract }}&pagina_fulltext={{ pagina_fulltext }}#{{ ancora }}" class="{% if revisore == revisore_attivo %}attivo{% endif %}" aria-current="{{ 'true' if revisore == revisore_attivo else 'false' }}">{{ revisore }}</a>{% endfor %}
+    {% for revisore in progetto.revisori %}<a href="/revisioni/{{ progetto.id }}?revisore={{ revisore|urlencode }}&pagina_abstract={{ pagina_abstract }}&pagina_fulltext={{ pagina_fulltext }}{{ fq }}#{{ ancora }}" class="{% if revisore == revisore_attivo %}attivo{% endif %}" aria-current="{{ 'true' if revisore == revisore_attivo else 'false' }}">{{ revisore }}</a>{% endfor %}
     <small>{{ t.review_blind_help }}</small>
   </div>
   {% include "partials/revisione_metriche_fase.html" %}
-  <p class="aiuto scorciatoie">{{ t.shortcuts_hint }}</p>
+  <form method="get" action="/revisioni/{{ progetto.id }}" class="filtri-review" aria-label="{{ t.review_filters_title }}">
+    <input type="hidden" name="revisore" value="{{ revisore_attivo }}">
+    <label>{{ t.review_filters_year_from }}<input name="filtro_anno_da" type="number" min="1800" max="2100" value="{{ filtri_review.filtro_anno_da }}" placeholder="2019"></label>
+    <label>{{ t.review_filters_year_to }}<input name="filtro_anno_a" type="number" min="1800" max="2100" value="{{ filtri_review.filtro_anno_a }}" placeholder="2026"></label>
+    <label>{{ t.review_filters_keywords }}<input name="filtro_keywords" value="{{ filtri_review.filtro_keywords }}" placeholder="children AND game"></label>
+    <label>{{ t.review_filters_title_field }}<input name="filtro_titolo" value="{{ filtri_review.filtro_titolo }}" placeholder="literacy"></label>
+    <label>{{ t.review_filters_abstract }}<input name="filtro_abstract" value="{{ filtri_review.filtro_abstract }}" placeholder="teachers NOT university"></label>
+    <button type="submit" class="tasto">{{ t.review_filters_apply }}</button>
+    {% if filtri_attivi %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}#{{ ancora }}">{{ t.review_filters_reset }}</a>{% endif %}
+    <details class="aiuto sintassi-filtri"><summary>{{ t.review_filters_syntax_summary }}</summary><p>{{ t.review_filters_syntax }}</p></details>
+  </form>
+  <p class="aiuto scorciatoie">{{ t.review_filters_showing.format(filtrati=totale_filtrati, totale=totale_record) }}</p>
 
   {% if fase == 'abstract' and priorita_assistita %}
   <details class="assistenza-screening"><summary>{{ t.review_assisted_priority }} <span>{{ t.review_assisted_count.format(quanti=priorita_assistita|length) }}</span></summary>
@@ -23,6 +35,6 @@
     {% include "partials/revisione_record.html" %}
     {% endfor %}
   </div>
-  {% if pagine_correnti > 1 %}<nav class="pagine pagine-review" aria-label="{{ t.page_of.format(pagina=pagina_corrente, pagine=pagine_correnti) }}">{% if pagina_corrente > 1 %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}&pagina_abstract={{ pagina_corrente - 1 if fase == 'abstract' else pagina_abstract }}&pagina_fulltext={{ pagina_corrente - 1 if fase == 'fulltext' else pagina_fulltext }}#{{ ancora }}">{{ t.page_previous }}</a>{% endif %}<span>{{ t.page_of.format(pagina=pagina_corrente, pagine=pagine_correnti) }}</span>{% if pagina_corrente < pagine_correnti %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}&pagina_abstract={{ pagina_corrente + 1 if fase == 'abstract' else pagina_abstract }}&pagina_fulltext={{ pagina_corrente + 1 if fase == 'fulltext' else pagina_fulltext }}#{{ ancora }}">{{ t.page_next }}</a>{% endif %}</nav>{% endif %}
+  {% if pagine_correnti > 1 %}<nav class="pagine pagine-review" aria-label="{{ t.page_of.format(pagina=pagina_corrente, pagine=pagine_correnti) }}">{% if pagina_corrente > 1 %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}&pagina_abstract={{ pagina_corrente - 1 if fase == 'abstract' else pagina_abstract }}&pagina_fulltext={{ pagina_corrente - 1 if fase == 'fulltext' else pagina_fulltext }}{{ fq }}#{{ ancora }}">{{ t.page_previous }}</a>{% endif %}<span>{{ t.page_of.format(pagina=pagina_corrente, pagine=pagine_correnti) }}</span>{% if pagina_corrente < pagine_correnti %}<a class="tasto" href="/revisioni/{{ progetto.id }}?revisore={{ revisore_attivo|urlencode }}&pagina_abstract={{ pagina_corrente + 1 if fase == 'abstract' else pagina_abstract }}&pagina_fulltext={{ pagina_corrente + 1 if fase == 'fulltext' else pagina_fulltext }}{{ fq }}#{{ ancora }}">{{ t.page_next }}</a>{% endif %}</nav>{% endif %}
   {% else %}<p class="nota">{{ t.review_empty_corpus if fase == 'abstract' else t.review_no_fulltext_candidates }}</p>{% endif %}
 </section>

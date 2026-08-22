@@ -25,7 +25,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import config as config_module
 from . import __version__
-from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, finestra, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, revisioni, search, unpaywall, watchdog, wiki
+from . import biblioteca, cache, citazioni, costo, diagnostica, faccette, filtri_review, finestra, history, i18n, keywords, lavori, macchina, openalex_api, pdf, profili, registro, revisioni, search, unpaywall, watchdog, wiki
 from . import zotero as zotero_client
 from . import sources as sources_registry
 from .config import PRESETS, Config
@@ -152,6 +152,7 @@ def _contesto_revisione(
     revisore: str = "",
     pagina_abstract: int = 1,
     pagina_fulltext: int = 1,
+    filtri_override: dict | None = None,
 ) -> dict:
     """Dati derivati del workspace, raccolti una volta per tutte le sezioni."""
 
@@ -214,10 +215,16 @@ def _contesto_revisione(
         inizio = (pagina - 1) * per_pagina
         return candidati[inizio : inizio + per_pagina], pagina, pagine
 
+    protocollo = progetto.get("protocollo", {})
+    filtri = {campo: protocollo.get(campo, "") for campo in revisioni.CAMPI_FILTRI_REVIEW}
+    if filtri_override is not None:
+        filtri = {campo: filtri_override.get(campo, "") for campo in revisioni.CAMPI_FILTRI_REVIEW}
+    filtrati = [voce for voce in record if filtri_review.filtra_record(voce, filtri)]
+
     record_abstract, pagina_abstract, pagine_abstract = pagina_screening(
-        record, pagina_abstract, "abstract"
+        filtrati, pagina_abstract, "abstract"
     )
-    candidati_fulltext = [voce for voce in record if voce.get("stato_abstract") == "incluso"]
+    candidati_fulltext = [voce for voce in filtrati if voce.get("stato_abstract") == "incluso"]
     record_fulltext, pagina_fulltext, pagine_fulltext = pagina_screening(
         candidati_fulltext, pagina_fulltext, "fulltext"
     )
@@ -239,7 +246,10 @@ def _contesto_revisione(
         "articoli_sentinella": revisioni.controlla_sentinelle(progetto),
         "protocollo_mancanti": revisioni.campi_protocollo_mancanti(progetto),
         "ricerche_disponibili": [r for r in history.elenco() if r.get("id") not in collegate],
-        "priorita_assistita": revisioni.priorita_assistita(progetto),
+        "priorita_assistita": [
+            item for item in revisioni.priorita_assistita(progetto)
+            if filtri_review.filtra_record({"work": item["work"]}, filtri)
+        ],
         "aggiornamento_dovuto": revisioni.aggiornamento_dovuto(progetto),
         "wiki_statistiche": wiki.statistiche(progetto.get("wiki", {})),
         "wiki_obsoleta": wiki.obsoleta(progetto),
@@ -250,6 +260,10 @@ def _contesto_revisione(
         "pagine_abstract": pagine_abstract,
         "pagina_fulltext": pagina_fulltext,
         "pagine_fulltext": pagine_fulltext,
+        "filtri_review": filtri,
+        "filtri_attivi": any(str(filtri[c]).strip() for c in revisioni.CAMPI_FILTRI_REVIEW),
+        "totale_filtrati": len(filtrati),
+        "totale_record": len(record),
     }
 
 
@@ -1800,17 +1814,29 @@ async def revisione_pagina(
     revisore: str = "",
     pagina_abstract: int = 1,
     pagina_fulltext: int = 1,
+    filtro_anno_da: str | None = None,
+    filtro_anno_a: str | None = None,
+    filtro_keywords: str | None = None,
+    filtro_titolo: str | None = None,
+    filtro_abstract: str | None = None,
 ):
     if revisioni.progetto(id_progetto) is None:
         return RedirectResponse("/revisioni", status_code=303)
     revisioni.allinea(id_progetto)
+    parametri = [filtro_anno_da, filtro_anno_a, filtro_keywords, filtro_titolo, filtro_abstract]
+    filtri_override = None
+    if any(valore is not None for valore in parametri):
+        filtri_override = {
+            campo: valore or ""
+            for campo, valore in zip(revisioni.CAMPI_FILTRI_REVIEW, parametri)
+        }
     return templates.TemplateResponse(
         request,
         "revisione.html",
         base_context(
             current_config(),
             **_contesto_revisione(
-                id_progetto, revisore, pagina_abstract, pagina_fulltext
+                id_progetto, revisore, pagina_abstract, pagina_fulltext, filtri_override
             ),
         ),
     )

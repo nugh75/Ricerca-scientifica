@@ -24,6 +24,16 @@
     <div class="campo-protocollo campo-largo">{{ etichetta_guidata('criteri_inclusione', t.review_include_criteria) }}<textarea id="criteri_inclusione" name="criteri_inclusione" rows="4">{{ progetto.protocollo.criteri_inclusione|default('') }}</textarea></div>
     <div class="campo-protocollo campo-largo">{{ etichetta_guidata('criteri_esclusione', t.review_exclude_criteria) }}<textarea id="criteri_esclusione" name="criteri_esclusione" rows="4">{{ progetto.protocollo.criteri_esclusione|default('') }}</textarea></div>
     <div class="campo-protocollo campo-largo">{{ etichetta_guidata('fonti_previste', t.review_planned_sources) }}<textarea id="fonti_previste" name="fonti_previste" rows="3">{{ progetto.protocollo.fonti_previste|default('') }}</textarea></div>
+    <div class="campo-protocollo campo-largo">
+      <p class="occhiello">{{ t.review_filters_title }}</p>
+      <p class="aiuto">{{ t.review_filters_help }}</p>
+    </div>
+    <div class="campo-protocollo">{{ etichetta_guidata('filtro_anno_da', t.review_filters_year_from) }}<input id="filtro_anno_da" name="filtro_anno_da" type="number" min="1800" max="2100" value="{{ progetto.protocollo.filtro_anno_da|default('') }}" placeholder="2019"></div>
+    <div class="campo-protocollo">{{ etichetta_guidata('filtro_anno_a', t.review_filters_year_to) }}<input id="filtro_anno_a" name="filtro_anno_a" type="number" min="1800" max="2100" value="{{ progetto.protocollo.filtro_anno_a|default('') }}" placeholder="2026"></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('filtro_keywords', t.review_filters_keywords) }}<input id="filtro_keywords" name="filtro_keywords" value="{{ progetto.protocollo.filtro_keywords|default('') }}" placeholder="children AND game"></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('filtro_titolo', t.review_filters_title_field) }}<input id="filtro_titolo" name="filtro_titolo" value="{{ progetto.protocollo.filtro_titolo|default('') }}" placeholder="literacy"></div>
+    <div class="campo-protocollo campo-largo">{{ etichetta_guidata('filtro_abstract', t.review_filters_abstract) }}<input id="filtro_abstract" name="filtro_abstract" value="{{ progetto.protocollo.filtro_abstract|default('') }}" placeholder="teachers NOT university"></div>
+    <details class="aiuto sintassi-filtri"><summary>{{ t.review_filters_syntax_summary }}</summary><p>{{ t.review_filters_syntax }}</p></details>
     <div class="campo-protocollo campo-largo">{{ etichetta_guidata('peer_review_strategia', t.review_search_peer_review) }}<textarea id="peer_review_strategia" name="peer_review_strategia" rows="2" placeholder="{{ t.review_search_peer_review_placeholder }}">{{ progetto.protocollo.peer_review_strategia|default('') }}</textarea></div>
     <div class="campo-protocollo campo-largo">{{ etichetta_guidata('articoli_sentinella', t.review_sentinel_articles) }}<textarea id="articoli_sentinella" name="articoli_sentinella" rows="3" placeholder="{{ t.review_sentinel_placeholder }}">{{ progetto.protocollo.articoli_sentinella|default('') }}</textarea></div>
     <div class="campo-protocollo campo-largo">{{ etichetta_guidata('piano_sintesi', t.review_synthesis_plan) }}<textarea id="piano_sintesi" name="piano_sintesi" rows="4">{{ progetto.protocollo.piano_sintesi|default('') }}</textarea></div>
