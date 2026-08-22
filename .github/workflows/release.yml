@@ -38,11 +38,17 @@ jobs:
             --notes "$(cat <<'NOTE'
           ## English
 
-          **First stable release.** The name of every stored file and the shape
-          of every saved format are now fixed: what this version writes, later
-          versions read. Problems and suggestions: open an issue.
+          **Stable.** The name of every stored file and the shape of every saved
+          format are fixed: what this version writes, later versions read.
+          Problems and suggestions: open an issue.
 
-          ### New in 2.0.0
+          ### New in 2.0.1
+
+          - The guidance mark in the protocol form is a centred icon: the
+            question mark used to sit off-centre inside a second circle drawn
+            by the button border.
+
+          ### In 2.0.0
 
           - Screening a record swaps that record alone. The keyboard flow
             survives the decision, so «i», «f», «e» and the arrows keep working
@@ -82,11 +88,17 @@ jobs:
 
           ## Italiano
 
-          **Prima release stabile.** I nomi dei file salvati e la forma dei
-          formati sono fermi: quello che scrive questa versione, le prossime lo
-          rileggono. Problemi e proposte: apri una segnalazione.
+          **Stabile.** I nomi dei file salvati e la forma dei formati sono
+          fermi: quello che scrive questa versione, le prossime lo rileggono.
+          Problemi e proposte: apri una segnalazione.
 
-          ### Novità in 2.0.0
+          ### Novità in 2.0.1
+
+          - Il segno di guida del protocollo è un'icona centrata: il punto
+            interrogativo stava fuori centro, dentro un secondo cerchio
+            disegnato dal bordo del bottone.
+
+          ### Nella 2.0.0
 
           - Valutare un record scambia quel record soltanto. Il lavoro da
             tastiera sopravvive alla decisione: «i», «f», «e» e le frecce
