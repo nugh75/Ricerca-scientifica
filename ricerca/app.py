@@ -1070,6 +1070,28 @@ def _scheda(request: Request, id_ricerca: str, indice: int, salvato: bool = Fals
     )
 
 
+@app.post("/scheda/{id_ricerca}/{indice}/nota", response_class=HTMLResponse)
+async def salva_nota_scheda(
+    request: Request, id_ricerca: str, indice: int, nota: str = Form(default="")
+):
+    """L'appunto di chi legge, salvato accanto al record."""
+
+    works = history.record(id_ricerca)
+    if not 0 <= indice < len(works):
+        return HTMLResponse("")
+    testo = history.salva_nota(id_ricerca, indice, nota)
+    work = history.record(id_ricerca)[indice]
+    testi = i18n.strings(current_config().lang)
+    risposta = templates.TemplateResponse(
+        request,
+        "partials/nota.html",
+        base_context(
+            current_config(), work=work, indice=indice, id_ricerca=id_ricerca
+        ),
+    )
+    return avvisa(risposta, testi["note_saved"] if testo else testi["note_cleared"], "buono")
+
+
 @app.post("/scheda/{id_ricerca}/{indice}/revisione", response_class=HTMLResponse)
 async def aggiungi_scheda_a_revisione(
     request: Request,

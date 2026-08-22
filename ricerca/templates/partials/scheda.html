@@ -59,6 +59,8 @@
     {% with fuori_banda = False %}{% include "partials/screening.html" %}{% endwith %}
   </div>
 
+  {% include "partials/nota.html" %}
+
   <div class="scheda-riquadro sintesi"
        {% if sintesi_in_corso %}hx-get="/scheda/{{ id_ricerca }}/{{ indice }}"
        hx-trigger="load delay:2s" hx-target="#scheda-corpo"{% endif %}>

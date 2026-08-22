@@ -95,6 +95,8 @@ class Work:
     # Screening: riempiti al momento della lettura dalla cronologia.
     decisione: str = ""
     motivo: str = ""
+    # Appunto libero di chi legge: sta con il record, non con la decisione.
+    nota: str = ""
     # Campi corretti a mano: gli originali restano nella cronologia.
     corretto: list[str] = field(default_factory=list)
     # Campi completati da Unpaywall: mancavano, non erano sbagliati.

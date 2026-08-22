@@ -12,7 +12,7 @@ from .models import Work
 # Campi selezionabili per la tabella e per gli export.
 CAMPI = (
     "anno", "titolo", "autori", "sede", "doi", "url", "abstract", "fonti", "pdf",
-    "citazioni", "ritirato", "decisione", "motivo",
+    "citazioni", "ritirato", "decisione", "motivo", "nota",
 )
 CAMPI_PREDEFINITI = ("anno", "titolo", "autori", "sede", "citazioni", "fonti")
 
@@ -30,6 +30,7 @@ _ATTRIBUTI = {
     "ritirato": "ritirato",
     "decisione": "decisione",
     "motivo": "motivo",
+    "nota": "nota",
 }
 
 _NON_WORD = re.compile(r"[^a-z0-9]+")

@@ -138,6 +138,8 @@
       <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.decisione or '—' }}</td>
     {% elif campo == 'motivo' %}
       <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.motivo or '' }}</td>
+    {% elif campo == 'nota' %}
+      <td data-etichetta="{{ t['field_' ~ campo] }}">{{ w.nota or '' }}</td>
     {% endif %}
     {% endfor %}
     <td class="cella-pdf" data-etichetta="{{ t.pdf_column }}">{% with work = w, indice = riga, scaricato = pdf_scaricati.get(riga, False), errore = None %}{% include "partials/pdf.html" %}{% endwith %}</td>

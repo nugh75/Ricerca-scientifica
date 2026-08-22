@@ -1,0 +1,12 @@
+{# L'appunto si salva da solo, senza ridisegnare la scheda: dentro una
+   finestra modale un ricarico completo riporterebbe in cima chi stava
+   leggendo l'abstract. #}
+<form class="scheda-riquadro appunti" id="nota-{{ indice }}"
+      hx-post="/scheda/{{ id_ricerca }}/{{ indice }}/nota"
+      hx-target="#nota-{{ indice }}" hx-swap="outerHTML">
+  <h3>{{ t.note_title }}</h3>
+  <p class="aiuto">{{ t.note_help }}</p>
+  <textarea name="nota" rows="3" placeholder="{{ t.note_placeholder }}"
+            aria-label="{{ t.note_title }}">{{ work.nota }}</textarea>
+  <div class="azioni"><button type="submit" class="copia">{{ t.note_save }}</button></div>
+</form>

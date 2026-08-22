@@ -131,3 +131,70 @@ def test_lo_screening_si_fa_anche_dalla_scheda():
     id_ricerca = ricerca_con_record()
     scheda = client.get(f"/scheda/{id_ricerca}/1").text
     assert f'hx-post="/screening/{id_ricerca}/1"' in scheda
+
+
+def test_un_appunto_resta_con_il_record_e_si_cancella_svuotandolo():
+    id_ricerca = ricerca_con_record()
+
+    scheda = client.get(f"/scheda/{id_ricerca}/0").text
+    assert "Notes" in scheda
+
+    salvata = client.post(
+        f"/scheda/{id_ricerca}/0/nota",
+        data={"nota": "  metodo utile per la sezione 3  "},
+    )
+    assert salvata.status_code == 200
+    assert "metodo utile per la sezione 3" in salvata.text
+    assert "Note saved" in salvata.headers["HX-Trigger"]
+
+    # Sopravvive alla rilettura e non tocca gli altri record.
+    lavori = history.record(id_ricerca)
+    assert lavori[0].nota == "metodo utile per la sezione 3"
+    assert lavori[1].nota == ""
+    assert "metodo utile per la sezione 3" in client.get(f"/scheda/{id_ricerca}/0").text
+
+    svuotata = client.post(f"/scheda/{id_ricerca}/0/nota", data={"nota": "   "})
+    assert history.record(id_ricerca)[0].nota == ""
+    assert "Note cleared" in svuotata.headers["HX-Trigger"]
+
+
+def test_l_appunto_esce_nel_csv_quando_lo_si_chiede():
+    id_ricerca = ricerca_con_record()
+    history.salva_nota(id_ricerca, 0, "campione piccolo")
+
+    csv = client.get(f"/export/{id_ricerca}.csv", params={"campi": "titolo,nota"}).text
+
+    assert "nota" in csv.splitlines()[0]
+    assert "campione piccolo" in csv
+
+
+def test_un_indice_inesistente_non_scrive_appunti():
+    id_ricerca = ricerca_con_record()
+    assert history.salva_nota(id_ricerca, 99, "niente") == ""
+    assert client.post(f"/scheda/{id_ricerca}/99/nota", data={"nota": "x"}).text == ""
+
+
+def test_la_colonna_dell_appunto_disegna_la_sua_cella():
+    """Un campo senza ramo nel template salterebbe la cella e sfalserebbe
+    tutte le colonne successive della riga."""
+
+    id_ricerca = ricerca_con_record()
+    history.salva_nota(id_ricerca, 0, "da rileggere")
+
+    pagina = client.post(
+        f"/risultati/{id_ricerca}", data={"campo": ["titolo", "nota"], "vista": "tabella"}
+    ).text
+
+    assert "da rileggere" in pagina
+
+    def conta(html):
+        prima_riga = html.split("<tbody>")[1].split("</tr>")[0]
+        return html.count("<th>"), prima_riga.count("<td")
+
+    intestazioni, celle = conta(pagina)
+    assert celle == intestazioni + 1   # in più la colonna della spunta, senza <th> di testo
+
+    senza = client.post(
+        f"/risultati/{id_ricerca}", data={"campo": ["titolo"], "vista": "tabella"}
+    ).text
+    assert conta(senza) == (intestazioni - 1, celle - 1)

@@ -892,6 +892,8 @@ tbody tr:focus-visible { outline: 2px solid var(--accento); outline-offset: -2px
    dell'intera ricerca: da qui il singolo record entra nel corpus. */
 .aggiungi-a-review .azioni { margin: 0; }
 .aggiungi-a-review select { flex: 1 1 14rem; min-width: 0; }
+.appunti textarea { width: 100%; min-height: 4.5rem; resize: vertical; }
+.appunti .azioni { margin-bottom: 0; }
 
 /* Il titolo di una revisione si assesta lavorandoci: sta a portata di mano,
    ma piegato, perché si cambia una volta ogni tanto. */

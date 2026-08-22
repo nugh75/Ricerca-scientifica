@@ -131,6 +131,7 @@ def record(id_voce: str) -> list[Work]:
     prese = trovata.get("decisioni", {})
     corrette = trovata.get("correzioni", {})
     completate = trovata.get("completamenti", {})
+    annotati = trovata.get("note", {})
     lavori = []
     for indice, dati in enumerate(trovata.get("record", [])):
         lavoro = Work(**dati)
@@ -141,6 +142,7 @@ def record(id_voce: str) -> list[Work]:
         decisione = prese.get(str(indice), {})
         lavoro.decisione = decisione.get("stato", "")
         lavoro.motivo = decisione.get("motivo", "")
+        lavoro.nota = annotati.get(str(indice), "")
         # Prima ciò che mancava, poi ciò che è stato corretto a mano: la
         # correzione dell'utente vince sempre sul completamento automatico.
         for campo, valore in completate.get(str(indice), {}).items():
@@ -159,6 +161,31 @@ def record(id_voce: str) -> list[Work]:
                     lavoro.completato.remove(campo)
         lavori.append(lavoro)
     return lavori
+
+
+def salva_nota(id_voce: str, indice: int, testo: str) -> str:
+    """Un appunto libero accanto al record.
+
+    Il motivo dello screening spiega una decisione; questo no: serve a
+    ricordare perché un articolo conta, quale pagina rileggere, che cosa
+    chiedere a chi l'ha scritto. Svuotarlo lo cancella.
+    """
+
+    testo = testo.strip()
+    voci = _leggi()
+    for voce_corrente in voci:
+        if voce_corrente.get("id") != id_voce:
+            continue
+        if not 0 <= indice < len(voce_corrente.get("record", [])):
+            return ""
+        note = voce_corrente.setdefault("note", {})
+        if testo:
+            note[str(indice)] = testo
+        else:
+            note.pop(str(indice), None)
+        _scrivi(voci)
+        return testo
+    return ""
 
 
 CAMPI_CORREGGIBILI = ("title", "authors", "year", "venue", "doi")
